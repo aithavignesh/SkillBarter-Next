@@ -8,6 +8,7 @@ out/
 dist/
 coverage/
 .turbo/
+*.tsbuildinfo
 
 # local environment and secrets
 .env

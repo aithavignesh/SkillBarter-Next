@@ -1,32 +1,100 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
-import { apiHealthSchema } from "@skillbarter/shared";
+import { apiHealthSchema, apiReadySchema } from "@skillbarter/shared";
 import { env } from "./config/env";
+import { isDatabaseConnected } from "./config/database";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { requestLogger } from "./middleware/requestLogger";
+
+import { authRouter } from "./modules/auth/auth.routes";
+import { usersRouter } from "./modules/users/users.routes";
+import { skillsRouter } from "./modules/skills/skills.routes";
+import { matchesRouter } from "./modules/matches/matches.routes";
+import { exchangesRouter } from "./modules/exchanges/exchanges.routes";
+import { messagesRouter } from "./modules/messages/messages.routes";
+import { notificationsRouter } from "./modules/notifications/notifications.routes";
+import { reviewsRouter } from "./modules/reviews/reviews.routes";
+import { communityRouter } from "./modules/community/community.routes";
+import { safetyRouter } from "./modules/safety/safety.routes";
+import { adminRouter } from "./modules/admin/admin.routes";
+import { analyticsRouter } from "./modules/analytics/analytics.routes";
 
 export const app = express();
 
 app.disable("x-powered-by");
 app.use(helmet());
-app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
-app.use(express.json({ limit: "1mb" }));
-app.use("/api", rateLimit({ windowMs: 60_000, limit: 120, standardHeaders: "draft-7", legacyHeaders: false }));
+app.use(
+  cors({
+    origin: env.FRONTEND_URL,
+    credentials: true,
+  })
+);
+app.use(cookieParser());
+app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ extended: true, limit: "2mb" }));
+app.use(requestLogger);
 
-app.get("/api/health", (_req, res) => {
+// Global API rate limiting
+app.use(
+  "/api",
+  rateLimit({
+    windowMs: 60_000,
+    limit: 200,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+  })
+);
+
+// Health check handler
+const handleHealth = (_req: express.Request, res: express.Response) => {
   const payload = apiHealthSchema.parse({
     status: "ok",
     service: "skillbarter-api",
     timestamp: new Date().toISOString(),
   });
   res.status(200).json(payload);
-});
+};
 
-app.use((_req, res) => {
-  res.status(404).json({ error: { code: "NOT_FOUND", message: "Route not found" } });
-});
+// Readiness check handler (verifies DB status without exposing secrets)
+const handleReady = (_req: express.Request, res: express.Response) => {
+  const dbConnected = isDatabaseConnected();
+  const payload = apiReadySchema.parse({
+    status: dbConnected ? "ready" : "not_ready",
+    service: "skillbarter-api",
+    database: dbConnected ? "connected" : "disconnected",
+    timestamp: new Date().toISOString(),
+  });
+  res.status(dbConnected ? 200 : 503).json(payload);
+};
 
-app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  const message = error instanceof Error ? error.message : "Unexpected server error";
-  res.status(500).json({ error: { code: "INTERNAL_ERROR", message } });
-});
+// Health & Readiness routes
+app.get("/api/health", handleHealth);
+app.get("/api/v1/health", handleHealth);
+app.get("/api/ready", handleReady);
+app.get("/api/v1/ready", handleReady);
+
+// API v1 Domain Routes
+const apiV1 = express.Router();
+apiV1.use("/auth", authRouter);
+apiV1.use("/users", usersRouter);
+apiV1.use("/skills", skillsRouter);
+apiV1.use("/matches", matchesRouter);
+apiV1.use("/exchanges", exchangesRouter);
+apiV1.use("/messages", messagesRouter);
+apiV1.use("/notifications", notificationsRouter);
+apiV1.use("/reviews", reviewsRouter);
+apiV1.use("/community", communityRouter);
+apiV1.use("/safety", safetyRouter);
+apiV1.use("/admin", adminRouter);
+apiV1.use("/analytics", analyticsRouter);
+
+app.use("/api/v1", apiV1);
+// Alias without v1 for convenience
+app.use("/api", apiV1);
+
+// Centralized 404 and Error Handlers
+app.use(notFoundHandler);
+app.use(errorHandler);
