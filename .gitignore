@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+.next/
+out/
+dist/
+coverage/
+.turbo/
+
+# local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+
+# logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
