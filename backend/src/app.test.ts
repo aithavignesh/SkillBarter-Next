@@ -61,6 +61,19 @@ describe("Security middleware and admin access", () => {
     expect(setCookie?.some((cookie) => cookie.startsWith("refreshToken=;"))).toBe(true);
   });
 
+  it("rejects profile updates without an authenticated session", async () => {
+    const response = await request(app).patch("/api/v1/users/profile").send({
+      displayName: "Unauthenticated Update",
+      bio: "This request must not be applied.",
+    });
+    expect(response.status).toBe(401);
+  });
+
+  it("rejects onboarding completion without an authenticated session", async () => {
+    const response = await request(app).post("/api/v1/users/onboarding").send({});
+    expect(response.status).toBe(401);
+  });
+
   it("rejects password changes without an authenticated session", async () => {
     const response = await request(app).post("/api/v1/auth/change-password").send({
       currentPassword: "Old-password-123!",
