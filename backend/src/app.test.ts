@@ -74,6 +74,29 @@ describe("Security middleware and admin access", () => {
     expect(response.status).toBe(401);
   });
 
+  it("rejects notification listing without an authenticated session", async () => {
+    const response = await request(app).get("/api/v1/notifications");
+    expect(response.status).toBe(401);
+  });
+
+  it("rejects user blocking without an authenticated session", async () => {
+    const response = await request(app).post("/api/v1/safety/block").send({ userId: "target-user-id" });
+    expect(response.status).toBe(401);
+  });
+
+  it("rejects report creation without an authenticated session", async () => {
+    const response = await request(app).post("/api/v1/safety/report").send({
+      reportedUserId: "target-user-id",
+      reason: "spam",
+    });
+    expect(response.status).toBe(401);
+  });
+
+  it("rejects analytics summary access without an authenticated admin session", async () => {
+    const response = await request(app).get("/api/v1/analytics/summary");
+    expect(response.status).toBe(401);
+  });
+
   it("rejects conversation access without an authenticated session", async () => {
     const response = await request(app).get("/api/v1/messages/conversations");
     expect(response.status).toBe(401);
