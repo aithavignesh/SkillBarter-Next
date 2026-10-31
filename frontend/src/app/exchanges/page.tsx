@@ -12,12 +12,13 @@ export default function ExchangesListPage() {
   const [exchanges, setExchanges] = useState<ExchangeDto[]>([]);
   const [filter, setFilter] = useState<string>("ALL");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     api.exchanges
       .list()
       .then((res) => setExchanges(res.exchanges))
-      .catch(() => setExchanges([]))
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -34,7 +35,7 @@ export default function ExchangesListPage() {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+          <span className="text-xs font-bold uppercase tracking-wider text-red-700">
             Lifecycle Management
           </span>
           <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Your Skill Exchanges</h1>
@@ -45,7 +46,7 @@ export default function ExchangesListPage() {
 
         <Link
           href="/discover"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-indigo-500 shadow-sm"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-red-700 px-4 py-2.5 text-xs font-semibold text-white hover:bg-red-600 shadow-sm"
         >
           <ArrowLeftRight className="h-4 w-4" /> Start New Exchange
         </Link>
@@ -70,6 +71,13 @@ export default function ExchangesListPage() {
 
       {loading ? (
         <div className="p-12 text-center text-sm text-slate-500">Loading your exchanges...</div>
+      ) : loadError ? (
+        <div role="alert" className="rounded-2xl border border-red-200 bg-white p-10 text-center">
+          <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-600" />
+          <h2 className="font-bold text-slate-900">Couldn't load your exchanges</h2>
+          <p className="mt-2 text-sm text-slate-600">The exchange service may be temporarily unavailable. Please refresh to try again.</p>
+          <button type="button" onClick={() => window.location.reload()} className="mt-4 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600">Try again</button>
+        </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
           <ArrowLeftRight className="mx-auto h-10 w-10 text-slate-400 mb-2" />
@@ -79,7 +87,7 @@ export default function ExchangesListPage() {
           </p>
           <Link
             href="/discover"
-            className="inline-block mt-4 rounded-xl bg-indigo-600 px-5 py-2 text-xs font-semibold text-white"
+            className="inline-block mt-4 rounded-xl bg-red-700 px-5 py-2 text-xs font-semibold text-white"
           >
             Discover Matches
           </Link>
@@ -106,7 +114,7 @@ export default function ExchangesListPage() {
                           ? "bg-amber-50 text-amber-700"
                           : ex.status === "CANCELLED"
                           ? "bg-rose-50 text-rose-700"
-                          : "bg-indigo-50 text-indigo-700"
+                          : "bg-red-50 text-red-700"
                       }`}
                     >
                       {ex.status}
@@ -136,7 +144,7 @@ export default function ExchangesListPage() {
                   </p>
                 </div>
 
-                <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-indigo-600">
+                <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-red-700">
                   <span>View Details & Actions</span>
                   <ArrowRight className="h-4 w-4" />
                 </div>
