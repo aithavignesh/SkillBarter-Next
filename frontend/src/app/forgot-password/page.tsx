@@ -31,10 +31,10 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md space-y-6 rounded-3xl border border-slate-200 bg-white p-8 sm:p-10 shadow-lg">
+    <div className="auth-page flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-12">
+      <div className="auth-card w-full max-w-md space-y-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-xl sm:p-10">
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white shadow-md">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d31d24] text-white shadow-md">
             <KeyRound className="h-6 w-6" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-slate-900">
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                 </div>
                 <Link
                   href={`/reset-password?token=${resetToken}`}
-                  className="inline-block mt-3 w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500"
+                  className="inline-block mt-3 w-full rounded-xl bg-[#d31d24] py-2.5 text-sm font-semibold text-white hover:bg-[#b71c1c]"
                 >
                   Proceed to Reset Password
                 </Link>
@@ -84,14 +84,14 @@ export default function ForgotPasswordPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600"
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-[#d31d24] focus:outline-none focus:ring-1 focus:ring-[#d31d24]"
                 placeholder="you@example.com"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-red-600 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:opacity-50"
+              className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b71c1c] disabled:opacity-50"
             >
               {loading ? "Sending..." : "Send Reset Link"}
             </button>
@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
         )}
 
         <div className="text-center pt-2">
-          <Link href="/login" className="text-xs font-semibold text-red-600 hover:text-red-500">
+          <Link href="/login" className="text-xs font-semibold text-[#b71c1c] hover:text-[#d31d24]">
             Back to Sign in
           </Link>
         </div>
