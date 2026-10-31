@@ -43,12 +43,35 @@ function MessagesContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (activeConvId) {
-      api.messages
-        .getMessages(activeConvId)
-        .then((res) => { setMessages(res); setMessageError(false); })
-        .catch(() => { setMessages([]); setMessageError(true); });
+    let current = true;
+    if (!activeConvId) {
+      setMessages([]);
+      setMessageError(false);
+      return () => {
+        current = false;
+      };
     }
+
+    setMessages([]);
+    setMessageError(false);
+    api.messages
+      .getMessages(activeConvId)
+      .then((res) => {
+        if (current) {
+          setMessages(res);
+          setMessageError(false);
+        }
+      })
+      .catch(() => {
+        if (current) {
+          setMessages([]);
+          setMessageError(true);
+        }
+      });
+
+    return () => {
+      current = false;
+    };
   }, [activeConvId]);
 
   useEffect(() => {
