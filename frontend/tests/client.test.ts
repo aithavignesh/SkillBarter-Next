@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { api } from "../src/services/api";
 import { registerSchema, loginSchema, onboardingSchema } from "@skillbarter/shared";
 
@@ -62,4 +62,29 @@ describe("Frontend Client Services & Schemas", () => {
     });
     expect(valid.success).toBe(true);
   });
+  it("encodes reserved characters in skill and match search parameters", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ success: true, data: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      await api.skills.list("Software & Development", "C++ / Regex?");
+      const skillUrl = new URL(fetchMock.mock.calls[0][0] as string);
+      expect(skillUrl.searchParams.get("category")).toBe("Software & Development");
+      expect(skillUrl.searchParams.get("search")).toBe("C++ / Regex?");
+
+      await api.matches.discover("Software & Development", "C++ / Regex?", "in person");
+      const matchUrl = new URL(fetchMock.mock.calls[1][0] as string);
+      expect(matchUrl.searchParams.get("category")).toBe("Software & Development");
+      expect(matchUrl.searchParams.get("search")).toBe("C++ / Regex?");
+      expect(matchUrl.searchParams.get("format")).toBe("in person");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
 });
