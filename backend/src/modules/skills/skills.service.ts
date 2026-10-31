@@ -22,9 +22,9 @@ export class SkillsService {
     if (query.search?.trim()) {
       // Treat user input as literal text rather than a raw regular expression.
       // This avoids unexpectedly broad matches and regex-based query abuse.
-      const escapedSearch = query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\    if (query.search) {
-      filter.name = { $regex: query.search.trim(), $options: "i" };
-    }");
+      const escapedSearch = [...query.search.trim()]
+        .map((character) => ".*+?^${}()|[]\\".includes(character) ? "\\" + character : character)
+        .join("");
       filter.name = { $regex: escapedSearch, $options: "i" };
     }
 
