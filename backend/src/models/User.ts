@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IUser extends Document {
   email: string;
   passwordHash: string;
+  passwordChangedAt?: Date;
   displayName: string;
   role: "user" | "admin";
   isEmailVerified: boolean;
@@ -29,6 +30,7 @@ const userSchema = new Schema<IUser>(
   {
     email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
     passwordHash: { type: String, required: true },
+    passwordChangedAt: { type: Date },
     displayName: { type: String, required: true, trim: true },
     role: { type: String, enum: ["user", "admin"], default: "user", index: true },
     isEmailVerified: { type: Boolean, default: false },
