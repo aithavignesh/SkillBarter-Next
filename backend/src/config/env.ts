@@ -39,16 +39,23 @@ export const envSchema = envBaseSchema.superRefine((value, context) => {
     }
   }
 
-  if (value.EMAIL_DISABLED !== "true") {
-    for (const key of ["RESEND_API_KEY", "EMAIL_FROM"] as const) {
-      if (!process.env[key]?.trim()) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [key],
-          message: `${key} must be explicitly configured in production unless EMAIL_DISABLED=true`,
-        });
-      }
+  // Email verification and password recovery are required production capabilities.
+  // EMAIL_DISABLED is only a development/test convenience and must never bypass this gate.
+  for (const key of ["RESEND_API_KEY", "EMAIL_FROM"] as const) {
+    if (!process.env[key]?.trim()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [key],
+        message: `${key} must be explicitly configured in production`,
+      });
     }
+  }
+  if (value.EMAIL_DISABLED === "true") {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["EMAIL_DISABLED"],
+      message: "EMAIL_DISABLED=true is not allowed in production",
+    });
   }
 
   for (const key of ["JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET", "ADMIN_BOOTSTRAP_SECRET"] as const) {
