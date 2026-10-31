@@ -392,9 +392,26 @@ export class ExchangesService {
       );
     }
 
-    exchange.status = "DISPUTED";
-    exchange.disputeReason = reason;
-    await exchange.save();
+    // Claim the dispute transition atomically. A concurrent completion or
+    // cancellation must not be overwritten by this stale document save.
+    const disputedExchange = await Exchange.findOneAndUpdate(
+      {
+        _id: exchange._id,
+        status: { $nin: ["COMPLETED", "REJECTED", "CANCELLED", "DISPUTED"] },
+      },
+      { $set: { status: "DISPUTED", disputeReason: reason } },
+      { new: true }
+    );
+
+    if (!disputedExchange) {
+      const currentExchange = await Exchange.findById(exchange._id);
+      const currentStatus = currentExchange?.status || "unavailable";
+      throw new AppError(
+        `Cannot dispute an exchange while its status is ${currentStatus}`,
+        400,
+        "INVALID_STATE"
+      );
+    }
 
     return this.getExchangeById(exchangeId, userId);
   }
