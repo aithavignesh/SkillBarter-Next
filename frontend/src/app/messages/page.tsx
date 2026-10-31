@@ -20,26 +20,38 @@ function MessagesContent() {
   const [sendError, setSendError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const conversationsRequestId = useRef(0);
 
   const fetchConversations = async () => {
+    const requestId = ++conversationsRequestId.current;
     try {
       const res = await api.messages.conversations();
+      if (requestId !== conversationsRequestId.current) return;
       setConversations(res.conversations);
       const queryC = searchParams.get("c");
       if (queryC) {
         setActiveConvId(queryC);
-      } else if (res.conversations.length > 0 && !activeConvId) {
-        setActiveConvId(res.conversations[0]!.id);
+      } else {
+        setActiveConvId((currentId) => {
+          if (currentId && res.conversations.some((conversation) => conversation.id === currentId)) {
+            return currentId;
+          }
+          return res.conversations[0]?.id ?? null;
+        });
       }
+      setLoadError(false);
     } catch {
-      setLoadError(true);
+      if (requestId === conversationsRequestId.current) setLoadError(true);
     } finally {
-      setLoading(false);
+      if (requestId === conversationsRequestId.current) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchConversations();
+    void fetchConversations();
+    return () => {
+      conversationsRequestId.current += 1;
+    };
   }, [searchParams]);
 
   useEffect(() => {
