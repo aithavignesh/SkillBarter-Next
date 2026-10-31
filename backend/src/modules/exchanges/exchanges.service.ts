@@ -390,9 +390,15 @@ export class ExchangesService {
     const startTime = new Date(input.startTime);
     const endTime = new Date(input.endTime);
 
-    // Conflict detection: verify no conflicting confirmed session for this exchange
+    // Prevent double-booking either participant across all of their exchanges.
+    const participantExchanges = await Exchange.find({
+      $or: [{ requesterId: userId }, { recipientId: userId }],
+      status: { $nin: ["COMPLETED", "REJECTED", "CANCELLED", "DISPUTED"] },
+    }).select("_id");
+    const participantExchangeIds = participantExchanges.map((item) => item._id);
+
     const conflict = await ExchangeSession.findOne({
-      exchangeId: exchange._id,
+      exchangeId: { $in: participantExchangeIds },
       status: "CONFIRMED",
       // Two intervals overlap whenever each starts before the other ends.
       startTime: { $lt: endTime },
