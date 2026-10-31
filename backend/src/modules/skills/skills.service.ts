@@ -9,6 +9,11 @@ import {
 } from "@skillbarter/shared";
 import { AppError } from "../../middleware/errorHandler";
 
+function isDuplicateKeyError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error &&
+    (error as { code?: unknown }).code === 11000;
+}
+
 export class SkillsService {
   async listSkills(query: { category?: string; search?: string; page?: number; limit?: number }) {
     const page = Math.max(1, query.page || 1);
@@ -57,13 +62,21 @@ export class SkillsService {
       return skill;
     }
 
-    skill = await Skill.create({
-      name: input.name.trim(),
-      normalizedName: normalized,
-      category: input.category || "Other",
-      description: input.description || "",
-      createdBy: userId ? new mongoose.Types.ObjectId(userId) : undefined,
-    });
+    try {
+      skill = await Skill.create({
+        name: input.name.trim(),
+        normalizedName: normalized,
+        category: input.category || "Other",
+        description: input.description || "",
+        createdBy: userId ? new mongoose.Types.ObjectId(userId) : undefined,
+      });
+    } catch (error) {
+      // A concurrent request may have inserted the same normalized name after our lookup.
+      if (!isDuplicateKeyError(error)) throw error;
+      const concurrentlyCreated = await Skill.findOne({ normalizedName: normalized });
+      if (!concurrentlyCreated) throw error;
+      skill = concurrentlyCreated;
+    }
 
     return skill;
   }
@@ -87,13 +100,21 @@ export class SkillsService {
     const normalized = input.name.toLowerCase().trim();
     let skill = await Skill.findOne({ normalizedName: normalized });
     if (!skill) {
-      skill = await Skill.create({
-        name: input.name.trim(),
-        normalizedName: normalized,
-        category: input.category || "Other",
-        description: input.description || "",
-        createdBy: new mongoose.Types.ObjectId(userId),
-      });
+      try {
+        skill = await Skill.create({
+          name: input.name.trim(),
+          normalizedName: normalized,
+          category: input.category || "Other",
+          description: input.description || "",
+          createdBy: new mongoose.Types.ObjectId(userId),
+        });
+      } catch (error) {
+        // Resolve concurrent creation through the unique normalizedName index.
+        if (!isDuplicateKeyError(error)) throw error;
+        const concurrentlyCreated = await Skill.findOne({ normalizedName: normalized });
+        if (!concurrentlyCreated) throw error;
+        skill = concurrentlyCreated;
+      }
     }
 
     const existing = await UserSkill.findOne({
@@ -105,21 +126,38 @@ export class SkillsService {
     if (existing) {
       existing.proficiency = input.proficiency;
       existing.description = input.description || "";
-      existing.yearsExperience = input.yearsExperience || 1;
+      existing.yearsExperience = input.yearsExperience ?? 1;
       await existing.save();
       return existing;
     }
 
-    const userSkill = await UserSkill.create({
-      userId: new mongoose.Types.ObjectId(userId),
-      skillId: skill._id,
-      skillName: skill.name,
-      category: skill.category,
-      type: input.type,
-      proficiency: input.proficiency,
-      description: input.description || "",
-      yearsExperience: input.yearsExperience || 1,
-    });
+    let userSkill: IUserSkill;
+    try {
+      userSkill = await UserSkill.create({
+        userId: new mongoose.Types.ObjectId(userId),
+        skillId: skill._id,
+        skillName: skill.name,
+        category: skill.category,
+        type: input.type,
+        proficiency: input.proficiency,
+        description: input.description || "",
+        yearsExperience: input.yearsExperience ?? 1,
+      });
+    } catch (error) {
+      // The compound unique index prevents duplicate associations under concurrent requests.
+      if (!isDuplicateKeyError(error)) throw error;
+      const concurrentlyCreated = await UserSkill.findOne({
+        userId,
+        skillId: skill._id,
+        type: input.type,
+      });
+      if (!concurrentlyCreated) throw error;
+      concurrentlyCreated.proficiency = input.proficiency;
+      concurrentlyCreated.description = input.description || "";
+      concurrentlyCreated.yearsExperience = input.yearsExperience ?? 1;
+      await concurrentlyCreated.save();
+      return concurrentlyCreated;
+    }
 
     await AnalyticsEvent.create({
       eventName: "SKILL_ADDED",
