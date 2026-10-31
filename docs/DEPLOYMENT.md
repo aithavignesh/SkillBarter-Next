@@ -7,7 +7,24 @@ SkillBarter-Next is designed for cloud or containerized deployment:
 - **Database**: MongoDB Atlas or a self-hosted MongoDB replica set with TLS.
 - **Transactional email**: Resend API with a verified sender domain.
 
-## 2. Environment Variables
+## 2. Backend Deployment with Render
+
+A repository Blueprint is provided at `render.yaml`. In Render, create a new Blueprint instance and select this repository's `development` branch for a non-production validation deployment. The manifest builds the shared package and Express backend, starts the API workspace, and checks `/api/v1/ready`.
+
+Before the service can become ready, set the prompted environment values in Render:
+- `FRONTEND_URL`: the exact frontend origin (no trailing path).
+- `PUBLIC_API_URL`: the public API origin ending in `/api/v1`.
+- `MONGODB_URI`: a dedicated SkillBarter-Next database, not the legacy database.
+- `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `ADMIN_BOOTSTRAP_SECRET`: three independent random secrets of at least 32 characters.
+- `RESEND_API_KEY` and `EMAIL_FROM`: valid Resend credentials and a verified sender.
+
+The manifest deliberately marks secrets as unsynchronized values. Do not paste credentials into Git or commit them to `.env`. Configure the frontend's `NEXT_PUBLIC_API_URL` in its Vercel project to the deployed API URL. Keep this as a preview/staging deployment until the end-to-end checklist below passes.
+
+## 3. Frontend Deployment with Vercel
+
+Create or reuse a Vercel project connected specifically to `aithavignesh/SkillBarter-Next`; do not reuse the legacy `skill-barter` projects unless their Git connection is explicitly confirmed to point at this repository. Configure the monorepo build so the shared workspace is built before the frontend (`npm run build -w shared && npm run build -w frontend`) and set `NEXT_PUBLIC_API_URL` to the Render API base URL ending in `/api/v1`. Verify the project is building the intended branch before assigning any production domain.
+
+## 4. Environment Variables
 
 Configure these in the hosting provider's secret/environment settings. Never commit real credentials.
 
@@ -29,7 +46,7 @@ Configure these in the hosting provider's secret/environment settings. Never com
 
 Production startup now fails fast if the MongoDB URI, both JWT secrets, or Resend sender credentials are missing. The JWT secrets and `ADMIN_BOOTSTRAP_SECRET` must each be at least 32 characters. The admin bootstrap secret must be distinct from both JWT secrets. Do not use the development defaults in production.
 
-## 3. Resend Setup
+## 5. Resend Setup
 1. Create a Resend account and verify a domain you control.
 2. Create an API key with email-send permissions.
 3. Set `RESEND_API_KEY` and `EMAIL_FROM` in the backend hosting environment.
@@ -39,7 +56,7 @@ Production startup now fails fast if the MongoDB URI, both JWT secrets, or Resen
 
 The API sends verification emails with a 24-hour link and password-reset emails with a one-hour link. Provider keys are never exposed to the frontend. In non-production environments, tokens remain available to the existing development/test flows.
 
-## 4. Production Hardening Checklist
+## 6. Production Hardening Checklist
 1. **HTTPS & Cookie Security**: In production, auth cookies are `Secure=true`, `SameSite=strict`, and `HttpOnly=true`.
 2. **CORS Restrictions**: Express restricts allowed CORS origins to `FRONTEND_URL` with credentials enabled.
 3. **Sensitive Logs**: Request logging strips password, token, authorization, and cookie values.
