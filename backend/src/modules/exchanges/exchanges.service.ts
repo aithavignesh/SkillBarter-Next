@@ -282,22 +282,40 @@ export class ExchangesService {
       exchange.completionStatus.requesterConfirmed &&
       exchange.completionStatus.recipientConfirmed;
 
-    if (bothConfirmed && exchange.status !== "COMPLETED") {
-      exchange.status = "COMPLETED";
+    let finalizedNow = false;
+    if (bothConfirmed) {
+      // Atomically claim the one-time COMPLETED transition so concurrent confirmations
+      // cannot increment the participants' completion counters more than once.
+      const finalizedExchange = await Exchange.findOneAndUpdate(
+        {
+          _id: exchange._id,
+          status: { $nin: ["COMPLETED", "REJECTED", "CANCELLED", "DISPUTED"] },
+          "completionStatus.requesterConfirmed": true,
+          "completionStatus.recipientConfirmed": true,
+        },
+        { $set: { status: "COMPLETED" } },
+        { new: true }
+      );
 
-      await Promise.all([
-        User.findByIdAndUpdate(exchange.requesterId, { $inc: { completedExchangesCount: 1 } }),
-        User.findByIdAndUpdate(exchange.recipientId, { $inc: { completedExchangesCount: 1 } }),
-      ]);
+      if (finalizedExchange) {
+        finalizedNow = true;
+        exchange.status = "COMPLETED";
 
-      await AnalyticsEvent.create({
-        eventName: "EXCHANGE_COMPLETED",
-        userId: new mongoose.Types.ObjectId(userId),
-        metadata: { exchangeId: exchange._id.toString() },
-        timestamp: new Date(),
-      });
+        await Promise.all([
+          User.findByIdAndUpdate(exchange.requesterId, { $inc: { completedExchangesCount: 1 } }),
+          User.findByIdAndUpdate(exchange.recipientId, { $inc: { completedExchangesCount: 1 } }),
+        ]);
 
-      await exchange.save();
+        await AnalyticsEvent.create({
+          eventName: "EXCHANGE_COMPLETED",
+          userId: new mongoose.Types.ObjectId(userId),
+          metadata: { exchangeId: exchange._id.toString() },
+          timestamp: new Date(),
+        });
+      } else {
+        const currentExchange = await Exchange.findById(exchange._id);
+        if (currentExchange) exchange.status = currentExchange.status;
+      }
     }
 
     const otherUserId = isRequester ? exchange.recipientId : exchange.requesterId;
@@ -306,9 +324,9 @@ export class ExchangesService {
     await Notification.create({
       recipientId: otherUserId,
       senderId: new mongoose.Types.ObjectId(userId),
-      type: bothConfirmed ? "EXCHANGE_COMPLETED" : "EXCHANGE_COMPLETION_CONFIRMED",
-      title: bothConfirmed ? "Exchange Completed" : "Completion Confirmation Received",
-      message: bothConfirmed
+      type: finalizedNow ? "EXCHANGE_COMPLETED" : "EXCHANGE_COMPLETION_CONFIRMED",
+      title: finalizedNow ? "Exchange Completed" : "Completion Confirmation Received",
+      message: finalizedNow
         ? "Both participants confirmed completion of the exchange."
         : `${actorUser?.displayName || "Participant"} confirmed completion. Waiting for the other participant.`,
       link: `/exchanges/${exchange._id.toString()}`,
