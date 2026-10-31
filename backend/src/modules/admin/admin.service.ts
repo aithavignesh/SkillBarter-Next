@@ -269,7 +269,7 @@ export class AdminService {
     }
 
     const passwordHash = await hashPassword(password);
-    admin = await User.create({
+    const admin = await User.create({
       email: email.toLowerCase().trim(),
       passwordHash,
       displayName: displayName.trim(),
