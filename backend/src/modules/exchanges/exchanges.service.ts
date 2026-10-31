@@ -196,8 +196,16 @@ export class ExchangesService {
       }
     }
 
+    if (input.status === "IN_PROGRESS" && exchange.status !== "SCHEDULED") {
+      throw new AppError(
+        `Cannot start an exchange while its status is ${exchange.status}; a scheduled exchange is required`,
+        400,
+        "INVALID_STATE"
+      );
+    }
+
     if (input.status === "CANCELLED") {
-      if (["COMPLETED", "REJECTED", "CANCELLED"].includes(exchange.status)) {
+      if (["COMPLETED", "REJECTED", "CANCELLED", "DISPUTED"].includes(exchange.status)) {
         throw new AppError(`Cannot cancel an exchange that is already ${exchange.status}`, 400, "INVALID_STATE");
       }
       exchange.cancellationReason = input.reason || "Cancelled by participant";
