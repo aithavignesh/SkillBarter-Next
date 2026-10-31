@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { z } from "zod";
 
-export const envSchema = z.object({
+const envBaseSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
   FRONTEND_URL: z.string().url().default("http://localhost:3000"),
@@ -16,7 +16,7 @@ export const envSchema = z.object({
   EMAIL_FROM: z.string().min(1).optional(),
 });
 
-const parsedEnv = envSchema.superRefine((value, context) => {
+export const envSchema = envBaseSchema.superRefine((value, context) => {
   if (value.NODE_ENV !== "production") return;
 
   const required = [
@@ -66,4 +66,4 @@ const parsedEnv = envSchema.superRefine((value, context) => {
   }
 });
 
-export const env = parsedEnv.parse(process.env);
+export const env = envSchema.parse(process.env);
