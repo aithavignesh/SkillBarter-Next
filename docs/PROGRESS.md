@@ -72,3 +72,13 @@
 - Added `docs/MIGRATION-CUTOVER-STATUS.md` to separate verified evidence from unresolved migration gates and define a safe, repeatable cutover sequence.
 - **Still blocked from declaring migration complete:** the actual sanitized source PostgreSQL schema/export, reviewed source-to-target field mappings (including `connections`), verified isolated MongoDB staging credentials, staging import/reconciliation, configured email provider credentials, and live two-user end-to-end validation are not available as verified evidence in this workspace.
 - No source/production database writes or production cutover were performed. Keep the legacy application and production data untouched until the gates in `docs/MIGRATION-CUTOVER-STATUS.md` pass.
+
+
+### Completion Recheck — MongoDB Target Clarification — 2026-10-31
+
+- Clarified the goal: complete the separate `SkillBarter-Next` application using Next.js + Express.js + MongoDB. Legacy PostgreSQL export/mapping/import is conditional on a separate decision to preserve legacy data; it is not an application-completion prerequisite by itself.
+- Verified Vercel project `skillbarter-next-preview` is linked to `aithavignesh/SkillBarter-Next`. The latest observed development deployment was READY.
+- Live preview homepage returned HTTP 200. `/api/v1/health` returned HTTP 200. `/api/v1/ready` returned HTTP 200 and reported database connected. The readiness response does not identify the database or establish that it is an isolated staging MongoDB instance.
+- CI runs `41194457108` and `41194467731` passed on development. Status documentation updated in commit `8bc9b5bc91abfc04c15768188241c5bfa277bc5f` to make target-stack and completion gates accurate; CI for this new commit is queued at the time of this note.
+- Still unverified: the Render API service's repository/branch and effective MongoDB target, required production secret configuration, real Resend email delivery, complete two-account live workflows, and recovery/rollback rehearsal. Do not claim 100% production readiness until these are tested.
+- No production promotion, production data write, or legacy repository change was performed.
