@@ -188,14 +188,16 @@ export class CommunityService {
   }
 
   async listPosts(page = 1, limit = 20): Promise<{ posts: CommunityPostDto[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
-    const skip = (page - 1) * limit;
+    const normalizedPage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+    const normalizedLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 20;
+    const skip = (normalizedPage - 1) * normalizedLimit;
 
     const [posts, total] = await Promise.all([
       CommunityPost.find()
         .populate("authorId", "displayName avatarUrl")
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(normalizedLimit),
       CommunityPost.countDocuments(),
     ]);
 
@@ -218,10 +220,10 @@ export class CommunityService {
     return {
       posts: formatted,
       meta: {
-        page,
-        limit,
+        page: normalizedPage,
+        limit: normalizedLimit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / normalizedLimit),
       },
     };
   }
