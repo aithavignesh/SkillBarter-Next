@@ -39,7 +39,7 @@ export default function RegisterPage() {
     <div className="flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8 rounded-3xl border border-slate-200 bg-white p-8 sm:p-10 shadow-lg">
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#c62828] text-white shadow-md">
             <UserPlus className="h-6 w-6" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-slate-900">
@@ -47,7 +47,7 @@ export default function RegisterPage() {
           </h2>
           <p className="mt-2 text-sm text-slate-600">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-500">
+            <Link href="/login" className="font-semibold text-[#b71c1c] hover:text-[#c62828]">
               Sign in
             </Link>
           </p>
@@ -104,7 +104,7 @@ export default function RegisterPage() {
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#c62828] focus:outline-none focus:ring-1 focus:ring-[#c62828]"
                   placeholder="Alex Morgan"
                 />
               </div>
@@ -118,7 +118,7 @@ export default function RegisterPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#c62828] focus:outline-none focus:ring-1 focus:ring-[#c62828]"
                   placeholder="alex@example.com"
                 />
               </div>
@@ -133,7 +133,7 @@ export default function RegisterPage() {
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#c62828] focus:outline-none focus:ring-1 focus:ring-[#c62828]"
                   placeholder="+91 98765 43210"
                 />
                 <p className="mt-1 text-[11px] text-slate-500">Include your country code. You can use this number to sign in with OTP.</p>
@@ -148,7 +148,7 @@ export default function RegisterPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#c62828] focus:outline-none focus:ring-1 focus:ring-[#c62828]"
                   placeholder="At least 8 chars, 1 uppercase, 1 number"
                 />
                 <p className="mt-1 text-[11px] text-slate-500">
@@ -160,7 +160,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 transition-all"
+              className="w-full rounded-xl bg-[#c62828] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b71c1c] disabled:opacity-50 transition-all"
             >
               {loading ? "Creating account..." : "Create Account"}
             </button>
