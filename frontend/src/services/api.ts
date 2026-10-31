@@ -144,8 +144,12 @@ export const api = {
 
   // Skills
   skills: {
-    list: (category?: string, search?: string, page = 1) =>
-      fetchApi<SkillDto[]>(`/skills?category=${category || ""}&search=${search || ""}&page=${page}`),
+    list: (category?: string, search?: string, page = 1) => {
+      const params = new URLSearchParams({ page: String(page) });
+      if (category) params.set("category", category);
+      if (search) params.set("search", search);
+      return fetchApi<SkillDto[]>(`/skills?${params.toString()}`);
+    },
     create: (input: SkillCreateInput) =>
       fetchApi<{ skill: SkillDto }>("/skills", {
         method: "POST",
@@ -168,10 +172,13 @@ export const api = {
 
   // Matches
   matches: {
-    discover: (category?: string, search?: string, format?: string, page = 1) =>
-      fetchApi<any[]>(
-        `/matches/discover?category=${category || ""}&search=${search || ""}&format=${format || ""}&page=${page}`
-      ),
+    discover: (category?: string, search?: string, format?: string, page = 1) => {
+      const params = new URLSearchParams({ page: String(page) });
+      if (category) params.set("category", category);
+      if (search) params.set("search", search);
+      if (format) params.set("format", format);
+      return fetchApi<any[]>(`/matches/discover?${params.toString()}`);
+    },
   },
 
   // Exchanges
