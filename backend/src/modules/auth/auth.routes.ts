@@ -6,8 +6,8 @@ import { authenticate } from "../../middleware/auth";
 export const authRouter = Router();
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 25, // limit each IP to 25 requests per windowMs for auth sensitive endpoints
+  windowMs: 15 * 60 * 1000,
+  limit: 25,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: {
@@ -23,6 +23,7 @@ authRouter.post("/register", authLimiter, (req, res, next) => authController.reg
 authRouter.post("/login", authLimiter, (req, res, next) => authController.login(req, res, next));
 authRouter.post("/logout", (req, res, next) => authController.logout(req, res, next));
 authRouter.get("/me", authenticate, (req, res, next) => authController.getMe(req, res, next));
+authRouter.get("/verify-email/link", (req, res) => authController.verifyEmailLink(req, res));
 authRouter.post("/verify-email", (req, res, next) => authController.verifyEmail(req, res, next));
 authRouter.post("/forgot-password", authLimiter, (req, res, next) => authController.forgotPassword(req, res, next));
 authRouter.post("/reset-password", authLimiter, (req, res, next) => authController.resetPassword(req, res, next));

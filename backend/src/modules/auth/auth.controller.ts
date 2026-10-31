@@ -19,7 +19,7 @@ function setAuthCookies(res: Response, accessToken: string, refreshToken: string
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "strict" : "lax",
-    maxAge: 15 * 60 * 1000, // 15 mins
+    maxAge: 15 * 60 * 1000,
     path: "/",
   });
 
@@ -27,7 +27,7 @@ function setAuthCookies(res: Response, accessToken: string, refreshToken: string
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "strict" : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   });
 }
@@ -50,7 +50,6 @@ export class AuthController {
         {
           user: result.user,
           accessToken: result.accessToken,
-          // Return verification token in non-production for automated testing and local verification
           ...(env.NODE_ENV !== "production" ? { verificationToken: result.verificationToken } : {}),
         },
         undefined,
@@ -104,6 +103,17 @@ export class AuthController {
       sendSuccess(res, { user, message: "Email successfully verified" });
     } catch (error) {
       next(error);
+    }
+  }
+
+  async verifyEmailLink(req: Request, res: Response): Promise<void> {
+    const token = typeof req.query.token === "string" ? req.query.token : "";
+    try {
+      if (!token) throw new AppError("Verification token is required", 400, "TOKEN_REQUIRED");
+      await authService.verifyEmail(token);
+      res.redirect(303, `${env.FRONTEND_URL.replace(/\/$/, "")}/login?verified=1`);
+    } catch {
+      res.redirect(303, `${env.FRONTEND_URL.replace(/\/$/, "")}/login?verified=0`);
     }
   }
 

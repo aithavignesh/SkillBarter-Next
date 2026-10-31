@@ -15,6 +15,7 @@ import {
   generateSecureToken,
   verifyRefreshToken,
 } from "../../utils/security";
+import { sendPasswordResetEmail, sendVerificationEmail } from "../../utils/email";
 import { AppError } from "../../middleware/errorHandler";
 
 export function formatAuthUser(user: IUser): AuthUser {
@@ -45,7 +46,7 @@ export class AuthService {
 
     const passwordHash = await hashPassword(input.password);
     const verificationToken = generateSecureToken();
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const user = await User.create({
       email: input.email.toLowerCase().trim(),
@@ -56,6 +57,18 @@ export class AuthService {
       verificationToken,
       verificationTokenExpiresAt: verificationExpires,
     });
+
+    try {
+      await sendVerificationEmail(user.email, user.displayName, verificationToken);
+    } catch {
+      // Avoid leaving an unusable account behind when delivery fails.
+      await user.deleteOne();
+      throw new AppError(
+        "We could not send the verification email. Please try again later.",
+        503,
+        "EMAIL_DELIVERY_FAILED",
+      );
+    }
 
     await AnalyticsEvent.create({
       eventName: "USER_REGISTERED",
@@ -84,7 +97,6 @@ export class AuthService {
   async login(input: LoginInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
     const user = await User.findOne({ email: input.email.toLowerCase().trim() });
     if (!user) {
-      // Prevent account enumeration by throwing generic invalid credentials error
       throw new AppError("Invalid email or password", 401, "INVALID_CREDENTIALS");
     }
 
@@ -144,14 +156,24 @@ export class AuthService {
   async forgotPassword(email: string): Promise<{ token?: string }> {
     const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
-      // Generic success to avoid account enumeration
       return {};
     }
 
     const resetToken = generateSecureToken();
     user.passwordResetToken = resetToken;
-    user.passwordResetExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    user.passwordResetExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
     await user.save();
+
+    try {
+      await sendPasswordResetEmail(user.email, user.displayName, resetToken);
+    } catch {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpiresAt = undefined;
+      await user.save();
+      // Keep the public response generic to avoid account enumeration.
+      console.error("Password reset email delivery failed.");
+      return {};
+    }
 
     return { token: resetToken };
   }
