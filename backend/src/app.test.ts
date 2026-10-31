@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { createSessionSchema } from "@skillbarter/shared";
+
 import request from "supertest";
 import { app } from "./app";
 
@@ -135,5 +137,53 @@ describe("Security middleware and admin access", () => {
     expect(response.status).toBe(303);
     expect(response.headers.location).toContain("/verify-email?token=");
     expect(response.headers.location).toContain(encodeURIComponent(token));
+  });
+});
+
+
+describe("Shared session request validation", () => {
+  const makeInput = (overrides: Record<string, string> = {}) => {
+    const startTime = new Date(Date.now() + 60 * 60 * 1000);
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+    return {
+      exchangeId: "exchange-test-id",
+      title: "Skill exchange session",
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      ...overrides,
+    };
+  };
+
+  it("accepts a session scheduled in the future", () => {
+    expect(createSessionSchema.safeParse(makeInput()).success).toBe(true);
+  });
+
+  it("rejects a session whose start time is in the past", () => {
+    const startTime = new Date(Date.now() - 60 * 60 * 1000);
+    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+    const result = createSessionSchema.safeParse({
+      ...makeInput(),
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path.includes("startTime"))).toBe(true);
+    }
+  });
+
+  it("rejects an end time that is not after the start time", () => {
+    const startTime = new Date(Date.now() + 60 * 60 * 1000);
+    const result = createSessionSchema.safeParse({
+      ...makeInput(),
+      startTime: startTime.toISOString(),
+      endTime: startTime.toISOString(),
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path.includes("endTime"))).toBe(true);
+    }
   });
 });
