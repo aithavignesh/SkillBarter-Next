@@ -199,19 +199,44 @@ export default function AdminDashboardPage() {
                         </span>
                       </td>
                       <td className="py-3 text-right">
-                        {u.id !== user?.id && (
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSuspend(u)}
-                            className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold ${
-                              u.isSuspended
-                                ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                : "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                            }`}
-                          >
-                            {u.isSuspended ? "Restore" : "Suspend"}
-                          </button>
-                        )}
+                        <div className="inline-flex flex-wrap justify-end gap-2">
+                          {u.id !== user?.id && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const nextRole = u.role === "admin" ? "user" : "admin";
+                                  const action = nextRole === "admin" ? "grant administrator access to" : "remove administrator access from";
+                                  if (!confirm(`Are you sure you want to ${action} ${u.displayName}? Admins can manage users and moderation reports.`)) return;
+                                  try {
+                                    await api.admin.updateUser(u.id, { role: nextRole });
+                                    await fetchAdminData();
+                                  } catch (err: unknown) {
+                                    alert(err instanceof Error ? err.message : "Role update failed");
+                                  }
+                                }}
+                                className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold ${
+                                  u.role === "admin"
+                                    ? "border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                                    : "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                                }`}
+                              >
+                                {u.role === "admin" ? "Remove Admin" : "Make Admin"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleSuspend(u)}
+                                className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold ${
+                                  u.isSuspended
+                                    ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                    : "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                                }`}
+                              >
+                                {u.isSuspended ? "Restore" : "Suspend"}
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
