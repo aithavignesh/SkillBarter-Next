@@ -9,15 +9,17 @@ export class NotificationsService {
     page = 1,
     limit = 20
   ): Promise<{ notifications: NotificationDto[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+    const normalizedPage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+    const normalizedLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 20;
     const userObjId = new mongoose.Types.ObjectId(userId);
-    const skip = (page - 1) * limit;
+    const skip = (normalizedPage - 1) * normalizedLimit;
 
     const [notifications, total] = await Promise.all([
       Notification.find({ recipientId: userObjId })
         .populate("senderId", "displayName")
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(normalizedLimit),
       Notification.countDocuments({ recipientId: userObjId }),
     ]);
 
@@ -40,10 +42,10 @@ export class NotificationsService {
     return {
       notifications: formatted,
       meta: {
-        page,
-        limit,
+        page: normalizedPage,
+        limit: normalizedLimit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / normalizedLimit),
       },
     };
   }
