@@ -17,6 +17,7 @@ function MessagesContent() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [messageError, setMessageError] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -58,6 +59,7 @@ function MessagesContent() {
     e.preventDefault();
     if (!activeConvId || !newMessage.trim() || sending) return;
 
+    setSendError(null);
     setSending(true);
     try {
       const res = await api.messages.sendMessage(activeConvId, newMessage.trim());
@@ -65,7 +67,7 @@ function MessagesContent() {
       setNewMessage("");
       fetchConversations();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to send message");
+      setSendError(err instanceof Error ? err.message : "Failed to send message. Please try again.");
     } finally {
       setSending(false);
     }
@@ -212,6 +214,11 @@ function MessagesContent() {
               </div>
 
               {/* Input Bar */}
+              {sendError && (
+                <p role="alert" className="border-t border-red-100 bg-red-50 px-4 py-2 text-sm text-red-700">
+                  {sendError}
+                </p>
+              )}
               <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-200 bg-white flex gap-2">
                 <input
                   type="text"
