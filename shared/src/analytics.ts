@@ -18,7 +18,7 @@ export type AnalyticsEventName = z.infer<typeof analyticsEventNameEnum>;
 
 export const trackEventSchema = z.object({
   eventName: analyticsEventNameEnum,
-  metadata: z.record(z.unknown()).optional().default({}),
+  metadata: z.record(z.string(), z.unknown()).optional().default({}),
 });
 
 export type TrackEventInput = z.infer<typeof trackEventSchema>;
