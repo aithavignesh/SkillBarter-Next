@@ -61,7 +61,6 @@ export class AdminService {
         { displayName: { $regex: escapedSearch, $options: "i" } },
         { email: { $regex: escapedSearch, $options: "i" } },
       ];
-      ];
     }
     if (role && role !== "all") {
       filter.role = role;
