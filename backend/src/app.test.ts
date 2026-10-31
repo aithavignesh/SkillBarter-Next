@@ -67,6 +67,14 @@ describe("Security middleware and admin access", () => {
     expect(response.body.error.code).toBe("REFRESH_TOKEN_REQUIRED");
   });
 
+  it("rejects an invalid refresh token without creating a session", async () => {
+    const response = await request(app)
+      .post("/api/v1/auth/refresh")
+      .send({ refreshToken: "not-a-valid-refresh-token" });
+    expect(response.status).toBe(401);
+    expect(response.body.error.code).toBe("INVALID_TOKEN");
+  });
+
   it("redirects email verification links to the frontend without consuming the token on GET", async () => {
     const token = "verification-token-with-special-chars&next=/admin";
     const response = await request(app).get("/api/v1/auth/verify-email/link").query({ token });
