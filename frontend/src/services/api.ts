@@ -49,13 +49,51 @@ class ApiError extends Error {
   }
 }
 
+let refreshInFlight: Promise<boolean> | null = null;
+
+async function refreshAccessToken(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        const payload = await response.json().catch(() => null) as ApiResponse<{ accessToken: string }> | null;
+        const accessToken = payload?.success ? payload.data?.accessToken : undefined;
+
+        if (!response.ok || !accessToken) {
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem("skillbarter_token");
+          }
+          return false;
+        }
+
+        localStorage.setItem("skillbarter_token", accessToken);
+        return true;
+      } catch {
+        return false;
+      }
+    })().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+
+  return refreshInFlight;
+}
+
 async function fetchApi<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retryAfterRefresh = true,
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 
-  // Attach token from localStorage if present
+  // Attach the short-lived access token when available. The refresh token stays
+  // in an HttpOnly cookie and is never exposed to JavaScript.
   let token: string | null = null;
   if (typeof window !== "undefined") {
     token = localStorage.getItem("skillbarter_token");
@@ -72,8 +110,24 @@ async function fetchApi<T>(
   const res = await fetch(url, {
     ...options,
     headers,
-    credentials: "include", // For HTTP-only auth cookies
+    credentials: "include",
   });
+
+  const authEndpoint = endpoint.split("?")[0];
+  const shouldRefresh = ![
+    "/auth/login",
+    "/auth/register",
+    "/auth/logout",
+    "/auth/refresh",
+    "/auth/verify-email",
+    "/auth/forgot-password",
+    "/auth/reset-password",
+    "/auth/change-password",
+  ].includes(authEndpoint);
+
+  if (res.status === 401 && retryAfterRefresh && shouldRefresh && await refreshAccessToken()) {
+    return fetchApi<T>(endpoint, options, false);
+  }
 
   const data: ApiResponse<T> = await res.json().catch(() => ({
     success: false,
@@ -90,7 +144,6 @@ async function fetchApi<T>(
 
   return data.data as T;
 }
-
 export const api = {
   // Auth
   auth: {
