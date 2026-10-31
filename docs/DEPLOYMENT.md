@@ -18,7 +18,7 @@ Before the service can become ready, set the prompted environment values in Rend
 - `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `ADMIN_BOOTSTRAP_SECRET`: three independent random secrets of at least 32 characters.
 - `RESEND_API_KEY` and `EMAIL_FROM`: valid Resend credentials and a verified sender.
 
-The manifest deliberately marks secrets as unsynchronized values. Do not paste credentials into Git or commit them to `.env`. Configure the frontend's `NEXT_PUBLIC_API_URL` in its Vercel project to the deployed API URL. Keep this as a preview/staging deployment until the end-to-end checklist below passes.
+The manifest deliberately marks secrets as unsynchronized values. Do not paste credentials into Git or commit them to `.env`. Keep this as a preview/staging deployment until the end-to-end checklist below passes.
 
 ## 3. Frontend Deployment with Vercel
 
@@ -34,7 +34,8 @@ Configure these in the hosting provider's secret/environment settings. Never com
 | `PORT` | Yes | Express API listening port | `4000` |
 | `FRONTEND_URL` | Yes | Frontend origin used for CORS and password-reset links | `https://app.example.com` |
 | `PUBLIC_API_URL` | Yes | Public API base URL, including `/api/v1` | `https://api.example.com/api/v1` |
-| `NEXT_PUBLIC_API_URL` | Yes | Public API base URL used by the frontend | `https://api.example.com/api/v1` |
+| `BACKEND_API_URL` | Yes for Vercel | Backend origin used by the Next.js same-origin API rewrite (no path suffix) | `https://api.example.com` |
+| `NEXT_PUBLIC_API_URL` | No (recommended `/api/v1`) | Browser API base URL; keep same-origin so auth cookies work | `/api/v1` |
 | `MONGODB_URI` | Yes | MongoDB Atlas connection URI for the new SkillBarter-Next database | `mongodb+srv://<user>:<password>@<cluster>/<database>` |
 | `JWT_ACCESS_SECRET` | Yes | Unique high-entropy access-token secret (32+ characters) | Set as a secret |
 | `JWT_REFRESH_SECRET` | Yes | Different high-entropy refresh-token secret (32+ characters) | Set as a secret |
@@ -51,7 +52,7 @@ Production startup now fails fast if the MongoDB URI, both JWT secrets, or Resen
 2. Create an API key with email-send permissions.
 3. Set `RESEND_API_KEY` and `EMAIL_FROM` in the backend hosting environment.
 4. Set `PUBLIC_API_URL` to the public backend URL ending in `/api/v1`.
-5. Set `FRONTEND_URL` and `NEXT_PUBLIC_API_URL` to the deployed frontend and backend URLs.
+5. Set `FRONTEND_URL` to the deployed frontend origin, `BACKEND_API_URL` to the Render API origin, and `NEXT_PUBLIC_API_URL=/api/v1` (or leave it unset).
 6. Deploy the backend and test registration, email verification, and password reset using an inbox you control.
 
 The API sends verification emails with a 24-hour link and password-reset emails with a one-hour link. Provider keys are never exposed to the frontend. In non-production environments, tokens remain available to the existing development/test flows.
