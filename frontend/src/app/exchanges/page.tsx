@@ -79,6 +79,8 @@ export default function ExchangesListPage() {
         {["ALL", "PENDING", "ACTIVE", "COMPLETED", "CANCELLED"].map((tab) => (
           <button
             key={tab}
+            type="button"
+            aria-pressed={filter === tab}
             onClick={() => setFilter(tab)}
             className={`rounded-xl px-4 py-2 transition-all ${
               filter === tab
