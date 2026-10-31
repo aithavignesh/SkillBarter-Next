@@ -8,8 +8,8 @@
 
 ## Verified evidence
 
-- Latest code commit: `9c44c22262484bf7612084ab2796c882f034c6c0`.
-- CI runs `41195353500` and `41195347563` completed successfully on `development`; dependency gate, shared build, typecheck, lint, tests, and production build passed.
+- Latest verified code commit: `e74731b450bab83e66e89c132e9f694d4be96b7a`.
+- CI run `41195887044` completed successfully on `development` after the email configuration hardening; dependency gate, shared build, typecheck, lint, tests, and production build passed. Earlier seed script CI run `41195353500` also passed.
 - Vercel project `skillbarter-next-preview` is linked to `aithavignesh/SkillBarter-Next`; the stable development preview is available at https://skillbarter-next-preview-git-development-aithavignesh.vercel.app.
 - The homepage and 12 key application pages (about, login, registration, password reset, discover, onboarding, exchanges, messages, community, skills, safety, admin) returned HTTP 200.
 - Live `/api/v1/health` and `/api/v1/ready` returned HTTP 200; readiness reported database connected.
@@ -20,7 +20,7 @@
 
 ## Remaining release gates
 
-1. **Email delivery:** Verify the backend's Resend key and verified `EMAIL_FROM` sender are set in the host secret manager. Test registration verification and password reset with controlled test inboxes. Do not expose or commit secrets.
+1. **Email delivery:** Production configuration now rejects `EMAIL_DISABLED=true` and requires explicit `RESEND_API_KEY` and `EMAIL_FROM`. CI tests this gate and passes. Still verify the actual backend host has a valid Resend key and verified sender, then test registration verification and password reset with controlled test inboxes. Do not expose or commit secrets.
 2. **Two-account E2E:** Using two dedicated test accounts, validate registration, verification, login/logout/refresh, onboarding, adding skills, reciprocal matching, exchange request/acceptance, scheduling, messaging, completion, reviews, block/report, and admin audit logs.
 3. **Security isolation:** Verify cross-user authorization and role restrictions using the live API; prove that private records cannot be read or mutated by other users.
 4. **Network access hardening:** Atlas currently has a `0.0.0.0/0` IP access-list entry labelled for Render staging. Replace it with the narrowest viable Render outbound IP/CIDR allowlist once the actual service egress range is verified; do not guess IPs that could break connectivity.
@@ -43,3 +43,10 @@ The former application used InsForge/PostgreSQL. PostgreSQL schema exports, Post
 - Development branch: https://github.com/aithavignesh/SkillBarter-Next/tree/development
 - Latest CI run: https://github.com/aithavignesh/SkillBarter-Next/actions/runs/41195353500
 - Vercel preview project: https://vercel.com/aithavignesh/skillbarter-next-preview
+
+
+### 2026-10-31 additional hardening
+
+- Fixed a configuration inconsistency: production previously permitted `EMAIL_DISABLED=true` in validation even though transactional email is a required account-verification and recovery capability. Production now always requires `RESEND_API_KEY` and `EMAIL_FROM`, and rejects `EMAIL_DISABLED=true`.
+- The `EMAIL_DISABLED=true` flag is now explicitly honored only outside production.
+- Added tests for production email configuration gates. Latest CI run `41195887044` passed all required checks (dependency gate, shared build, typecheck, lint, tests, production build).
