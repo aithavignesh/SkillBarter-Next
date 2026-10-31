@@ -203,9 +203,9 @@ function MessagesContent() {
                     <button
                       type="button"
                       onClick={() => {
-                        if (!activeConversation) return;
+                        if (!activeConv) return;
                         setMessageError(false);
-                        api.messages.getMessages(activeConversation.id)
+                        api.messages.getMessages(activeConv.id)
                           .then((res) => { setMessages(res); setMessageError(false); })
                           .catch(() => setMessageError(true));
                       }}
