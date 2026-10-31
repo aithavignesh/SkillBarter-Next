@@ -24,3 +24,20 @@ describe("Health and Readiness API", () => {
     expect(response.body.database).toBe("connected");
   });
 });
+
+describe("Security middleware and admin access", () => {
+  it("does not expose the Express powered-by header", async () => {
+    const response = await request(app).get("/api/v1/health");
+    expect(response.headers["x-powered-by"]).toBeUndefined();
+  });
+
+  it("rejects access to protected admin endpoints without authentication", async () => {
+    const response = await request(app).get("/api/v1/admin/stats");
+    expect(response.status).toBe(401);
+  });
+
+  it("rejects admin bootstrap requests with missing required parameters", async () => {
+    const response = await request(app).post("/api/v1/admin/bootstrap").send({});
+    expect(response.status).toBe(400);
+  });
+});
