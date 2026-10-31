@@ -13,6 +13,9 @@ export const createSessionSchema = z.object({
 }).refine((data) => new Date(data.endTime) > new Date(data.startTime), {
   message: "End time must be after start time",
   path: ["endTime"],
+}).refine((data) => new Date(data.startTime) > new Date(), {
+  message: "Session start time must be in the future",
+  path: ["startTime"],
 });
 
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;
