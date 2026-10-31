@@ -176,6 +176,7 @@ export class AuthService {
     }
 
     user.passwordHash = await hashPassword(input.newPassword);
+    user.passwordChangedAt = new Date();
     user.passwordResetToken = undefined;
     user.passwordResetExpiresAt = undefined;
     await user.save();
@@ -189,6 +190,7 @@ export class AuthService {
     if (!isValid) throw new AppError("Current password is incorrect", 400, "INCORRECT_PASSWORD");
 
     user.passwordHash = await hashPassword(input.newPassword);
+    user.passwordChangedAt = new Date();
     await user.save();
   }
 
@@ -199,6 +201,9 @@ export class AuthService {
     const user = await User.findById(payload.userId);
     if (!user || user.isSuspended || !user.isEmailVerified) {
       throw new AppError("User account not accessible", 401, "UNAUTHORIZED");
+    }
+    if (user.passwordChangedAt && (!payload.iat || payload.iat < Math.floor(user.passwordChangedAt.getTime() / 1000))) {
+      throw new AppError("Password changed; please sign in again", 401, "SESSION_REVOKED");
     }
 
     const tokenPayload = {
