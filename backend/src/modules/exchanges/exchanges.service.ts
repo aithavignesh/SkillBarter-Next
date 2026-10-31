@@ -391,8 +391,12 @@ export class ExchangesService {
     const endTime = new Date(input.endTime);
 
     // Prevent double-booking either participant across all of their exchanges.
+    const participantIds = [exchange.requesterId, exchange.recipientId];
     const participantExchanges = await Exchange.find({
-      $or: [{ requesterId: userId }, { recipientId: userId }],
+      $or: [
+        { requesterId: { $in: participantIds } },
+        { recipientId: { $in: participantIds } },
+      ],
       status: { $nin: ["COMPLETED", "REJECTED", "CANCELLED", "DISPUTED"] },
     }).select("_id");
     const participantExchangeIds = participantExchanges.map((item) => item._id);
