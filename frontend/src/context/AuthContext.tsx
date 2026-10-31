@@ -9,6 +9,10 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   login: (input: LoginInput) => Promise<void>;
+  requestPhoneOtp: (phone: string) => Promise<{ challengeId: string; phone: string }>;
+  verifyPhoneOtp: (phone: string, otp: string, challengeId: string) => Promise<void>;
+  requestEmailOtp: (email: string) => Promise<void>;
+  verifyEmailOtp: (email: string, otp: string) => Promise<void>;
   register: (input: RegisterInput) => Promise<string | undefined>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -34,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  useEffect(() => { refreshUser(); }, []);
+  useEffect(() => { void refreshUser(); }, []);
 
   const login = async (input: LoginInput) => {
     setError(null);
@@ -47,6 +51,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(msg);
       throw err;
     }
+  };
+
+  const establishOtpSession = (result: { user: AuthUser; accessToken: string }) => {
+    if (typeof window !== "undefined") localStorage.setItem("skillbarter_token", result.accessToken);
+    setUser(result.user);
+  };
+
+  const requestPhoneOtp = async (phone: string) => api.auth.requestPhoneOtp(phone);
+  const verifyPhoneOtp = async (phone: string, otp: string, challengeId: string) => {
+    setError(null);
+    const result = await api.auth.verifyPhoneOtp(phone, otp, challengeId);
+    establishOtpSession(result);
+  };
+  const requestEmailOtp = async (email: string) => { setError(null); await api.auth.requestEmailOtp(email); };
+  const verifyEmailOtp = async (email: string, otp: string) => {
+    setError(null);
+    const result = await api.auth.verifyEmailOtp(email, otp);
+    establishOtpSession(result);
   };
 
   const register = async (input: RegisterInput): Promise<string | undefined> => {
@@ -72,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register, logout, refreshUser, setUser }}>
+    <AuthContext.Provider value={{ user, loading, error, login, requestPhoneOtp, verifyPhoneOtp, requestEmailOtp, verifyEmailOtp, register, logout, refreshUser, setUser }}>
       {children}
     </AuthContext.Provider>
   );
