@@ -82,6 +82,10 @@ describe("Frontend Client Services & Schemas", () => {
       expect(matchUrl.searchParams.get("category")).toBe("Software & Development");
       expect(matchUrl.searchParams.get("search")).toBe("C++ / Regex?");
       expect(matchUrl.searchParams.get("format")).toBe("in person");
+      await api.admin.users(2, "Vignesh & Admin", "admin");
+      const adminUrl = new URL(fetchMock.mock.calls[2][0] as string);
+      expect(adminUrl.searchParams.get("search")).toBe("Vignesh & Admin");
+      expect(adminUrl.searchParams.get("role")).toBe("admin");
     } finally {
       vi.unstubAllGlobals();
     }
