@@ -26,6 +26,26 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
+  const loadDashboard = async () => {
+    setLoadError(false);
+    const [exchangeResult, notificationResult] = await Promise.allSettled([
+      api.exchanges.list(),
+      api.notifications.list(1),
+    ]);
+
+    if (exchangeResult.status === "fulfilled") {
+      setExchanges(exchangeResult.value.exchanges);
+    }
+    if (notificationResult.status === "fulfilled") {
+      setNotifications(notificationResult.value.slice(0, 3));
+    }
+    setLoadError(
+      exchangeResult.status === "rejected" ||
+      notificationResult.status === "rejected"
+    );
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/login");
@@ -38,16 +58,7 @@ export default function DashboardPage() {
     }
 
     if (user) {
-      Promise.all([
-        api.exchanges.list(),
-        api.notifications.list(1),
-      ])
-        .then(([exRes, notifRes]) => {
-          setExchanges(exRes.exchanges);
-          setNotifications(notifRes.slice(0, 3));
-        })
-        .catch(() => setLoadError(true))
-        .finally(() => setLoading(false));
+      void loadDashboard();
     }
   }, [user, authLoading, router]);
 
@@ -71,7 +82,7 @@ export default function DashboardPage() {
             <p className="font-semibold text-red-800">Some dashboard data couldn't be loaded.</p>
             <p className="mt-1 text-sm text-red-700">Your account is still available. Retry to load exchanges and notifications.</p>
           </div>
-          <button type="button" onClick={() => window.location.reload()} className="shrink-0 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600">Retry</button>
+          <button type="button" onClick={() => { setLoading(true); void loadDashboard(); }} className="shrink-0 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600">Retry</button>
         </div>
       )}
       {/* Top Welcome Card */}
