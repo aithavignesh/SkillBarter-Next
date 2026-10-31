@@ -54,19 +54,13 @@ export class AdminService {
       if (searchTerm.length > 100) {
         throw new AppError("Search query must be 100 characters or fewer", 400, "INVALID_SEARCH");
       }
-      const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\\]\\]/g, "\\  async listUsers(page = 1, limit = 20, search?: string, role?: string) {
-    const skip = (page - 1) * limit;
-    const filter: Record<string, unknown> = {};
-
-    if (search) {
-      filter.$or = [
-        { displayName: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-      ];
-    }");
+      const escapedSearch = [...searchTerm]
+        .map((character) => ".*+?^${}()|[]\\".includes(character) ? "\\" + character : character)
+        .join("");
       filter.$or = [
         { displayName: { $regex: escapedSearch, $options: "i" } },
         { email: { $regex: escapedSearch, $options: "i" } },
+      ];
       ];
     }
     if (role && role !== "all") {
