@@ -161,6 +161,26 @@ export const api = {
         method: "POST",
         body: JSON.stringify(input),
       }),
+    requestPhoneOtp: (phone: string) =>
+      fetchApi<{ challengeId: string; phone: string }>("/auth/phone/request-otp", {
+        method: "POST",
+        body: JSON.stringify({ phone }),
+      }),
+    verifyPhoneOtp: (phone: string, otp: string, challengeId: string) =>
+      fetchApi<{ user: AuthUser; accessToken: string }>("/auth/phone/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({ phone, otp, challengeId }),
+      }),
+    requestEmailOtp: (email: string) =>
+      fetchApi<{ message: string }>("/auth/email/request-otp", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
+    verifyEmailOtp: (email: string, otp: string) =>
+      fetchApi<{ user: AuthUser; accessToken: string }>("/auth/email/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({ email, otp }),
+      }),
     logout: () => fetchApi<{ message: string }>("/auth/logout", { method: "POST" }),
     me: () => fetchApi<{ user: AuthUser }>("/auth/me"),
     verifyEmail: (token: string) =>
