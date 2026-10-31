@@ -42,7 +42,9 @@ export function formatAuthUser(user: IUser): AuthUser {
 
 export class AuthService {
   async register(input: RegisterInput): Promise<{ user: AuthUser; verificationToken: string }> {
-    const normalizedPhone = input.phone.replace(/[\s()-]/g, "");
+    let normalizedPhone = input.phone.replace(/[\s()-]/g, "");
+    if (/^\d{10}$/.test(normalizedPhone)) normalizedPhone = "+91" + normalizedPhone;
+    else if (/^91\d{10}$/.test(normalizedPhone)) normalizedPhone = "+" + normalizedPhone;
     if (!/^\+[1-9]\d{7,14}$/.test(normalizedPhone)) {
       throw new AppError("Enter a valid mobile number with country code, e.g. +919876543210", 400, "INVALID_PHONE");
     }
