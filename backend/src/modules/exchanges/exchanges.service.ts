@@ -605,6 +605,14 @@ export class ExchangesService {
       );
     }
 
+    if (input.status === "CONFIRMED" && session.startTime <= new Date()) {
+      throw new AppError(
+        "A session cannot be confirmed after its start time has passed",
+        400,
+        "INVALID_SESSION_TIME"
+      );
+    }
+
     if (
       input.status === "CONFIRMED" &&
       session.proposedById.toString() === userId
