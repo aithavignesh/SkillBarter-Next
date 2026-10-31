@@ -63,7 +63,7 @@ describe("Frontend Client Services & Schemas", () => {
     expect(valid.success).toBe(true);
   });
   it("encodes reserved characters in skill and match search parameters", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
+    const fetchMock = vi.fn().mockImplementation(async () =>
       new Response(JSON.stringify({ success: true, data: [] }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
