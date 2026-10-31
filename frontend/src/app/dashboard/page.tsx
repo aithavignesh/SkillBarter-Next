@@ -202,7 +202,7 @@ export default function DashboardPage() {
                 <Link
                   key={ex.id}
                   href={`/exchanges/${ex.id}`}
-                  className="block rounded-2xl border border-slate-200 bg-white p-5 hover:border-indigo-300 transition-all shadow-sm"
+                  className="block rounded-2xl border border-slate-200 bg-white p-5 hover:border-red-300 transition-all shadow-sm"
                 >
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold bg-red-50 text-red-700">
