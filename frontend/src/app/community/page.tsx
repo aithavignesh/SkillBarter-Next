@@ -73,7 +73,7 @@ export default function CommunityPage() {
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+          <span className="text-xs font-bold uppercase tracking-wider text-red-600">
             Open Knowledge Forum
           </span>
           <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Community Feed</h1>
@@ -86,7 +86,7 @@ export default function CommunityPage() {
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-indigo-500 shadow-sm"
+            className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-red-500 shadow-sm"
           >
             <Plus className="h-4 w-4" /> Share a Post
           </button>
@@ -114,13 +114,13 @@ export default function CommunityPage() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700 text-xs">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 font-bold text-red-700 text-xs">
                       {p.authorName?.charAt(0).toUpperCase() || "M"}
                     </div>
                     <div>
                       <Link
                         href={`/profile/${p.authorId}`}
-                        className="font-bold text-sm text-slate-900 hover:text-indigo-600"
+                        className="font-bold text-sm text-slate-900 hover:text-red-600"
                       >
                         {p.authorName || "Member"}
                       </Link>
@@ -233,7 +233,7 @@ export default function CommunityPage() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="rounded-xl bg-indigo-600 px-5 py-2 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+                  className="rounded-xl bg-red-600 px-5 py-2 text-xs font-semibold text-white hover:bg-red-500 disabled:opacity-50"
                 >
                   {creating ? "Posting..." : "Publish Post"}
                 </button>
