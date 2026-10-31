@@ -97,14 +97,15 @@ export class AuthController {
   }
 
   async verifyEmailLink(req: Request, res: Response): Promise<void> {
+    // GET requests may be prefetched by email security scanners. Never consume
+    // a one-time verification token on GET; the user must confirm via POST.
     const token = typeof req.query.token === "string" ? req.query.token : "";
-    try {
-      if (!token) throw new AppError("Verification token is required", 400, "TOKEN_REQUIRED");
-      await authService.verifyEmail(token);
-      res.redirect(303, `${env.FRONTEND_URL.replace(/\/$/, "")}/login?verified=1`);
-    } catch {
-      res.redirect(303, `${env.FRONTEND_URL.replace(/\/$/, "")}/login?verified=0`);
+    const verifyPage = `${env.FRONTEND_URL.replace(/\/$/, "")}/verify-email`;
+    if (!token) {
+      res.redirect(303, `${verifyPage}`);
+      return;
     }
+    res.redirect(303, `${verifyPage}?token=${encodeURIComponent(token)}`);
   }
 
   async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
