@@ -30,11 +30,19 @@ export default function ExchangesListPage() {
   };
 
   useEffect(() => {
+    if (!user) {
+      setExchanges([]);
+      setLoading(false);
+      setLoadError(false);
+      requestIdRef.current += 1;
+      return;
+    }
+
     void loadExchanges();
     return () => {
       requestIdRef.current += 1;
     };
-  }, []);
+  }, [user?.id]);
 
   const filtered = exchanges.filter((e) => {
     if (filter === "ALL") return true;
