@@ -6,7 +6,7 @@ export default function AboutPage() {
     <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
       <Link
         href="/"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700 mb-8"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-700 mb-8"
       >
         <ArrowLeft className="h-4 w-4" /> Back to Home
       </Link>
@@ -70,7 +70,7 @@ export default function AboutPage() {
         <div className="flex justify-center pt-6">
           <Link
             href="/register"
-            className="rounded-xl bg-indigo-600 px-8 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-indigo-500"
+            className="rounded-xl bg-red-600 px-8 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-red-500"
           >
             Create Your Skill Profile
           </Link>
