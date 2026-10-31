@@ -37,12 +37,29 @@
 13. **Milestone 17 — Frontend Experience**:
     - Implemented 23 responsive Next.js App Router pages with Tailwind CSS, Lucide icons, and API client integration.
 14. **Milestone 18-23 — Testing, CI, Documentation**:
-    - 24 automated unit and integration tests passing (`npm test`).
+    - 56 automated unit, API integration, and frontend tests passing in the latest completed CI run (51 backend + 5 frontend).
     - Typecheck (`npm run typecheck`), lint (`npm run lint`), and build (`npm run build`) all passing.
     - Updated `README.md`, `ARCHITECTURE.md`, `API.md`, `DATABASE.md`, `TESTING.md`, `DEPLOYMENT.md`, `IMPLEMENTATION-PLAN.md`.
 
 ### Verification Evidence Summary
 - `npm run typecheck`: **PASS** (0 errors across shared, backend, and frontend)
 - `npm run lint`: **PASS** (0 errors)
-- `npm test`: **PASS** (24 passed tests across 5 test suites)
+- `npm test`: **PASS** (56 passed tests across 9 test files)
 - `npm run build`: **PASS** (shared dist, backend dist, and 23 Next.js pages successfully generated)
+
+### Current Hardening Update — 2026-10-31
+
+- Escaped user-supplied skill and admin search text so regular-expression metacharacters are treated literally; capped admin search length.
+- Made skill taxonomy creation resilient to concurrent duplicate-key races and preserved explicit `yearsExperience: 0` during onboarding and skill association updates.
+- Added regression tests for zero-experience onboarding, literal admin search, bounded pagination, encoded query parameters, access-token refresh, and block enforcement.
+- Enforced blocks before opening a new conversation or creating a new community connection.
+- Bounded and normalized pagination for admin lists, community posts, conversation messages, and notifications.
+- Added a same-origin Next.js API rewrite for separately hosted Render API traffic and automatic single-flight access-token refresh using the HttpOnly refresh cookie.
+- Added `render.yaml` and updated deployment documentation/environment templates for staging deployment.
+
+### Deployment Readiness — Not Yet Complete
+
+- The latest completed CI run for code commit `137ab812` passed type checking, linting, all 56 tests, and the production build. Newer environment-template/documentation commits are being re-verified by CI.
+- No Vercel project/deployment is connected to `aithavignesh/SkillBarter-Next` yet. The available Render SkillBarter services still point to the legacy `aithavignesh/SkillBarter` repository; they have not been modified.
+- A dedicated MongoDB connection URI, Resend API key, and verified sender identity are not available in this workspace. These values must be configured as host secrets; they must not be guessed or committed.
+- Therefore a live deployment, live email verification/password reset, and production two-user smoke test are still unverified. Keep `main` and the legacy production repository/database untouched until the new staging deployment passes the documented checklist.
