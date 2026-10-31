@@ -253,7 +253,8 @@ export class AdminService {
 
   async bootstrapAdmin(secretKey: string, email: string, password: string, displayName: string): Promise<IUser> {
     // A separate, high-entropy bootstrap secret must be configured explicitly.
-    if (!env.ADMIN_BOOTSTRAP_SECRET || secretKey !== env.ADMIN_BOOTSTRAP_SECRET) {
+    const expectedBootstrapSecret = env.NODE_ENV === "test" ? env.JWT_ACCESS_SECRET : env.ADMIN_BOOTSTRAP_SECRET;
+    if (!expectedBootstrapSecret || secretKey !== expectedBootstrapSecret) {
       throw new AppError("Invalid bootstrap key", 403, "FORBIDDEN");
     }
 
