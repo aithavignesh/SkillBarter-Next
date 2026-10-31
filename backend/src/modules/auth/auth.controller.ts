@@ -68,6 +68,46 @@ export class AuthController {
     }
   }
 
+
+  async requestPhoneOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const phone = typeof req.body?.phone === "string" ? req.body.phone : "";
+      const result = await authService.requestPhoneOtp(phone);
+      sendSuccess(res, result);
+    } catch (error) { next(error); }
+  }
+
+  async verifyPhoneOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { phone, otp, challengeId } = req.body ?? {};
+      if (typeof phone !== "string" || typeof otp !== "string" || typeof challengeId !== "string") {
+        throw new AppError("Phone, OTP, and challenge are required", 400, "INVALID_OTP");
+      }
+      const result = await authService.verifyPhoneOtp(phone, otp, challengeId);
+      setAuthCookies(res, result.accessToken, result.refreshToken);
+      sendSuccess(res, { user: result.user, accessToken: result.accessToken });
+    } catch (error) { next(error); }
+  }
+
+  async requestEmailOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) throw new AppError("Enter a valid email address", 400, "INVALID_EMAIL");
+      await authService.requestEmailOtp(email);
+      sendSuccess(res, { message: "If an account exists for this email, a sign-in code has been sent." });
+    } catch (error) { next(error); }
+  }
+
+  async verifyEmailOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email, otp } = req.body ?? {};
+      if (typeof email !== "string" || typeof otp !== "string") throw new AppError("Email and OTP are required", 400, "INVALID_OTP");
+      const result = await authService.verifyEmailOtp(email, otp);
+      setAuthCookies(res, result.accessToken, result.refreshToken);
+      sendSuccess(res, { user: result.user, accessToken: result.accessToken });
+    } catch (error) { next(error); }
+  }
+
   async logout(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       clearAuthCookies(res);
