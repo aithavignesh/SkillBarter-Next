@@ -19,8 +19,13 @@ export class SkillsService {
     if (query.category && query.category !== "all") {
       filter.category = query.category;
     }
-    if (query.search) {
+    if (query.search?.trim()) {
+      // Treat user input as literal text rather than a raw regular expression.
+      // This avoids unexpectedly broad matches and regex-based query abuse.
+      const escapedSearch = query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\    if (query.search) {
       filter.name = { $regex: query.search.trim(), $options: "i" };
+    }");
+      filter.name = { $regex: escapedSearch, $options: "i" };
     }
 
     const [skills, total] = await Promise.all([
