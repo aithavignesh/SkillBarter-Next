@@ -91,7 +91,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       <div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold text-indigo-800">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-800">
           <ShieldCheck className="h-3.5 w-3.5" /> Administrative Control Panel
         </span>
         <h1 className="mt-2 text-3xl font-extrabold text-slate-900">Platform Governance & Moderation</h1>
@@ -118,7 +118,7 @@ export default function AdminDashboardPage() {
             <span className="text-xs text-slate-500">Completed</span>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm">
-            <span className="block text-2xl font-extrabold text-indigo-600">
+            <span className="block text-2xl font-extrabold text-red-600">
               {stats.activeSessions}
             </span>
             <span className="text-xs text-slate-500">Active Sessions</span>
@@ -142,7 +142,7 @@ export default function AdminDashboardPage() {
           <button
             onClick={() => setTab("users")}
             className={`pb-3 border-b-2 transition-all ${
-              tab === "users" ? "border-indigo-600 text-indigo-600" : "border-transparent text-slate-500"
+              tab === "users" ? "border-red-600 text-red-600" : "border-transparent text-slate-500"
             }`}
           >
             User Management ({usersList.length})
@@ -150,7 +150,7 @@ export default function AdminDashboardPage() {
           <button
             onClick={() => setTab("reports")}
             className={`pb-3 border-b-2 transition-all ${
-              tab === "reports" ? "border-indigo-600 text-indigo-600" : "border-transparent text-slate-500"
+              tab === "reports" ? "border-red-600 text-red-600" : "border-transparent text-slate-500"
             }`}
           >
             Safety Reports ({reports.length})
@@ -158,7 +158,7 @@ export default function AdminDashboardPage() {
           <button
             onClick={() => setTab("audit")}
             className={`pb-3 border-b-2 transition-all ${
-              tab === "audit" ? "border-indigo-600 text-indigo-600" : "border-transparent text-slate-500"
+              tab === "audit" ? "border-red-600 text-red-600" : "border-transparent text-slate-500"
             }`}
           >
             Audit Trail ({auditLogs.length})
@@ -185,7 +185,7 @@ export default function AdminDashboardPage() {
                     <tr key={u.id} className="hover:bg-slate-50/60">
                       <td className="py-3 font-bold text-slate-900">{u.displayName}</td>
                       <td className="py-3 text-slate-600">{u.email}</td>
-                      <td className="py-3 uppercase text-[10px] font-bold text-indigo-700">{u.role}</td>
+                      <td className="py-3 uppercase text-[10px] font-bold text-red-700">{u.role}</td>
                       <td className="py-3 text-slate-700">{u.completedExchangesCount}</td>
                       <td className="py-3">
                         <span
@@ -284,7 +284,7 @@ export default function AdminDashboardPage() {
                         {new Date(log.timestamp).toLocaleString()}
                       </td>
                       <td className="py-3 font-semibold text-slate-800">{log.actorName || log.actorEmail}</td>
-                      <td className="py-3 font-mono font-bold text-indigo-700">{log.action}</td>
+                      <td className="py-3 font-mono font-bold text-red-700">{log.action}</td>
                       <td className="py-3 text-slate-600">
                         {log.targetType} ({log.targetId})
                       </td>
