@@ -93,3 +93,13 @@ export async function sendPasswordResetEmail(
     html: `<p>Hi ${safeName},</p><p>A password reset was requested for your SkillBarter account. This link expires in one hour.</p><p><a href="${link}">Reset my password</a></p><p>If you did not request this, you can safely ignore this email.</p>`,
   });
 }
+
+export async function sendLoginOtpEmail(email: string, displayName: string, code: string): Promise<boolean> {
+  const safeName = escapeHtml(displayName);
+  return sendEmail({
+    to: email,
+    subject: "Your SkillBarter sign-in code",
+    text: "Hi " + displayName + ", your SkillBarter sign-in code is " + code + ". It expires in 5 minutes. If you did not request it, you can ignore this email.",
+    html: "<p>Hi " + safeName + ",</p><p>Your SkillBarter sign-in code is:</p><p style=\\"font-size:28px;font-weight:700;letter-spacing:6px\\">" + code + "</p><p>This code expires in 5 minutes. If you did not request it, ignore this email.</p>",
+  });
+}
