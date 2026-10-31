@@ -175,6 +175,7 @@ export default function AdminDashboardPage() {
                     <th className="pb-3">User</th>
                     <th className="pb-3">Email</th>
                     <th className="pb-3">Role</th>
+                    <th className="pb-3">Email</th>
                     <th className="pb-3">Exchanges</th>
                     <th className="pb-3">Status</th>
                     <th className="pb-3 text-right">Actions</th>
@@ -186,6 +187,11 @@ export default function AdminDashboardPage() {
                       <td className="py-3 font-bold text-slate-900">{u.displayName}</td>
                       <td className="py-3 text-slate-600">{u.email}</td>
                       <td className="py-3 uppercase text-[10px] font-bold text-red-700">{u.role}</td>
+                      <td className="py-3">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${u.isEmailVerified ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                          {u.isEmailVerified ? "Verified" : "Unverified"}
+                        </span>
+                      </td>
                       <td className="py-3 text-slate-700">{u.completedExchangesCount}</td>
                       <td className="py-3">
                         <span
@@ -215,7 +221,9 @@ export default function AdminDashboardPage() {
                                     alert(err instanceof Error ? err.message : "Role update failed");
                                   }
                                 }}
-                                className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold ${
+                                disabled={u.role !== "admin" && !u.isEmailVerified}
+                                title={u.role !== "admin" && !u.isEmailVerified ? "Verify this teammate's email before granting admin access" : undefined}
+                                className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
                                   u.role === "admin"
                                     ? "border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
                                     : "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
