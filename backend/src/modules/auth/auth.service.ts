@@ -1,4 +1,6 @@
 import { User, IUser } from "../../models/User";
+import { OtpChallenge } from "../../models/OtpChallenge";
+import { createHash, randomInt } from "node:crypto";
 import { AnalyticsEvent } from "../../models/AnalyticsEvent";
 import {
   RegisterInput,
@@ -15,7 +17,8 @@ import {
   generateSecureToken,
   verifyRefreshToken,
 } from "../../utils/security";
-import { sendPasswordResetEmail, sendVerificationEmail } from "../../utils/email";
+import { sendLoginOtpEmail, sendPasswordResetEmail, sendVerificationEmail } from "../../utils/email";
+import { env } from "../../config/env";
 import { AppError } from "../../middleware/errorHandler";
 
 export function formatAuthUser(user: IUser): AuthUser {
@@ -39,7 +42,11 @@ export function formatAuthUser(user: IUser): AuthUser {
 
 export class AuthService {
   async register(input: RegisterInput): Promise<{ user: AuthUser; verificationToken: string }> {
-    const existing = await User.findOne({ email: input.email.toLowerCase().trim() });
+    const normalizedPhone = input.phone.replace(/[\s()-]/g, "");
+    if (!/^\+[1-9]\d{7,14}$/.test(normalizedPhone)) {
+      throw new AppError("Enter a valid mobile number with country code, e.g. +919876543210", 400, "INVALID_PHONE");
+    }
+    const existing = await User.findOne({ $or: [{ email: input.email.toLowerCase().trim() }, { phone: normalizedPhone }] });
     if (existing) {
       throw new AppError("An account with this email already exists", 409, "ACCOUNT_EXISTS");
     }
@@ -50,6 +57,7 @@ export class AuthService {
 
     const user = await User.create({
       email: input.email.toLowerCase().trim(),
+      phone: normalizedPhone,
       passwordHash,
       displayName: input.displayName.trim(),
       role: "user",
@@ -117,6 +125,81 @@ export class AuthService {
     const refreshToken = signRefreshToken(tokenPayload);
 
     return { user: formatAuthUser(user), accessToken, refreshToken };
+  }
+
+
+  private createSession(user: IUser): { user: AuthUser; accessToken: string; refreshToken: string } {
+    const tokenPayload = { userId: user._id.toString(), email: user.email, role: user.role };
+    return { user: formatAuthUser(user), accessToken: signAccessToken(tokenPayload), refreshToken: signRefreshToken(tokenPayload) };
+  }
+
+  async requestPhoneOtp(phoneInput: string): Promise<{ challengeId: string; phone: string }> {
+    const phone = phoneInput.trim().replace(/[\s()-]/g, "");
+    if (!/^\+[1-9]\d{7,14}$/.test(phone)) throw new AppError("Enter a valid mobile number with country code", 400, "INVALID_PHONE");
+    const user = await User.findOne({ phone });
+    if (!user) throw new AppError("Unable to sign in with this number. Check the number or create an account.", 404, "ACCOUNT_NOT_FOUND");
+    if (user.isSuspended) throw new AppError("This account has been suspended.", 403, "ACCOUNT_SUSPENDED");
+    if (!env.TWOFACTOR_API_KEY) throw new AppError("SMS OTP is not configured on the server. Please use email OTP or email and password.", 503, "SMS_NOT_CONFIGURED");
+    const url = "https://2factor.in/API/V1/" + encodeURIComponent(env.TWOFACTOR_API_KEY) + "/SMS/" + encodeURIComponent(phone.slice(1)) + "/AUTOGEN";
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    const data = await response.json().catch(() => null) as { Status?: string; Details?: string } | null;
+    if (!response.ok || data?.Status !== "Success" || !data.Details) throw new AppError("The SMS provider could not send an OTP. Please try again later.", 502, "SMS_DELIVERY_FAILED");
+    return { challengeId: data.Details, phone };
+  }
+
+  async verifyPhoneOtp(phoneInput: string, otpInput: string, challengeId: string): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
+    const phone = phoneInput.trim().replace(/[\s()-]/g, "");
+    const otp = otpInput.trim();
+    if (!/^\+[1-9]\d{7,14}$/.test(phone) || !/^\d{6}$/.test(otp) || !challengeId || challengeId.length > 200) throw new AppError("Invalid or expired OTP challenge", 400, "INVALID_OTP");
+    if (!env.TWOFACTOR_API_KEY) throw new AppError("SMS OTP is not configured on the server.", 503, "SMS_NOT_CONFIGURED");
+    const url = "https://2factor.in/API/V1/" + encodeURIComponent(env.TWOFACTOR_API_KEY) + "/SMS/VERIFY/" + encodeURIComponent(challengeId) + "/" + encodeURIComponent(otp);
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    const data = await response.json().catch(() => null) as { Status?: string; Details?: string } | null;
+    if (!response.ok || data?.Status !== "Success" || data.Details !== "OTP Matched") throw new AppError("Invalid or expired mobile OTP", 401, "INVALID_OTP");
+    const user = await User.findOne({ phone });
+    if (!user) throw new AppError("Unable to sign in with this number. Create an account first.", 404, "ACCOUNT_NOT_FOUND");
+    if (user.isSuspended) throw new AppError("This account has been suspended.", 403, "ACCOUNT_SUSPENDED");
+    return this.createSession(user);
+  }
+
+  async requestEmailOtp(emailInput: string): Promise<void> {
+    const email = emailInput.trim().toLowerCase();
+    const user = await User.findOne({ email });
+    if (!user || user.isSuspended) return;
+    await OtpChallenge.deleteMany({ email });
+    const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
+    const codeHash = createHash("sha256").update(code).digest("hex");
+    await OtpChallenge.create({ email, codeHash, expiresAt: new Date(Date.now() + 5 * 60 * 1000), attempts: 0 });
+    try {
+      await sendLoginOtpEmail(email, user.displayName, code);
+    } catch {
+      await OtpChallenge.deleteMany({ email, codeHash });
+      throw new AppError("Unable to send email OTP right now. Please try again later.", 503, "EMAIL_DELIVERY_FAILED");
+    }
+  }
+
+  async verifyEmailOtp(emailInput: string, otpInput: string): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
+    const email = emailInput.trim().toLowerCase();
+    const otp = otpInput.trim();
+    if (!/^\d{6}$/.test(otp)) throw new AppError("Enter the complete 6-digit email OTP", 400, "INVALID_OTP");
+    const challenge = await OtpChallenge.findOne({ email, expiresAt: { $gt: new Date() } }).sort({ createdAt: -1 });
+    if (!challenge || challenge.attempts >= 5) throw new AppError("Invalid or expired email OTP. Request a new code.", 401, "INVALID_OTP");
+    const hash = createHash("sha256").update(otp).digest("hex");
+    if (hash !== challenge.codeHash) {
+      challenge.attempts += 1;
+      await challenge.save();
+      throw new AppError("Invalid or expired email OTP", 401, "INVALID_OTP");
+    }
+    await OtpChallenge.deleteMany({ email });
+    const user = await User.findOne({ email });
+    if (!user || user.isSuspended) throw new AppError("Unable to sign in with these details.", 401, "INVALID_CREDENTIALS");
+    if (!user.isEmailVerified) {
+      user.isEmailVerified = true;
+      user.verificationToken = undefined;
+      user.verificationTokenExpiresAt = undefined;
+      await user.save();
+    }
+    return this.createSession(user);
   }
 
   async verifyEmail(token: string): Promise<AuthUser> {
@@ -199,7 +282,7 @@ export class AuthService {
     if (!payload) throw new AppError("Invalid or expired refresh token", 401, "INVALID_TOKEN");
 
     const user = await User.findById(payload.userId);
-    if (!user || user.isSuspended || !user.isEmailVerified) {
+    if (!user || user.isSuspended) {
       throw new AppError("User account not accessible", 401, "UNAUTHORIZED");
     }
     if (user.passwordChangedAt && (!payload.iat || payload.iat < user.passwordChangedAt.getTime() / 1000)) {
