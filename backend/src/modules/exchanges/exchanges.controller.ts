@@ -93,6 +93,13 @@ export class ExchangesController {
     try {
       if (!req.user) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
       const input = createSessionSchema.parse(req.body);
+      if (input.exchangeId !== req.params.id) {
+        throw new AppError(
+          "The session exchange ID must match the exchange in the URL",
+          400,
+          "EXCHANGE_ID_MISMATCH"
+        );
+      }
       const session = await exchangesService.createSession(req.user._id.toString(), input);
       sendSuccess(res, { session }, undefined, 201);
     } catch (error) {
