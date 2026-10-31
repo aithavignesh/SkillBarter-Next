@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
@@ -13,22 +13,27 @@ export default function ExchangesListPage() {
   const [filter, setFilter] = useState<string>("ALL");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const requestIdRef = useRef(0);
 
   const loadExchanges = async () => {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setLoadError(false);
     try {
       const res = await api.exchanges.list();
-      setExchanges(res.exchanges);
+      if (requestId === requestIdRef.current) setExchanges(res.exchanges);
     } catch {
-      setLoadError(true);
+      if (requestId === requestIdRef.current) setLoadError(true);
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
   };
 
   useEffect(() => {
     void loadExchanges();
+    return () => {
+      requestIdRef.current += 1;
+    };
   }, []);
 
   const filtered = exchanges.filter((e) => {
