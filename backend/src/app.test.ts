@@ -60,4 +60,12 @@ describe("Security middleware and admin access", () => {
     expect(setCookie?.some((cookie) => cookie.startsWith("accessToken=") && /Expires=Thu, 01 Jan 1970 00:00:00 GMT/i.test(cookie))).toBe(true);
     expect(setCookie?.some((cookie) => cookie.startsWith("refreshToken=") && /Expires=Thu, 01 Jan 1970 00:00:00 GMT/i.test(cookie))).toBe(true);
   });
+
+  it("redirects email verification links to the frontend without consuming the token on GET", async () => {
+    const token = "verification-token-with-special-chars&next=/admin";
+    const response = await request(app).get("/api/v1/auth/verify-email/link").query({ token });
+    expect(response.status).toBe(303);
+    expect(response.headers.location).toContain("/verify-email?token=");
+    expect(response.headers.location).toContain(encodeURIComponent(token));
+  });
 });
