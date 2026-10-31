@@ -1,47 +1,45 @@
 # SkillBarter-Next Completion Status — 2026-10-31
 
-## Current status
+## Target and release status
 
-**Target stack:** Next.js + Node.js/Express + MongoDB. This is the active replacement application in `aithavignesh/SkillBarter-Next`, branch `development`.
+**Target stack:** Next.js + Node.js/Express + MongoDB. Active repository: `aithavignesh/SkillBarter-Next`, working branch: `development`.
 
-**Overall:** The application builds and the automated CI checks pass. The preview frontend and API health/readiness endpoints respond successfully. A full production-ready completion is **not yet proven**, because the live hosting configuration, target MongoDB identity/isolation, external email delivery, and complete real-user workflow have not been independently verified.
+**Status:** Core build/CI passes and the development preview is live. MongoDB development connectivity and the seeded skills API are verified. **Not yet 100% production-ready**: live email delivery, complete two-account end-to-end validation, network access hardening, and recovery/rollback rehearsal remain unverified.
 
 ## Verified evidence
 
-- Latest documented development commit before this status update: `c31cab12613e75d659a97aed6dbafd5b359ab0e3`.
-- GitHub Actions CI runs `41194467731` and `41194457108` both completed successfully on `development`.
-- Vercel project `skillbarter-next-preview` is linked to `aithavignesh/SkillBarter-Next`; the latest observed deployment for the current development commit is `READY`.
-- Preview homepage returned HTTP 200.
-- Preview `/api/v1/health` returned HTTP 200.
-- Preview `/api/v1/ready` returned HTTP 200 with database status `connected`. This is only a connectivity signal; it does not identify the database or prove isolation.
-- The repository contains Next.js frontend, Express API, Mongoose models, shared contracts, CI, and automated tests.
-- No production promotion, production data write, or change to the legacy repository was performed as part of this check.
+- Latest code commit: `9c44c22262484bf7612084ab2796c882f034c6c0`.
+- CI runs `41195353500` and `41195347563` completed successfully on `development`; dependency gate, shared build, typecheck, lint, tests, and production build passed.
+- Vercel project `skillbarter-next-preview` is linked to `aithavignesh/SkillBarter-Next`; the stable development preview is available at https://skillbarter-next-preview-git-development-aithavignesh.vercel.app.
+- The homepage and 12 key application pages (about, login, registration, password reset, discover, onboarding, exchanges, messages, community, skills, safety, admin) returned HTTP 200.
+- Live `/api/v1/health` and `/api/v1/ready` returned HTTP 200; readiness reported database connected.
+- Verified the Atlas project `SkillBarter-Next-Development`, cluster `skillbarter-dev` (AWS ap-south-1, MongoDB 8.0), database `skillbarter`, and application DB user scoped to read/write that database.
+- Seeded 35 approved starter skills in the development database. The live API immediately returned those same skill records; a Python search returned the expected two matching entries.
+- Confirmed the skill collection has 35 documents and indexes on `normalizedName`, `category`, and `approved`.
+- No production promotion, production data write, or legacy repository change was performed.
 
-## Remaining completion gates for the NEW MongoDB application
+## Remaining release gates
 
-1. **Verify the backend hosting configuration.** Confirm the preview API origin points to the new SkillBarter-Next Express service, not the legacy service.
-2. **Verify the target database.** Confirm the service's `MONGODB_URI` is for the intended isolated SkillBarter-Next MongoDB database, with expected permissions and indexes. Never print or commit the secret URI.
-3. **Verify production-grade secrets.** Confirm strong, unique access-token, refresh-token, and admin-bootstrap secrets are configured in the hosting secret manager.
-4. **Verify email delivery.** Confirm the Resend API key and a verified sender are configured; test registration verification and password reset with controlled test inboxes.
-5. **Run live end-to-end checks with two separate test accounts.** Cover registration, verification, login/logout/refresh, onboarding, skills, reciprocal matching, exchange request/acceptance, scheduling, messaging, completion, reviews, blocking/reporting, and admin audit logs.
-6. **Check authorization and data isolation.** Ensure one user cannot read or mutate another user's private data or bypass exchange, moderation, or role restrictions.
-7. **Verify deploy and recovery readiness.** Confirm the deployed commit, environment targets, health checks, backup/recovery procedure, rollback trigger, and post-deploy smoke test before any production promotion.
-8. **Review CI on the final code commit.** Require typecheck, lint, tests, dependency gate, and production build to pass after any code changes.
+1. **Email delivery:** Verify the backend's Resend key and verified `EMAIL_FROM` sender are set in the host secret manager. Test registration verification and password reset with controlled test inboxes. Do not expose or commit secrets.
+2. **Two-account E2E:** Using two dedicated test accounts, validate registration, verification, login/logout/refresh, onboarding, adding skills, reciprocal matching, exchange request/acceptance, scheduling, messaging, completion, reviews, block/report, and admin audit logs.
+3. **Security isolation:** Verify cross-user authorization and role restrictions using the live API; prove that private records cannot be read or mutated by other users.
+4. **Network access hardening:** Atlas currently has a `0.0.0.0/0` IP access-list entry labelled for Render staging. Replace it with the narrowest viable Render outbound IP/CIDR allowlist once the actual service egress range is verified; do not guess IPs that could break connectivity.
+5. **Hosting configuration:** Confirm the Render API service is built from `aithavignesh/SkillBarter-Next` and `development`, and that its secret `MONGODB_URI` targets the verified development cluster/database. The successful live data read is strong runtime evidence but does not reveal the configured URI itself.
+6. **Recovery and release:** Confirm backups, recovery steps, rollback trigger, health checks, and post-deploy smoke test. Do not promote to production until the gates above pass.
 
-## Legacy data is a separate, optional decision
+## Legacy data is separate
 
-The previous application used InsForge/PostgreSQL. **PostgreSQL schema export, PostgreSQL-to-MongoDB mapping, and legacy data import are not requirements for completing the new MongoDB application unless preserving existing legacy records is explicitly part of the project goal.** Do not recreate PostgreSQL or point the new app at the legacy database. If legacy records must be preserved later, plan that as a separate, controlled data migration with its own validation gates.
+The former application used InsForge/PostgreSQL. PostgreSQL schema exports, PostgreSQL-to-MongoDB mapping, and legacy data import are **not required to complete the new MongoDB application** unless preserving old user/exchange records is an explicit separate requirement. Do not recreate PostgreSQL or point the new application at the legacy database.
 
 ## Safe release policy
 
-- Keep work on `development` until verification passes.
-- Do not promote to production while database identity/isolation, secrets, email, or critical user flows remain unverified.
-- Do not invent credentials, bypass email verification, use real users as test fixtures, or write test data to an unknown database.
-- A green CI run and HTTP 200 health checks are evidence of progress, not proof of 100% production readiness.
+- Keep ongoing implementation on `development`; keep `main` and legacy production untouched until release gates pass.
+- Do not guess credentials, disable verification in production, use real users as test fixtures, or write test data to an unknown database.
+- Green CI and HTTP 200 health checks are not proof of live email delivery or full end-to-end readiness.
 
 ## Links
 
 - Repository: https://github.com/aithavignesh/SkillBarter-Next
 - Development branch: https://github.com/aithavignesh/SkillBarter-Next/tree/development
-- Latest CI run: https://github.com/aithavignesh/SkillBarter-Next/actions/runs/41194467731
+- Latest CI run: https://github.com/aithavignesh/SkillBarter-Next/actions/runs/41195353500
 - Vercel preview project: https://vercel.com/aithavignesh/skillbarter-next-preview
