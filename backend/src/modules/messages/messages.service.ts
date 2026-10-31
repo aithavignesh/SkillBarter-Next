@@ -174,6 +174,25 @@ export class MessagesService {
       throw new AppError("Cannot message yourself", 400, "INVALID_TARGET");
     }
 
+    if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
+      throw new AppError("Invalid target user ID", 400, "INVALID_ID");
+    }
+
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser || targetUser.isSuspended) {
+      throw new AppError("Target user not found", 404, "NOT_FOUND");
+    }
+
+    const isBlocked = await Block.findOne({
+      $or: [
+        { blockerId: userId, blockedUserId: targetUserId },
+        { blockerId: targetUserId, blockedUserId: userId },
+      ],
+    });
+    if (isBlocked) {
+      throw new AppError("Cannot start a conversation with this user", 403, "BLOCKED");
+    }
+
     const u1 = new mongoose.Types.ObjectId(userId);
     const u2 = new mongoose.Types.ObjectId(targetUserId);
 
