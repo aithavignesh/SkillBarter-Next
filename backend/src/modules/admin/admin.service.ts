@@ -252,18 +252,19 @@ export class AdminService {
   }
 
   async bootstrapAdmin(secretKey: string, email: string, password: string, displayName: string): Promise<IUser> {
-    // Requires exact match with JWT_ACCESS_SECRET or designated bootstrap secret
-    if (secretKey !== env.JWT_ACCESS_SECRET) {
+    // A separate, high-entropy bootstrap secret must be configured explicitly.
+    if (!env.ADMIN_BOOTSTRAP_SECRET || secretKey !== env.ADMIN_BOOTSTRAP_SECRET) {
       throw new AppError("Invalid bootstrap key", 403, "FORBIDDEN");
     }
 
-    let admin = await User.findOne({ email: email.toLowerCase().trim() });
-    if (admin) {
-      admin.role = "admin";
-      admin.isEmailVerified = true;
-      admin.onboardingCompleted = true;
-      await admin.save();
-      return admin;
+    // Bootstrap is a one-time operation; never promote an arbitrary account later.
+    if (await User.exists({ role: "admin" })) {
+      throw new AppError("Admin bootstrap has already been completed", 409, "BOOTSTRAP_ALREADY_COMPLETED");
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    if (await User.exists({ email: normalizedEmail })) {
+      throw new AppError("An account with this email already exists", 409, "ACCOUNT_EXISTS");
     }
 
     const passwordHash = await hashPassword(password);
