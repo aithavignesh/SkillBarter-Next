@@ -21,12 +21,13 @@ Configure these in the hosting provider's secret/environment settings. Never com
 | `MONGODB_URI` | Yes | MongoDB Atlas connection URI for the new SkillBarter-Next database | `mongodb+srv://<user>:<password>@<cluster>/<database>` |
 | `JWT_ACCESS_SECRET` | Yes | Unique high-entropy access-token secret (32+ characters) | Set as a secret |
 | `JWT_REFRESH_SECRET` | Yes | Different high-entropy refresh-token secret (32+ characters) | Set as a secret |
+| `ADMIN_BOOTSTRAP_SECRET` | Yes | Separate one-time administrator bootstrap secret (32+ characters); never reuse a JWT secret | Set as a secret |
 | `RESEND_API_KEY` | Yes | Resend API key stored as a secret | Set as a secret |
 | `EMAIL_FROM` | Yes | Sender identity on a domain verified in Resend | `SkillBarter <noreply@yourdomain.com>` |
 | `ACCESS_TOKEN_TTL` | No | Access-token lifetime | `15m` |
 | `REFRESH_TOKEN_TTL` | No | Refresh-token lifetime | `7d` |
 
-Production startup now fails fast if the MongoDB URI, both JWT secrets, or Resend sender credentials are missing. The JWT secrets must each be at least 32 characters. Do not use the development defaults in production.
+Production startup now fails fast if the MongoDB URI, both JWT secrets, or Resend sender credentials are missing. The JWT secrets and `ADMIN_BOOTSTRAP_SECRET` must each be at least 32 characters. The admin bootstrap secret must be distinct from both JWT secrets. Do not use the development defaults in production.
 
 ## 3. Resend Setup
 1. Create a Resend account and verify a domain you control.
