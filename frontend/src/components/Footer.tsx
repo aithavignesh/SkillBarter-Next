@@ -6,7 +6,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <h4 className="text-sm font-semibold text-slate-900">SkillBarter-Next</h4>
+            <h4 className="text-sm font-semibold text-slate-900">SkillBarter</h4>
             <p className="mt-3 text-xs leading-5 text-slate-500">
               A fair, collaborative skill exchange platform connecting knowledge seekers and sharers.
             </p>
@@ -35,7 +35,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t border-slate-100 pt-8 flex flex-col sm:flex-row justify-between text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} SkillBarter-Next. Open collaboration without money.</p>
+          <p>© {new Date().getFullYear()} SkillBarter. Open collaboration without money.</p>
           <p>Built with Next.js App Router, Express, TypeScript, and MongoDB.</p>
         </div>
       </div>
