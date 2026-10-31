@@ -49,16 +49,20 @@ const parsedEnv = envSchema.superRefine((value, context) => {
     }
   }
 
-  if (
-    process.env.JWT_ACCESS_SECRET &&
-    process.env.JWT_REFRESH_SECRET &&
-    process.env.JWT_ACCESS_SECRET === process.env.JWT_REFRESH_SECRET
-  ) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["JWT_REFRESH_SECRET"],
-      message: "Access and refresh JWT secrets must be different",
-    });
+  const secretPairs = [
+    ["JWT_ACCESS_SECRET", value.JWT_ACCESS_SECRET, "JWT_REFRESH_SECRET", value.JWT_REFRESH_SECRET],
+    ["JWT_ACCESS_SECRET", value.JWT_ACCESS_SECRET, "ADMIN_BOOTSTRAP_SECRET", value.ADMIN_BOOTSTRAP_SECRET],
+    ["JWT_REFRESH_SECRET", value.JWT_REFRESH_SECRET, "ADMIN_BOOTSTRAP_SECRET", value.ADMIN_BOOTSTRAP_SECRET],
+  ] as const;
+
+  for (const [firstName, firstValue, secondName, secondValue] of secretPairs) {
+    if (firstValue && secondValue && firstValue === secondValue) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [secondName],
+        message: `${firstName} and ${secondName} must use different secrets`,
+      });
+    }
   }
 });
 
