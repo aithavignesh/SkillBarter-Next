@@ -11,6 +11,7 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(16).default("dev-skillbarter-jwt-refresh-secret-32-chars-min!"),
   ACCESS_TOKEN_TTL: z.string().default("15m"),
   REFRESH_TOKEN_TTL: z.string().default("7d"),
+  ADMIN_BOOTSTRAP_SECRET: z.string().min(32).optional(),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().min(1).optional(),
 });
@@ -24,6 +25,7 @@ const parsedEnv = envSchema.superRefine((value, context) => {
     "MONGODB_URI",
     "JWT_ACCESS_SECRET",
     "JWT_REFRESH_SECRET",
+    "ADMIN_BOOTSTRAP_SECRET",
     "RESEND_API_KEY",
     "EMAIL_FROM",
   ] as const;
@@ -37,7 +39,7 @@ const parsedEnv = envSchema.superRefine((value, context) => {
     }
   }
 
-  for (const key of ["JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET"] as const) {
+  for (const key of ["JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET", "ADMIN_BOOTSTRAP_SECRET"] as const) {
     if ((process.env[key]?.length ?? 0) < 32) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
