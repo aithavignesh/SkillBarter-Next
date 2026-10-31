@@ -87,4 +87,34 @@ describe("Frontend Client Services & Schemas", () => {
     }
   });
 
+
+  it("refreshes an expired browser access token once and retries the request", async () => {
+    let storedToken: string | null = "expired-token";
+    const storage = {
+      getItem: vi.fn(() => storedToken),
+      setItem: vi.fn((_key: string, value: string) => { storedToken = value; }),
+      removeItem: vi.fn(() => { storedToken = null; }),
+    };
+    const responses = [
+      { ok: false, status: 401, statusText: "Unauthorized", json: async () => ({ success: false, error: { code: "INVALID_TOKEN", message: "expired" } }) },
+      { ok: true, status: 200, statusText: "OK", json: async () => ({ success: true, data: { accessToken: "fresh-token" } }) },
+      { ok: true, status: 200, statusText: "OK", json: async () => ({ success: true, data: [] }) },
+    ];
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => responses.shift() as unknown as Response);
+    vi.stubGlobal("window", {} as Window);
+    vi.stubGlobal("localStorage", storage as unknown as Storage);
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      await expect(api.skills.list()).resolves.toEqual([]);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(String(fetchMock.mock.calls[1][0])).toContain("/auth/refresh");
+      const retryInit = fetchMock.mock.calls[2][1];
+      expect(new Headers(retryInit?.headers).get("Authorization")).toBe("Bearer fresh-token");
+      expect(storage.setItem).toHaveBeenCalledWith("skillbarter_token", "fresh-token");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
 });
