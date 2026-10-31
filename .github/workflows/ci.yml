@@ -21,7 +21,35 @@ jobs:
         shell: bash
         run: |
           npm audit --json > /tmp/npm-audit.json || true
-          node -e 'const a=require("/tmp/npm-audit.json"); const v=a.vulnerabilities||{}; console.log("Dependency audit summary:", JSON.stringify(a.metadata?.vulnerabilities||{})); for (const [name,item] of Object.entries(v)) console.log(JSON.stringify({name,severity:item.severity,isDirect:item.isDirect,range:item.range,fixAvailable:item.fixAvailable,via:item.via.map(x=>typeof x==="string"?x:{name:x.name,title:x.title,range:x.range,url:x.url})}));'
+          node <<'NODE'
+          const fs = require("node:fs");
+          const audit = JSON.parse(fs.readFileSync("/tmp/npm-audit.json", "utf8"));
+          const vulnerabilities = audit.vulnerabilities || {};
+          const summary = audit.metadata?.vulnerabilities || {};
+          console.log("Dependency audit summary:", JSON.stringify(summary));
+          const lines = [
+            "## Dependency audit report",
+            "",
+            "| Severity | Count |",
+            "|---|---:|",
+            ...["critical", "high", "moderate", "low", "info"].map(level => `| ${level} | ${summary[level] || 0} |`),
+            "",
+            "| Package | Severity | Affected range | Fix available | Advisory |",
+            "|---|---|---|---|---|",
+            ...Object.entries(vulnerabilities).map(([name, item]) => {
+              const advisory = (item.via || []).find(entry => typeof entry === "object");
+              const title = advisory?.title || (item.via || []).join(", ") || "See npm audit";
+              const url = advisory?.url || "";
+              return `| ${name} | ${item.severity} | ${item.range} | ${typeof item.fixAvailable === "object" ? JSON.stringify(item.fixAvailable) : String(item.fixAvailable)} | ${url ? "[" + title.replace(/\|/g, "\\|") + "](" + url + ")" : title.replace(/\|/g, "\\|")} |`;
+            }),
+            "",
+            "This report is informational; use compatible targeted upgrades and rerun the audit before release.",
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+          for (const [name, item] of Object.entries(vulnerabilities)) {
+            console.log(JSON.stringify({name, severity:item.severity, isDirect:item.isDirect, range:item.range, fixAvailable:item.fixAvailable, via:item.via}));
+          }
+          NODE
       - run: npm run build -w shared
       - run: npm run typecheck
       - run: npm run lint
