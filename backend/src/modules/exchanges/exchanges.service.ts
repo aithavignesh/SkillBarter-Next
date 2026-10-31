@@ -218,12 +218,25 @@ export class ExchangesService {
     const otherUserId = isRequester ? exchange.recipientId : exchange.requesterId;
     const actorUser = await User.findById(userId);
 
+    const notificationTypeByStatus: Record<UpdateExchangeStatusInput["status"], string> = {
+      ACCEPTED: "EXCHANGE_ACCEPTED",
+      REJECTED: "EXCHANGE_REJECTED",
+      CANCELLED: "EXCHANGE_CANCELLED",
+      IN_PROGRESS: "EXCHANGE_STARTED",
+    };
+    const notificationVerbByStatus: Record<UpdateExchangeStatusInput["status"], string> = {
+      ACCEPTED: "accepted",
+      REJECTED: "rejected",
+      CANCELLED: "cancelled",
+      IN_PROGRESS: "started",
+    };
+
     await Notification.create({
       recipientId: otherUserId,
       senderId: new mongoose.Types.ObjectId(userId),
-      type: input.status === "ACCEPTED" ? "EXCHANGE_ACCEPTED" : "EXCHANGE_CANCELLED",
-      title: `Exchange ${input.status.toLowerCase()}`,
-      message: `${actorUser?.displayName || "Participant"} has ${input.status.toLowerCase()} the exchange request.`,
+      type: notificationTypeByStatus[input.status],
+      title: `Exchange ${notificationVerbByStatus[input.status]}`,
+      message: `${actorUser?.displayName || "Participant"} has ${notificationVerbByStatus[input.status]} the exchange.`,
       link: `/exchanges/${exchange._id.toString()}`,
     });
 
