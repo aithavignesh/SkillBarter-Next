@@ -47,7 +47,7 @@ export default function NotificationsPage() {
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+          <span className="text-xs font-bold uppercase tracking-wider text-red-600">
             Activity Updates
           </span>
           <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Notifications</h1>
@@ -83,14 +83,14 @@ export default function NotificationsPage() {
               className={`rounded-2xl border p-5 transition-all flex items-start justify-between gap-4 ${
                 n.read
                   ? "border-slate-200 bg-white text-slate-700"
-                  : "border-indigo-200 bg-indigo-50/70 text-slate-900 shadow-sm"
+                  : "border-red-200 bg-red-50/70 text-slate-900 shadow-sm"
               }`}
             >
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <h3 className="font-bold text-sm text-slate-900">{n.title}</h3>
                   {!n.read && (
-                    <span className="h-2 w-2 rounded-full bg-indigo-600" />
+                    <span className="h-2 w-2 rounded-full bg-red-600" />
                   )}
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed">{n.message}</p>
@@ -102,7 +102,7 @@ export default function NotificationsPage() {
               {n.link && (
                 <Link
                   href={n.link}
-                  className="shrink-0 flex items-center gap-1 rounded-xl bg-white border border-slate-200 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50"
+                  className="shrink-0 flex items-center gap-1 rounded-xl bg-white border border-slate-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
                 >
                   View <ArrowRight className="h-3 w-3" />
                 </Link>
