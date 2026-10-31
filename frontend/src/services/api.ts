@@ -127,6 +127,10 @@ async function fetchApi<T>(
     "/auth/verify-email",
     "/auth/forgot-password",
     "/auth/reset-password",
+    "/auth/phone/request-otp",
+    "/auth/phone/verify-otp",
+    "/auth/email/request-otp",
+    "/auth/email/verify-otp",
   ].includes(authEndpoint);
 
   if (res.status === 401 && retryAfterRefresh && shouldRefresh && await refreshAccessToken()) {
