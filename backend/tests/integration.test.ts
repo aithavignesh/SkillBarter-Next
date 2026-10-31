@@ -36,6 +36,16 @@ describe("SkillBarter Two-User Complete Exchange Lifecycle", () => {
     expect(unverifiedLoginA.status).toBe(403);
     expect(unverifiedLoginA.body.error.code).toBe("EMAIL_NOT_VERIFIED");
 
+    // A GET link visit must not consume the token (email scanners may prefetch it).
+    const prefetchedLinkA = await request(app)
+      .get(`/api/v1/auth/verify-email/link?token=${encodeURIComponent(resA.body.data.verificationToken)}`);
+    expect(prefetchedLinkA.status).toBe(303);
+    expect(prefetchedLinkA.headers.location).toContain("/verify-email?token=");
+    const stillUnverifiedA = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "alice@example.com", password: "Password123!" });
+    expect(stillUnverifiedA.status).toBe(403);
+
     // Verify email for User A, then authenticate.
     const verifyResA = await request(app)
       .post("/api/v1/auth/verify-email")
