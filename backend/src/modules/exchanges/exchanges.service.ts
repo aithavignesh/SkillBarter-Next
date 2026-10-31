@@ -521,6 +521,35 @@ export class ExchangesService {
       );
     }
 
+    if (input.status === "CONFIRMED") {
+      // Re-check at confirmation time: another proposed session may have been
+      // confirmed after this session was originally created.
+      const participantIds = [exchange.requesterId, exchange.recipientId];
+      const participantExchanges = await Exchange.find({
+        $or: [
+          { requesterId: { $in: participantIds } },
+          { recipientId: { $in: participantIds } },
+        ],
+        status: { $nin: ["COMPLETED", "REJECTED", "CANCELLED", "DISPUTED"] },
+      }).select("_id");
+
+      const conflictingConfirmedSession = await ExchangeSession.findOne({
+        _id: { $ne: session._id },
+        exchangeId: { $in: participantExchanges.map((item) => item._id) },
+        status: "CONFIRMED",
+        startTime: { $lt: session.endTime },
+        endTime: { $gt: session.startTime },
+      });
+
+      if (conflictingConfirmedSession) {
+        throw new AppError(
+          "A confirmed session already conflicts with this time window",
+          409,
+          "SESSION_CONFLICT"
+        );
+      }
+    }
+
     session.status = input.status;
     if (input.notes !== undefined) session.notes = input.notes;
     await session.save();
