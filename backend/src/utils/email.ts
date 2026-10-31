@@ -25,6 +25,12 @@ export function isEmailConfigured(): boolean {
 }
 
 async function sendEmail(payload: EmailPayload): Promise<boolean> {
+  // EMAIL_DISABLED is intentionally limited to non-production environments.
+  // Production env validation rejects this flag, so account verification cannot silently stop.
+  if (env.EMAIL_DISABLED === "true" && env.NODE_ENV !== "production") {
+    return false;
+  }
+
   if (!isEmailConfigured()) {
     if (env.NODE_ENV === "production") {
       throw new Error("Transactional email is not configured");
