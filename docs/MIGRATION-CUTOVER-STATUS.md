@@ -1,50 +1,47 @@
-# Migration Cutover Status — 2026-10-31
+# SkillBarter-Next Completion Status — 2026-10-31
 
-## Executive status
+## Current status
 
-**Application implementation: substantially complete. Production migration/cutover: NOT COMPLETE.**
+**Target stack:** Next.js + Node.js/Express + MongoDB. This is the active replacement application in `aithavignesh/SkillBarter-Next`, branch `development`.
 
-The active development branch is `development` at commit `705ffe80f542f4e03d852e313a7c9e051744d590`. The latest GitHub Actions CI run (`41193850856`) completed successfully. Its job passed dependency installation/audit gate, shared package build, type checking, lint, tests, and production build. The `main` branch remains separate at `a624880cf0d2acf003d9d4942c1450d00ce027d7`.
+**Overall:** The application builds and the automated CI checks pass. The preview frontend and API health/readiness endpoints respond successfully. A full production-ready completion is **not yet proven**, because the live hosting configuration, target MongoDB identity/isolation, external email delivery, and complete real-user workflow have not been independently verified.
 
-The deployed preview's health and readiness endpoints have responded successfully, with readiness reporting a connected database. That response alone does **not** prove the database is the intended isolated MongoDB database, nor does it prove the source data has been migrated.
+## Verified evidence
 
-## Verified vs. outstanding
+- Latest documented development commit before this status update: `c31cab12613e75d659a97aed6dbafd5b359ab0e3`.
+- GitHub Actions CI runs `41194467731` and `41194457108` both completed successfully on `development`.
+- Vercel project `skillbarter-next-preview` is linked to `aithavignesh/SkillBarter-Next`; the latest observed deployment for the current development commit is `READY`.
+- Preview homepage returned HTTP 200.
+- Preview `/api/v1/health` returned HTTP 200.
+- Preview `/api/v1/ready` returned HTTP 200 with database status `connected`. This is only a connectivity signal; it does not identify the database or prove isolation.
+- The repository contains Next.js frontend, Express API, Mongoose models, shared contracts, CI, and automated tests.
+- No production promotion, production data write, or change to the legacy repository was performed as part of this check.
 
-### Verified
-- Next.js / Express / shared TypeScript application compiles and builds in CI.
-- Automated unit/integration tests, type checks, lint, and dependency audit gate pass on the latest observed commit.
-- MongoDB/Mongoose models and in-memory MongoDB test setup exist.
-- Authentication, matching, exchange, messaging, notification, review, community, safety, admin, and analytics modules are implemented.
-- The live preview's health and readiness endpoints returned HTTP 200; readiness reported database connected.
-- No production branch or legacy service was intentionally modified during this verification.
+## Remaining completion gates for the NEW MongoDB application
 
-### Not yet verified / blocked
-1. **Source schema contract:** obtain a fresh, sanitized schema snapshot from the actual legacy PostgreSQL/InsForge database and compare it with source migrations and the live schema. Do not infer production columns from model names alone.
-2. **Field mapping approval:** complete and review source-to-target field mappings, including nullability, enum translations, timestamps/time zones, IDs/references, defaults, and orphan handling. Resolve the previously flagged `connections` mapping before importing.
-3. **Source export:** obtain an approved, consistent export from the actual source database. Do not run an import using invented or partial records.
-4. **Dedicated staging MongoDB:** confirm the staging `MONGODB_URI` points to a new, isolated database and validate permissions/index creation. Never point the importer at legacy production.
-5. **Import and reconciliation:** execute a dry run, then a staging import; compare per-table/per-collection counts, unique keys, orphan references, and representative record hashes/fields. Re-run safely to prove idempotency.
-6. **External delivery:** configure Resend key and verified sender identity in hosting secrets; test email verification and password reset using controlled inboxes.
-7. **Live end-to-end:** validate two separate accounts through registration, verification, onboarding, reciprocal matching, exchange request/acceptance, scheduling, messaging, mutual completion, reviews, blocking/reporting, and admin audit logs.
-8. **Cutover and rollback:** record owner-approved cutover window, final delta sync, backup/snapshot, DNS/domain plan, rollback trigger, and post-cutover monitoring.
+1. **Verify the backend hosting configuration.** Confirm the preview API origin points to the new SkillBarter-Next Express service, not the legacy service.
+2. **Verify the target database.** Confirm the service's `MONGODB_URI` is for the intended isolated SkillBarter-Next MongoDB database, with expected permissions and indexes. Never print or commit the secret URI.
+3. **Verify production-grade secrets.** Confirm strong, unique access-token, refresh-token, and admin-bootstrap secrets are configured in the hosting secret manager.
+4. **Verify email delivery.** Confirm the Resend API key and a verified sender are configured; test registration verification and password reset with controlled test inboxes.
+5. **Run live end-to-end checks with two separate test accounts.** Cover registration, verification, login/logout/refresh, onboarding, skills, reciprocal matching, exchange request/acceptance, scheduling, messaging, completion, reviews, blocking/reporting, and admin audit logs.
+6. **Check authorization and data isolation.** Ensure one user cannot read or mutate another user's private data or bypass exchange, moderation, or role restrictions.
+7. **Verify deploy and recovery readiness.** Confirm the deployed commit, environment targets, health checks, backup/recovery procedure, rollback trigger, and post-deploy smoke test before any production promotion.
+8. **Review CI on the final code commit.** Require typecheck, lint, tests, dependency gate, and production build to pass after any code changes.
 
-## Safe execution order
+## Legacy data is a separate, optional decision
 
-1. Capture source schema and row counts read-only; redact secrets and personal data from artifacts.
-2. Review and freeze source-to-target mapping contract.
-3. Provision/verify isolated staging MongoDB and host secrets; confirm target database name before writing.
-4. Run importer in dry-run mode and validate rejected/unknown fields.
-5. Import only to staging, then reconcile counts, unique constraints, and references.
-6. Run automated CI and the documented live two-user smoke test.
-7. Rehearse final sync and rollback on staging.
-8. Only after all gates pass, perform the production cutover using the approved runbook. Keep legacy production untouched until then.
+The previous application used InsForge/PostgreSQL. **PostgreSQL schema export, PostgreSQL-to-MongoDB mapping, and legacy data import are not requirements for completing the new MongoDB application unless preserving existing legacy records is explicitly part of the project goal.** Do not recreate PostgreSQL or point the new app at the legacy database. If legacy records must be preserved later, plan that as a separate, controlled data migration with its own validation gates.
 
-## Stop conditions
+## Safe release policy
 
-Stop before any write if the source schema is stale/unknown, mapping is unreviewed, export is inconsistent, target database isolation is uncertain, credentials are missing, or reconciliation differs. Do not bypass these gates merely to label the migration complete.
+- Keep work on `development` until verification passes.
+- Do not promote to production while database identity/isolation, secrets, email, or critical user flows remain unverified.
+- Do not invent credentials, bypass email verification, use real users as test fixtures, or write test data to an unknown database.
+- A green CI run and HTTP 200 health checks are evidence of progress, not proof of 100% production readiness.
 
-## Evidence links
+## Links
 
 - Repository: https://github.com/aithavignesh/SkillBarter-Next
-- Latest CI run: https://github.com/aithavignesh/SkillBarter-Next/actions/runs/41193850856
-- Latest development commit: https://github.com/aithavignesh/SkillBarter-Next/commit/705ffe80f542f4e03d852e313a7c9e051744d590
+- Development branch: https://github.com/aithavignesh/SkillBarter-Next/tree/development
+- Latest CI run: https://github.com/aithavignesh/SkillBarter-Next/actions/runs/41194467731
+- Vercel preview project: https://vercel.com/aithavignesh/skillbarter-next-preview
