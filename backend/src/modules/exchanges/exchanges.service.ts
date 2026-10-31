@@ -415,8 +415,30 @@ export class ExchangesService {
       throw new AppError("Unauthorized", 403, "FORBIDDEN");
     }
 
+    const allowedSessionTransitions: Record<string, string[]> = {
+      PROPOSED: ["CONFIRMED", "CANCELLED"],
+      CONFIRMED: ["COMPLETED", "CANCELLED"],
+      CANCELLED: [],
+      COMPLETED: [],
+    };
+    if (!allowedSessionTransitions[session.status]?.includes(input.status)) {
+      throw new AppError(
+        `Cannot change session status from ${session.status} to ${input.status}`,
+        400,
+        "INVALID_STATE"
+      );
+    }
+
+    if (input.status === "CONFIRMED" && !["ACCEPTED", "SCHEDULED"].includes(exchange.status)) {
+      throw new AppError(
+        `Cannot confirm a session while the exchange status is ${exchange.status}`,
+        400,
+        "INVALID_STATE"
+      );
+    }
+
     session.status = input.status;
-    if (input.notes) session.notes = input.notes;
+    if (input.notes !== undefined) session.notes = input.notes;
     await session.save();
 
     if (input.status === "CONFIRMED") {
