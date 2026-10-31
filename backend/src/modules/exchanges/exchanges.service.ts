@@ -465,6 +465,26 @@ export class ExchangesService {
     const startTime = new Date(input.startTime);
     const endTime = new Date(input.endTime);
 
+    if (
+      !Number.isFinite(startTime.getTime()) ||
+      !Number.isFinite(endTime.getTime()) ||
+      endTime <= startTime
+    ) {
+      throw new AppError(
+        "Session end time must be a valid time after its start time",
+        400,
+        "INVALID_SESSION_TIME"
+      );
+    }
+
+    if (startTime <= new Date()) {
+      throw new AppError(
+        "A session must be proposed for a future time",
+        400,
+        "INVALID_SESSION_TIME"
+      );
+    }
+
     // Prevent double-booking either participant across all of their exchanges.
     const participantIds = [exchange.requesterId, exchange.recipientId];
     const participantExchanges = await Exchange.find({
