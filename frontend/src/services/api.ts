@@ -94,7 +94,7 @@ export const api = {
   // Auth
   auth: {
     register: (input: RegisterInput) =>
-      fetchApi<{ user: AuthUser; accessToken: string; verificationToken?: string }>(
+      fetchApi<{ user: AuthUser; verificationToken?: string }>(
         "/auth/register",
         { method: "POST", body: JSON.stringify(input) }
       ),

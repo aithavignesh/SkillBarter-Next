@@ -27,15 +27,26 @@ describe("SkillBarter Two-User Complete Exchange Lifecycle", () => {
     expect(resA.status).toBe(201);
     expect(resA.body.success).toBe(true);
     expect(resA.body.data.user.email).toBe("alice@example.com");
-    userAToken = resA.body.data.accessToken;
     userAId = resA.body.data.user.id;
 
-    // Verify email for User A
+    // Unverified users must not be able to establish a session.
+    const unverifiedLoginA = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "alice@example.com", password: "Password123!" });
+    expect(unverifiedLoginA.status).toBe(403);
+    expect(unverifiedLoginA.body.error.code).toBe("EMAIL_NOT_VERIFIED");
+
+    // Verify email for User A, then authenticate.
     const verifyResA = await request(app)
       .post("/api/v1/auth/verify-email")
       .send({ token: resA.body.data.verificationToken });
     expect(verifyResA.status).toBe(200);
     expect(verifyResA.body.data.user.isEmailVerified).toBe(true);
+    const loginA = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "alice@example.com", password: "Password123!" });
+    expect(loginA.status).toBe(200);
+    userAToken = loginA.body.data.accessToken;
 
     // User B
     const resB = await request(app)
@@ -47,14 +58,18 @@ describe("SkillBarter Two-User Complete Exchange Lifecycle", () => {
       });
 
     expect(resB.status).toBe(201);
-    userBToken = resB.body.data.accessToken;
     userBId = resB.body.data.user.id;
 
-    // Verify email for User B
+    // Verify email for User B, then authenticate.
     const verifyResB = await request(app)
       .post("/api/v1/auth/verify-email")
       .send({ token: resB.body.data.verificationToken });
     expect(verifyResB.status).toBe(200);
+    const loginB = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "bob@example.com", password: "Password123!" });
+    expect(loginB.status).toBe(200);
+    userBToken = loginB.body.data.accessToken;
   });
 
   it("2. Validates login and rejected invalid credentials", async () => {

@@ -43,13 +43,10 @@ export class AuthController {
       const input = registerSchema.parse(req.body);
       const result = await authService.register(input);
 
-      setAuthCookies(res, result.accessToken, result.refreshToken);
-
       sendSuccess(
         res,
         {
           user: result.user,
-          accessToken: result.accessToken,
           ...(env.NODE_ENV !== "production" ? { verificationToken: result.verificationToken } : {}),
         },
         undefined,
@@ -64,13 +61,8 @@ export class AuthController {
     try {
       const input = loginSchema.parse(req.body);
       const result = await authService.login(input);
-
       setAuthCookies(res, result.accessToken, result.refreshToken);
-
-      sendSuccess(res, {
-        user: result.user,
-        accessToken: result.accessToken,
-      });
+      sendSuccess(res, { user: result.user, accessToken: result.accessToken });
     } catch (error) {
       next(error);
     }
@@ -87,9 +79,7 @@ export class AuthController {
 
   async getMe(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      if (!req.user) {
-        throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
-      }
+      if (!req.user) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
       sendSuccess(res, { user: formatAuthUser(req.user) });
     } catch (error) {
       next(error);
@@ -142,9 +132,7 @@ export class AuthController {
 
   async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      if (!req.user) {
-        throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
-      }
+      if (!req.user) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
       const input = changePasswordSchema.parse(req.body);
       await authService.changePassword(req.user._id.toString(), input);
       sendSuccess(res, { message: "Password updated successfully" });
@@ -156,9 +144,7 @@ export class AuthController {
   async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const token = req.cookies?.refreshToken || req.body?.refreshToken;
-      if (!token) {
-        throw new AppError("Refresh token missing", 401, "REFRESH_TOKEN_REQUIRED");
-      }
+      if (!token) throw new AppError("Refresh token missing", 401, "REFRESH_TOKEN_REQUIRED");
       const result = await authService.refresh(token);
       setAuthCookies(res, result.accessToken, result.refreshToken);
       sendSuccess(res, { accessToken: result.accessToken });

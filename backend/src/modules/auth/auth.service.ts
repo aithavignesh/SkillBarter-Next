@@ -38,7 +38,7 @@ export function formatAuthUser(user: IUser): AuthUser {
 }
 
 export class AuthService {
-  async register(input: RegisterInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string; verificationToken: string }> {
+  async register(input: RegisterInput): Promise<{ user: AuthUser; verificationToken: string }> {
     const existing = await User.findOne({ email: input.email.toLowerCase().trim() });
     if (existing) {
       throw new AppError("An account with this email already exists", 409, "ACCOUNT_EXISTS");
@@ -61,7 +61,6 @@ export class AuthService {
     try {
       await sendVerificationEmail(user.email, user.displayName, verificationToken);
     } catch {
-      // Avoid leaving an unusable account behind when delivery fails.
       await user.deleteOne();
       throw new AppError(
         "We could not send the verification email. Please try again later.",
@@ -77,21 +76,8 @@ export class AuthService {
       timestamp: new Date(),
     });
 
-    const tokenPayload = {
-      userId: user._id.toString(),
-      email: user.email,
-      role: user.role,
-    };
-
-    const accessToken = signAccessToken(tokenPayload);
-    const refreshToken = signRefreshToken(tokenPayload);
-
-    return {
-      user: formatAuthUser(user),
-      accessToken,
-      refreshToken,
-      verificationToken,
-    };
+    // Do not issue an authenticated session until the email address is verified.
+    return { user: formatAuthUser(user), verificationToken };
   }
 
   async login(input: LoginInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
@@ -103,6 +89,14 @@ export class AuthService {
     const isValid = await verifyPassword(input.password, user.passwordHash);
     if (!isValid) {
       throw new AppError("Invalid email or password", 401, "INVALID_CREDENTIALS");
+    }
+
+    if (!user.isEmailVerified) {
+      throw new AppError(
+        "Please verify your email address before signing in.",
+        403,
+        "EMAIL_NOT_VERIFIED",
+      );
     }
 
     if (user.isSuspended) {
@@ -122,11 +116,7 @@ export class AuthService {
     const accessToken = signAccessToken(tokenPayload);
     const refreshToken = signRefreshToken(tokenPayload);
 
-    return {
-      user: formatAuthUser(user),
-      accessToken,
-      refreshToken,
-    };
+    return { user: formatAuthUser(user), accessToken, refreshToken };
   }
 
   async verifyEmail(token: string): Promise<AuthUser> {
@@ -155,9 +145,7 @@ export class AuthService {
 
   async forgotPassword(email: string): Promise<{ token?: string }> {
     const user = await User.findOne({ email: email.toLowerCase().trim() });
-    if (!user) {
-      return {};
-    }
+    if (!user) return {};
 
     const resetToken = generateSecureToken();
     user.passwordResetToken = resetToken;
@@ -170,7 +158,6 @@ export class AuthService {
       user.passwordResetToken = undefined;
       user.passwordResetExpiresAt = undefined;
       await user.save();
-      // Keep the public response generic to avoid account enumeration.
       console.error("Password reset email delivery failed.");
       return {};
     }
@@ -196,14 +183,10 @@ export class AuthService {
 
   async changePassword(userId: string, input: ChangePasswordInput): Promise<void> {
     const user = await User.findById(userId);
-    if (!user) {
-      throw new AppError("User not found", 404, "NOT_FOUND");
-    }
+    if (!user) throw new AppError("User not found", 404, "NOT_FOUND");
 
     const isValid = await verifyPassword(input.currentPassword, user.passwordHash);
-    if (!isValid) {
-      throw new AppError("Current password is incorrect", 400, "INCORRECT_PASSWORD");
-    }
+    if (!isValid) throw new AppError("Current password is incorrect", 400, "INCORRECT_PASSWORD");
 
     user.passwordHash = await hashPassword(input.newPassword);
     await user.save();
@@ -211,12 +194,10 @@ export class AuthService {
 
   async refresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = verifyRefreshToken(refreshToken);
-    if (!payload) {
-      throw new AppError("Invalid or expired refresh token", 401, "INVALID_TOKEN");
-    }
+    if (!payload) throw new AppError("Invalid or expired refresh token", 401, "INVALID_TOKEN");
 
     const user = await User.findById(payload.userId);
-    if (!user || user.isSuspended) {
+    if (!user || user.isSuspended || !user.isEmailVerified) {
       throw new AppError("User account not accessible", 401, "UNAUTHORIZED");
     }
 
@@ -226,12 +207,9 @@ export class AuthService {
       role: user.role,
     };
 
-    const newAccessToken = signAccessToken(tokenPayload);
-    const newRefreshToken = signRefreshToken(tokenPayload);
-
     return {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
+      accessToken: signAccessToken(tokenPayload),
+      refreshToken: signRefreshToken(tokenPayload),
     };
   }
 }

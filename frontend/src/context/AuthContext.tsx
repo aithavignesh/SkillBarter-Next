@@ -28,25 +28,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(res.user);
     } catch {
       setUser(null);
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("skillbarter_token");
-      }
+      if (typeof window !== "undefined") localStorage.removeItem("skillbarter_token");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    refreshUser();
-  }, []);
+  useEffect(() => { refreshUser(); }, []);
 
   const login = async (input: LoginInput) => {
     setError(null);
     try {
       const res = await api.auth.login(input);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("skillbarter_token", res.accessToken);
-      }
+      if (typeof window !== "undefined") localStorage.setItem("skillbarter_token", res.accessToken);
       setUser(res.user);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to log in";
@@ -59,10 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const res = await api.auth.register(input);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("skillbarter_token", res.accessToken);
-      }
-      setUser(res.user);
+      if (typeof window !== "undefined") localStorage.removeItem("skillbarter_token");
+      setUser(null);
       return res.verificationToken;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Registration failed";
@@ -72,31 +64,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    try {
-      await api.auth.logout();
-    } catch {
-      // Ignore network errors on logout
-    } finally {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("skillbarter_token");
-      }
+    try { await api.auth.logout(); } catch { /* ignore network errors */ }
+    finally {
+      if (typeof window !== "undefined") localStorage.removeItem("skillbarter_token");
       setUser(null);
     }
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        login,
-        register,
-        logout,
-        refreshUser,
-        setUser,
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, error, login, register, logout, refreshUser, setUser }}>
       {children}
     </AuthContext.Provider>
   );
@@ -104,8 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }
