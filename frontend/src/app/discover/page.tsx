@@ -108,7 +108,7 @@ export default function DiscoverPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       <div>
-        <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+        <span className="text-xs font-bold uppercase tracking-wider text-red-700">
           Match Engine
         </span>
         <h1 className="mt-1 text-3xl font-extrabold text-slate-900">
@@ -129,7 +129,7 @@ export default function DiscoverPage() {
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && fetchMatches()}
             placeholder="Search by skill or member name..."
-            className="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-2 text-sm focus:border-indigo-600 focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-2 text-sm focus:border-red-600 focus:outline-none"
           />
         </div>
 
@@ -137,7 +137,7 @@ export default function DiscoverPage() {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm bg-white focus:border-indigo-600 focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm bg-white focus:border-red-600 focus:outline-none"
           >
             <option value="">All Categories</option>
             {skillCategories.map((c) => (
@@ -150,7 +150,7 @@ export default function DiscoverPage() {
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value)}
-            className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm bg-white focus:border-indigo-600 focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm bg-white focus:border-red-600 focus:outline-none"
           >
             <option value="">Any Format</option>
             <option value="video">Video Call</option>
@@ -163,7 +163,7 @@ export default function DiscoverPage() {
           <button
             type="button"
             onClick={fetchMatches}
-            className="w-full rounded-xl bg-indigo-600 py-2 text-sm font-semibold text-white hover:bg-indigo-500 shadow-sm"
+            className="w-full rounded-xl bg-red-700 py-2 text-sm font-semibold text-white hover:bg-red-600 shadow-sm"
           >
             Search
           </button>
@@ -188,16 +188,16 @@ export default function DiscoverPage() {
           {matches.map((match) => (
             <div
               key={match.user.id}
-              className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all"
+              className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-red-200 transition-all"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <Link href={`/profile/${match.user.id}`} className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700 text-sm">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 font-bold text-red-700 text-sm">
                       {match.user.displayName.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 hover:text-indigo-600 transition-colors">
+                      <h3 className="font-bold text-slate-900 hover:text-red-700 transition-colors">
                         {match.user.displayName}
                       </h3>
                       <p className="text-xs text-slate-500">★ {match.user.reputationScore.toFixed(1)} rating</p>
@@ -208,7 +208,7 @@ export default function DiscoverPage() {
                     className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
                       match.compatibilityScore >= 80
                         ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                        : "bg-red-50 text-red-700 border border-red-200"
                     }`}
                   >
                     <Sparkles className="h-3 w-3" /> {match.compatibilityScore}%
@@ -237,7 +237,7 @@ export default function DiscoverPage() {
                   )}
                   {match.youTeachTheyLearn?.length > 0 && (
                     <div>
-                      <span className="font-semibold text-indigo-700">Wants from you: </span>
+                      <span className="font-semibold text-red-700">Wants from you: </span>
                       <span className="text-slate-800">
                         {match.youTeachTheyLearn.map((s: any) => s.name).join(", ")}
                       </span>
@@ -258,7 +258,7 @@ export default function DiscoverPage() {
                   <button
                     type="button"
                     onClick={() => handleOpenProposal(match)}
-                    className="flex-1 rounded-xl bg-indigo-600 py-2 text-center text-xs font-semibold text-white hover:bg-indigo-500 shadow-sm"
+                    className="flex-1 rounded-xl bg-red-700 py-2 text-center text-xs font-semibold text-white hover:bg-red-600 shadow-sm"
                   >
                     Request Exchange
                   </button>
@@ -281,7 +281,7 @@ export default function DiscoverPage() {
             </button>
 
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+              <span className="text-xs font-bold uppercase tracking-wider text-red-700">
                 New Exchange Proposal
               </span>
               <h3 className="mt-1 text-2xl font-bold text-slate-900">
@@ -375,7 +375,7 @@ export default function DiscoverPage() {
                   <button
                     type="submit"
                     disabled={submittingProposal || myOfferedSkills.length === 0}
-                    className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-xl bg-red-700 px-5 py-2 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-50"
                   >
                     <Send className="h-4 w-4" />
                     {submittingProposal ? "Sending..." : "Send Proposal"}
