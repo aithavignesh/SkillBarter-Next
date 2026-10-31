@@ -364,8 +364,8 @@ export class ExchangesService {
           ? "Both participants confirmed completion of the exchange."
           : `${actorUser?.displayName || "Participant"} confirmed completion. Waiting for the other participant.`,
         link: `/exchanges/${exchange._id.toString()}`,
-      })
-    };
+      });
+    }
 
     return this.getExchangeById(exchangeId, userId);
   }
