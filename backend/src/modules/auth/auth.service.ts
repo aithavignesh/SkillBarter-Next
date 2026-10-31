@@ -202,7 +202,7 @@ export class AuthService {
     if (!user || user.isSuspended || !user.isEmailVerified) {
       throw new AppError("User account not accessible", 401, "UNAUTHORIZED");
     }
-    if (user.passwordChangedAt && (!payload.iat || payload.iat < Math.floor(user.passwordChangedAt.getTime() / 1000))) {
+    if (user.passwordChangedAt && (!payload.iat || payload.iat < user.passwordChangedAt.getTime() / 1000)) {
       throw new AppError("Password changed; please sign in again", 401, "SESSION_REVOKED");
     }
 
