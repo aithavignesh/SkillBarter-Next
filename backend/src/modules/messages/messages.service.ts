@@ -55,6 +55,8 @@ export class MessagesService {
     page = 1,
     limit = 50
   ): Promise<{ messages: MessageDto[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+    const normalizedPage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+    const normalizedLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 50;
     const conv = await Conversation.findById(conversationId);
     if (!conv) {
       throw new AppError("Conversation not found", 404, "NOT_FOUND");
@@ -66,13 +68,13 @@ export class MessagesService {
       throw new AppError("Unauthorized access to conversation", 403, "FORBIDDEN");
     }
 
-    const skip = (page - 1) * limit;
+    const skip = (normalizedPage - 1) * normalizedLimit;
     const [messages, total] = await Promise.all([
       Message.find({ conversationId })
         .populate("senderId", "displayName")
         .sort({ createdAt: 1 })
         .skip(skip)
-        .limit(limit),
+        .limit(normalizedLimit),
       Message.countDocuments({ conversationId }),
     ]);
 
@@ -98,10 +100,10 @@ export class MessagesService {
     return {
       messages: formattedMessages,
       meta: {
-        page,
-        limit,
+        page: normalizedPage,
+        limit: normalizedLimit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / normalizedLimit),
       },
     };
   }
