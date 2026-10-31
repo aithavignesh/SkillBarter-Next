@@ -61,4 +61,36 @@ describe("production environment secret validation", () => {
       )).toBe(true);
     }
   });
+  it("rejects an admin bootstrap secret reused as the refresh secret", () => {
+    const values = {
+      ...validProductionEnv,
+      ADMIN_BOOTSTRAP_SECRET: validProductionEnv.JWT_REFRESH_SECRET,
+    };
+    setProductionEnvironment(values);
+    const result = envSchema.safeParse(values);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) =>
+        issue.path.includes("ADMIN_BOOTSTRAP_SECRET") &&
+        issue.message.includes("must use different secrets"),
+      )).toBe(true);
+    }
+  });
+
+  it("rejects production secrets shorter than 32 characters", () => {
+    const values = {
+      ...validProductionEnv,
+      ADMIN_BOOTSTRAP_SECRET: "short-secret",
+    };
+    setProductionEnvironment(values);
+    const result = envSchema.safeParse(values);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) =>
+        issue.path.includes("ADMIN_BOOTSTRAP_SECRET") &&
+        issue.message.includes("at least 32 characters"),
+      )).toBe(true);
+    }
+  });
+
 });
