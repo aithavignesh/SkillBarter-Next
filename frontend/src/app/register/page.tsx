@@ -36,10 +36,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-3xl border border-slate-200 bg-white p-8 sm:p-10 shadow-lg">
+    <div className="auth-page flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <div className="auth-card w-full max-w-md space-y-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-xl sm:p-10">
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#c62828] text-white shadow-md">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d31d24] text-white shadow-md">
             <UserPlus className="h-6 w-6" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-slate-900">
@@ -72,7 +72,7 @@ export default function RegisterPage() {
             </div>
             <Link
               href={`/verify-email?token=${encodeURIComponent(verificationToken)}`}
-              className="inline-block w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500"
+              className="inline-block w-full rounded-xl bg-[#d31d24] py-2.5 text-sm font-semibold text-white hover:bg-[#b71c1c]"
             >
               Verify Email & Continue
             </Link>
@@ -160,7 +160,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#c62828] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b71c1c] disabled:opacity-50 transition-all"
+              className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b71c1c] disabled:opacity-50 transition-all"
             >
               {loading ? "Creating account..." : "Create Account"}
             </button>
