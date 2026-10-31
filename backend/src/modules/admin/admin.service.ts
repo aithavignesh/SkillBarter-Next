@@ -44,6 +44,17 @@ export class AdminService {
   }
 
   async listUsers(page = 1, limit = 20, search?: string, role?: string) {
+    const normalizedPage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+    const normalizedLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 20;
+    const skip = (normalizedPage - 1) * normalizedLimit;
+    const filter: Record<string, unknown> = {};
+
+    if (search?.trim()) {
+      const searchTerm = search.trim();
+      if (searchTerm.length > 100) {
+        throw new AppError("Search query must be 100 characters or fewer", 400, "INVALID_SEARCH");
+      }
+      const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\\]\\]/g, "\\  async listUsers(page = 1, limit = 20, search?: string, role?: string) {
     const skip = (page - 1) * limit;
     const filter: Record<string, unknown> = {};
 
@@ -52,13 +63,18 @@ export class AdminService {
         { displayName: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
       ];
+    }");
+      filter.$or = [
+        { displayName: { $regex: escapedSearch, $options: "i" } },
+        { email: { $regex: escapedSearch, $options: "i" } },
+      ];
     }
     if (role && role !== "all") {
       filter.role = role;
     }
 
     const [users, total] = await Promise.all([
-      User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(normalizedLimit),
       User.countDocuments(filter),
     ]);
 
@@ -76,10 +92,10 @@ export class AdminService {
         createdAt: u.createdAt.toISOString(),
       })),
       meta: {
-        page,
-        limit,
+        page: normalizedPage,
+        limit: normalizedLimit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / normalizedLimit),
       },
     };
   }
@@ -130,7 +146,9 @@ export class AdminService {
   }
 
   async listReports(page = 1, limit = 20, status?: string) {
-    const skip = (page - 1) * limit;
+    const normalizedPage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+    const normalizedLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 20;
+    const skip = (normalizedPage - 1) * normalizedLimit;
     const filter: Record<string, unknown> = {};
     if (status && status !== "all") {
       filter.status = status;
@@ -141,7 +159,7 @@ export class AdminService {
         .populate("reporterId", "displayName email")
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(normalizedLimit),
       Report.countDocuments(filter),
     ]);
 
@@ -164,10 +182,10 @@ export class AdminService {
     return {
       reports: formatted,
       meta: {
-        page,
-        limit,
+        page: normalizedPage,
+        limit: normalizedLimit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / normalizedLimit),
       },
     };
   }
@@ -216,13 +234,15 @@ export class AdminService {
   }
 
   async listAuditLogs(page = 1, limit = 50) {
-    const skip = (page - 1) * limit;
+    const normalizedPage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+    const normalizedLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 50;
+    const skip = (normalizedPage - 1) * normalizedLimit;
     const [logs, total] = await Promise.all([
       AuditLog.find()
         .populate("actorId", "displayName email")
         .sort({ timestamp: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(normalizedLimit),
       AuditLog.countDocuments(),
     ]);
 
@@ -243,10 +263,10 @@ export class AdminService {
         };
       }),
       meta: {
-        page,
-        limit,
+        page: normalizedPage,
+        limit: normalizedLimit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / normalizedLimit),
       },
     };
   }
