@@ -537,7 +537,7 @@ export class ExchangesService {
     userId: string,
     input: UpdateSessionStatusInput
   ): Promise<ExchangeSessionDto> {
-    const session = await ExchangeSession.findById(sessionId);
+    let session = await ExchangeSession.findById(sessionId);
     if (!session) {
       throw new AppError("Session not found", 404, "NOT_FOUND");
     }
@@ -625,9 +625,25 @@ export class ExchangesService {
       }
     }
 
-    session.status = input.status;
-    if (input.notes !== undefined) session.notes = input.notes;
-    await session.save();
+    // Only apply the session transition if no concurrent request has already
+    // changed its status since the transition checks above.
+    const sessionUpdate: Record<string, unknown> = { status: input.status };
+    if (input.notes !== undefined) sessionUpdate.notes = input.notes;
+    const updatedSession = await ExchangeSession.findOneAndUpdate(
+      { _id: session._id, status: session.status },
+      { $set: sessionUpdate },
+      { new: true }
+    );
+
+    if (!updatedSession) {
+      const currentSession = await ExchangeSession.findById(session._id);
+      throw new AppError(
+        `Session status changed before the update could be applied (current status: ${currentSession?.status || "unavailable"})`,
+        409,
+        "INVALID_STATE"
+      );
+    }
+    session = updatedSession;
 
     const otherUserId =
       exchange.requesterId.toString() === userId
@@ -648,10 +664,14 @@ export class ExchangesService {
     }
 
     if (input.status === "CONFIRMED") {
-      // If exchange was in ACCEPTED, advance to SCHEDULED
+      // Advance only if the exchange is still ACCEPTED; another lifecycle
+      // operation may have changed it while this session was being confirmed.
       if (exchange.status === "ACCEPTED") {
-        exchange.status = "SCHEDULED";
-        await exchange.save();
+        await Exchange.findOneAndUpdate(
+          { _id: exchange._id, status: "ACCEPTED" },
+          { $set: { status: "SCHEDULED" } },
+          { new: true }
+        );
       }
 
       await AnalyticsEvent.create({
