@@ -4,7 +4,7 @@ SkillBarter-Next is a modern full-stack web application connecting individuals w
 
 ## Technology Stack
 
-- **Frontend:** Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS, Lucide Icons
+- **Frontend:** Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS, Lucide Icons
 - **Backend:** Node.js, Express.js, TypeScript, REST API
 - **Database:** MongoDB, Mongoose ODM with schema validations and compound indexes
 - **Validation & Contracts:** Zod shared contracts package (`@skillbarter/shared`)
@@ -113,7 +113,7 @@ npm run typecheck
 # Linting
 npm run lint
 
-# Automated integration and unit tests (24 passing tests)
+# Automated integration and unit tests
 npm test
 
 # Full production build (shared, backend, frontend)
