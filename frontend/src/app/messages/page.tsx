@@ -15,6 +15,8 @@ function MessagesContent() {
   const [messages, setMessages] = useState<MessageDto[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [messageError, setMessageError] = useState(false);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -29,7 +31,7 @@ function MessagesContent() {
         setActiveConvId(res.conversations[0]!.id);
       }
     } catch {
-      setConversations([]);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -43,8 +45,8 @@ function MessagesContent() {
     if (activeConvId) {
       api.messages
         .getMessages(activeConvId)
-        .then((res) => setMessages(res))
-        .catch(() => setMessages([]));
+        .then((res) => { setMessages(res); setMessageError(false); })
+        .catch(() => { setMessages([]); setMessageError(true); });
     }
   }, [activeConvId]);
 
@@ -78,12 +80,18 @@ function MessagesContent() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      {loadError && (
+        <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <span>Could not load your conversations. Please try again.</span>
+          <button type="button" onClick={() => { setLoadError(false); setLoading(true); void fetchConversations(); }} className="rounded-lg bg-red-700 px-3 py-2 font-semibold text-white hover:bg-red-600">Retry</button>
+        </div>
+      )}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden h-[calc(100vh-160px)] flex flex-col md:flex-row">
         {/* Left Side: Conversation List */}
         <div className="w-full md:w-80 border-r border-slate-200 flex flex-col bg-slate-50/50">
           <div className="p-4 border-b border-slate-200 bg-white">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-indigo-600" />
+              <MessageSquare className="h-5 w-5 text-red-700" />
               Conversations
             </h2>
           </div>
@@ -104,10 +112,10 @@ function MessagesContent() {
                     type="button"
                     onClick={() => setActiveConvId(c.id)}
                     className={`w-full text-left p-4 transition-all flex items-start gap-3 ${
-                      isActive ? "bg-white shadow-sm border-l-4 border-indigo-600" : "hover:bg-slate-100/60"
+                      isActive ? "bg-white shadow-sm border-l-4 border-red-700" : "hover:bg-slate-100/60"
                     }`}
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700 text-xs">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-100 font-bold text-red-700 text-xs">
                       {other?.displayName?.charAt(0).toUpperCase() || "U"}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -116,7 +124,7 @@ function MessagesContent() {
                           {other?.displayName || "Participant"}
                         </span>
                         {c.unreadCount > 0 && (
-                          <span className="flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">
+                          <span className="flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-red-700 text-[10px] font-bold text-white">
                             {c.unreadCount}
                           </span>
                         )}
@@ -167,7 +175,7 @@ function MessagesContent() {
                         <div
                           className={`max-w-md rounded-2xl px-4 py-2.5 text-xs leading-relaxed shadow-sm ${
                             isMe
-                              ? "bg-indigo-600 text-white rounded-br-none"
+                              ? "bg-red-700 text-white rounded-br-none"
                               : "bg-white border border-slate-200 text-slate-800 rounded-bl-none"
                           }`}
                         >
@@ -194,12 +202,12 @@ function MessagesContent() {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type your message..."
-                  className="flex-1 rounded-xl border border-slate-300 px-4 py-2 text-xs focus:border-indigo-600 focus:outline-none"
+                  className="flex-1 rounded-xl border border-slate-300 px-4 py-2 text-xs focus:border-red-700 focus:outline-none"
                 />
                 <button
                   type="submit"
                   disabled={sending || !newMessage.trim()}
-                  className="rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-500 disabled:opacity-50"
+                  className="rounded-xl bg-red-700 px-4 py-2 text-white hover:bg-indigo-500 disabled:opacity-50"
                 >
                   <Send className="h-4 w-4" />
                 </button>
