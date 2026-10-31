@@ -22,6 +22,7 @@ export default function DiscoverPage() {
   const { user } = useAuth();
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
   const [format, setFormat] = useState("");
@@ -38,11 +39,13 @@ export default function DiscoverPage() {
 
   const fetchMatches = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const data = await api.matches.discover(category, search, format);
       setMatches(data);
-    } catch {
+    } catch (err: unknown) {
       setMatches([]);
+      setLoadError(err instanceof Error ? err.message : "We couldn't load matches. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -177,6 +180,17 @@ export default function DiscoverPage() {
       {loading ? (
         <div role="status" aria-live="polite" className="p-12 text-center text-sm font-medium text-slate-500">
           Finding optimal skill matches...
+        </div>
+      ) : loadError ? (
+        <div role="alert" className="rounded-3xl border border-red-200 bg-white p-12 text-center">
+          <AlertCircle className="mx-auto h-12 w-12 text-red-600 mb-3" />
+          <h3 className="text-base font-bold text-slate-900">We couldn't load skill matches</h3>
+          <p className="mt-1 text-sm text-slate-600 max-w-md mx-auto">
+            The service may be temporarily unavailable. Your filters are preserved; try again in a moment.
+          </p>
+          <button type="button" onClick={fetchMatches} className="mt-4 rounded-xl bg-red-700 px-5 py-2 text-sm font-semibold text-white hover:bg-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700">
+            Try again
+          </button>
         </div>
       ) : matches.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
