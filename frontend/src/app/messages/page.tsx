@@ -160,7 +160,24 @@ function MessagesContent() {
 
               {/* Message List */}
               <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 bg-slate-50/30">
-                {messages.length === 0 ? (
+                {messageError ? (
+                  <div role="alert" className="mx-auto max-w-sm rounded-xl border border-rose-200 bg-rose-50 p-4 text-center text-sm text-rose-800">
+                    <p>Messages could not be loaded.</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!activeConversation) return;
+                        setMessageError(false);
+                        api.messages.getMessages(activeConversation.id)
+                          .then((res) => { setMessages(res); setMessageError(false); })
+                          .catch(() => setMessageError(true));
+                      }}
+                      className="mt-3 rounded-lg border border-rose-300 px-3 py-2 font-semibold hover:bg-rose-100"
+                    >
+                      Retry messages
+                    </button>
+                  </div>
+                ) : messages.length === 0 ? (
                   <div className="p-8 text-center text-xs text-slate-400">
                     No messages yet. Say hello and introduce your goals!
                   </div>
