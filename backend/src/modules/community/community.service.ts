@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Connection } from "../../models/Connection";
 import { CommunityPost, ICommunityPost } from "../../models/CommunityPost";
 import { User } from "../../models/User";
+import { Block } from "../../models/Block";
 import { Notification } from "../../models/Notification";
 import { CreatePostInput, ConnectionDto, CommunityPostDto } from "@skillbarter/shared";
 import { AppError } from "../../middleware/errorHandler";
@@ -11,6 +12,20 @@ export class CommunityService {
   async requestConnection(requesterId: string, recipientId: string): Promise<ConnectionDto> {
     if (requesterId === recipientId) {
       throw new AppError("Cannot connect with yourself", 400, "INVALID_TARGET");
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(recipientId)) {
+      throw new AppError("Invalid recipient ID", 400, "INVALID_ID");
+    }
+
+    const isBlocked = await Block.findOne({
+      $or: [
+        { blockerId: requesterId, blockedUserId: recipientId },
+        { blockerId: recipientId, blockedUserId: requesterId },
+      ],
+    });
+    if (isBlocked) {
+      throw new AppError("Cannot connect with this user", 403, "BLOCKED");
     }
 
     const recipient = await User.findById(recipientId);
