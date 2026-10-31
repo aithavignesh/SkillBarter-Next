@@ -48,7 +48,7 @@ export class AuthService {
     }
     const existing = await User.findOne({ $or: [{ email: input.email.toLowerCase().trim() }, { phone: normalizedPhone }] });
     if (existing) {
-      throw new AppError("An account with this email already exists", 409, "ACCOUNT_EXISTS");
+      throw new AppError("An account with this email or mobile number already exists", 409, "ACCOUNT_EXISTS");
     }
 
     const passwordHash = await hashPassword(input.password);
@@ -139,8 +139,9 @@ export class AuthService {
     const user = await User.findOne({ phone });
     if (!user) throw new AppError("Unable to sign in with this number. Check the number or create an account.", 404, "ACCOUNT_NOT_FOUND");
     if (user.isSuspended) throw new AppError("This account has been suspended.", 403, "ACCOUNT_SUSPENDED");
+    if (!phone.startsWith("+91")) throw new AppError("SMS OTP currently supports Indian mobile numbers (+91). Use email OTP for other countries.", 400, "PHONE_COUNTRY_UNSUPPORTED");
     if (!env.TWOFACTOR_API_KEY) throw new AppError("SMS OTP is not configured on the server. Please use email OTP or email and password.", 503, "SMS_NOT_CONFIGURED");
-    const url = "https://2factor.in/API/V1/" + encodeURIComponent(env.TWOFACTOR_API_KEY) + "/SMS/" + encodeURIComponent(phone.slice(1)) + "/AUTOGEN";
+    const url = "https://2factor.in/API/V1/" + encodeURIComponent(env.TWOFACTOR_API_KEY) + "/SMS/" + encodeURIComponent(phone.slice(3)) + "/AUTOGEN";
     const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
     const data = await response.json().catch(() => null) as { Status?: string; Details?: string } | null;
     if (!response.ok || data?.Status !== "Success" || !data.Details) throw new AppError("The SMS provider could not send an OTP. Please try again later.", 502, "SMS_DELIVERY_FAILED");
@@ -151,8 +152,9 @@ export class AuthService {
     const phone = phoneInput.trim().replace(/[\s()-]/g, "");
     const otp = otpInput.trim();
     if (!/^\+[1-9]\d{7,14}$/.test(phone) || !/^\d{6}$/.test(otp) || !challengeId || challengeId.length > 200) throw new AppError("Invalid or expired OTP challenge", 400, "INVALID_OTP");
+    if (!phone.startsWith("+91")) throw new AppError("SMS OTP currently supports Indian mobile numbers (+91).", 400, "PHONE_COUNTRY_UNSUPPORTED");
     if (!env.TWOFACTOR_API_KEY) throw new AppError("SMS OTP is not configured on the server.", 503, "SMS_NOT_CONFIGURED");
-    const url = "https://2factor.in/API/V1/" + encodeURIComponent(env.TWOFACTOR_API_KEY) + "/SMS/VERIFY/" + encodeURIComponent(challengeId) + "/" + encodeURIComponent(otp);
+    const url = "https://2factor.in/API/V1/" + encodeURIComponent(challengeId) + "/" + encodeURIComponent(otp);
     const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
     const data = await response.json().catch(() => null) as { Status?: string; Details?: string } | null;
     if (!response.ok || data?.Status !== "Success" || data.Details !== "OTP Matched") throw new AppError("Invalid or expired mobile OTP", 401, "INVALID_OTP");
