@@ -269,8 +269,9 @@ export class ExchangesService {
       throw new AppError(`Cannot complete an exchange with status ${exchange.status}`, 400, "INVALID_STATE");
     }
 
-    // Atomically persist only this participant's confirmation so concurrent
-    // requests cannot overwrite the other participant's confirmation.
+    // Atomically persist only this participant's first confirmation so
+    // concurrent requests cannot overwrite the other participant's confirmation
+    // or generate duplicate "waiting for the other participant" notifications.
     const confirmationField = isRequester
       ? "completionStatus.requesterConfirmed"
       : "completionStatus.recipientConfirmed";
@@ -278,20 +279,37 @@ export class ExchangesService {
       {
         _id: exchange._id,
         status: { $in: ["ACCEPTED", "SCHEDULED", "IN_PROGRESS"] },
+        [confirmationField]: { $ne: true },
       },
       { $set: { [confirmationField]: true } },
       { new: true }
     );
 
-    if (!updatedExchange) {
-      throw new AppError(
-        "The exchange can no longer be confirmed as completed",
-        400,
-        "INVALID_STATE"
-      );
-    }
+    let firstConfirmation = Boolean(updatedExchange);
+    if (updatedExchange) {
+      exchange = updatedExchange;
+    } else {
+      // A null result can mean this participant already confirmed, or that the
+      // exchange became terminal. Read the current state to distinguish them.
+      const currentExchange = await Exchange.findById(exchange._id);
+      const stillActive = currentExchange &&
+        ["ACCEPTED", "SCHEDULED", "IN_PROGRESS"].includes(currentExchange.status);
+      const alreadyConfirmed = currentExchange &&
+        (isRequester
+          ? currentExchange.completionStatus.requesterConfirmed
+          : currentExchange.completionStatus.recipientConfirmed);
 
-    exchange = updatedExchange;
+      if (!stillActive || !alreadyConfirmed) {
+        throw new AppError(
+          "The exchange can no longer be confirmed as completed",
+          400,
+          "INVALID_STATE"
+        );
+      }
+
+      exchange = currentExchange;
+      firstConfirmation = false;
+    }
 
     const bothConfirmed =
       exchange.completionStatus.requesterConfirmed &&
@@ -336,16 +354,18 @@ export class ExchangesService {
     const otherUserId = isRequester ? exchange.recipientId : exchange.requesterId;
     const actorUser = await User.findById(userId);
 
-    await Notification.create({
-      recipientId: otherUserId,
-      senderId: new mongoose.Types.ObjectId(userId),
-      type: finalizedNow ? "EXCHANGE_COMPLETED" : "EXCHANGE_COMPLETION_CONFIRMED",
-      title: finalizedNow ? "Exchange Completed" : "Completion Confirmation Received",
-      message: finalizedNow
-        ? "Both participants confirmed completion of the exchange."
-        : `${actorUser?.displayName || "Participant"} confirmed completion. Waiting for the other participant.`,
-      link: `/exchanges/${exchange._id.toString()}`,
-    });
+    if (firstConfirmation || finalizedNow) {
+      await Notification.create({
+        recipientId: otherUserId,
+        senderId: new mongoose.Types.ObjectId(userId),
+        type: finalizedNow ? "EXCHANGE_COMPLETED" : "EXCHANGE_COMPLETION_CONFIRMED",
+        title: finalizedNow ? "Exchange Completed" : "Completion Confirmation Received",
+        message: finalizedNow
+          ? "Both participants confirmed completion of the exchange."
+          : `${actorUser?.displayName || "Participant"} confirmed completion. Waiting for the other participant.`,
+        link: `/exchanges/${exchange._id.toString()}`,
+      })
+    };
 
     return this.getExchangeById(exchangeId, userId);
   }
