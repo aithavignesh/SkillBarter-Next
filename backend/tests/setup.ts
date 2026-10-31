@@ -2,6 +2,9 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import { afterAll, beforeAll } from "vitest";
 
+// Isolated test-only bootstrap value; production must configure its own.
+process.env.ADMIN_BOOTSTRAP_SECRET ||= "test-only-admin-bootstrap-secret-32-chars";
+
 let mongod: MongoMemoryServer;
 
 beforeAll(async () => {
