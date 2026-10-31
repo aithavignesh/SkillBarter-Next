@@ -310,6 +310,14 @@ export class ExchangesService {
       throw new AppError("Unauthorized", 403, "FORBIDDEN");
     }
 
+    if (["COMPLETED", "REJECTED", "CANCELLED", "DISPUTED"].includes(exchange.status)) {
+      throw new AppError(
+        `Cannot dispute an exchange while its status is ${exchange.status}`,
+        400,
+        "INVALID_STATE"
+      );
+    }
+
     exchange.status = "DISPUTED";
     exchange.disputeReason = reason;
     await exchange.save();
