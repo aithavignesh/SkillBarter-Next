@@ -14,12 +14,21 @@ export default function ExchangesListPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
+  const loadExchanges = async () => {
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const res = await api.exchanges.list();
+      setExchanges(res.exchanges);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    api.exchanges
-      .list()
-      .then((res) => setExchanges(res.exchanges))
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
+    void loadExchanges();
   }, []);
 
   const filtered = exchanges.filter((e) => {
@@ -75,8 +84,8 @@ export default function ExchangesListPage() {
         <div role="alert" className="rounded-2xl border border-red-200 bg-white p-10 text-center">
           <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-600" />
           <h2 className="font-bold text-slate-900">Couldn't load your exchanges</h2>
-          <p className="mt-2 text-sm text-slate-600">The exchange service may be temporarily unavailable. Please refresh to try again.</p>
-          <button type="button" onClick={() => window.location.reload()} className="mt-4 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600">Try again</button>
+          <p className="mt-2 text-sm text-slate-600">The exchange service may be temporarily unavailable. You can retry without leaving this page.</p>
+          <button type="button" onClick={() => void loadExchanges()} className="mt-4 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600">{loading ? "Retrying..." : "Try again"}</button>
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
