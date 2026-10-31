@@ -126,7 +126,7 @@ export default function ExchangesListPage() {
               <Link
                 key={ex.id}
                 href={`/exchanges/${ex.id}`}
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all flex flex-col justify-between"
+                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:border-red-300 hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between">
