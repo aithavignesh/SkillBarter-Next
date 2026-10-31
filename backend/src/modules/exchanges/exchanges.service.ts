@@ -5,6 +5,7 @@ import { Conversation } from "../../models/Conversation";
 import { Notification } from "../../models/Notification";
 import { User } from "../../models/User";
 import { Skill } from "../../models/Skill";
+import { UserSkill } from "../../models/UserSkill";
 import { Block } from "../../models/Block";
 import { AnalyticsEvent } from "../../models/AnalyticsEvent";
 import {
@@ -49,6 +50,38 @@ export class ExchangesService {
     }
     if (!wantedSkill) {
       throw new AppError("Wanted skill not found", 404, "SKILL_NOT_FOUND");
+    }
+
+    // A proposal must reflect skills the participants actually offer. Checking
+    // only that the global skill records exist would let a requester claim any
+    // skill for themselves or request a skill the recipient does not offer.
+    const [requesterOffersSkill, recipientOffersSkill] = await Promise.all([
+      UserSkill.exists({
+        userId: new mongoose.Types.ObjectId(requesterId),
+        skillId: offeredSkill._id,
+        type: "offered",
+      }),
+      UserSkill.exists({
+        userId: recipient._id,
+        skillId: wantedSkill._id,
+        type: "offered",
+      }),
+    ]);
+
+    if (!requesterOffersSkill) {
+      throw new AppError(
+        "You can only offer a skill listed in your offered skills",
+        400,
+        "OFFERED_SKILL_NOT_OWNED"
+      );
+    }
+
+    if (!recipientOffersSkill) {
+      throw new AppError(
+        "The recipient does not offer the requested skill",
+        400,
+        "RECIPIENT_SKILL_UNAVAILABLE"
+      );
     }
 
     const exchange = await Exchange.create({
