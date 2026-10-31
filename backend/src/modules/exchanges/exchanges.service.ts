@@ -605,6 +605,14 @@ export class ExchangesService {
       );
     }
 
+    if (input.status === "COMPLETED" && session.endTime > new Date()) {
+      throw new AppError(
+        "A session cannot be marked completed before its scheduled end time",
+        400,
+        "SESSION_NOT_FINISHED"
+      );
+    }
+
     if (input.status === "CONFIRMED" && session.startTime <= new Date()) {
       throw new AppError(
         "A session cannot be confirmed after its start time has passed",
