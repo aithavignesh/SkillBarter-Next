@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [verificationToken, setVerificationToken] = useState<string | null>(null);
@@ -21,7 +22,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const token = await register({ displayName, email, password });
+      const token = await register({ displayName, email, phone, password });
       if (token) {
         setVerificationToken(token);
       } else {
@@ -120,6 +121,22 @@ export default function RegisterPage() {
                   className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                   placeholder="alex@example.com"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                  Mobile number
+                </label>
+                <input
+                  type="tel"
+                  autoComplete="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                  placeholder="+91 98765 43210"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">Include your country code. You can use this number to sign in with OTP.</p>
               </div>
 
               <div>
