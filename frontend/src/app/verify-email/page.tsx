@@ -28,11 +28,10 @@ function VerifyEmailContent() {
   };
 
   useEffect(() => {
+    // Do not consume a verification token on page load: email security scanners
+    // may prefetch links. Require an explicit user click to verify the account.
     const queryToken = searchParams.get("token");
-    if (queryToken) {
-      setToken(queryToken);
-      void handleVerify(queryToken);
-    }
+    if (queryToken) setToken(queryToken);
   }, [searchParams]);
 
   return (
@@ -52,7 +51,7 @@ function VerifyEmailContent() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-slate-900">Verify Your Email</h2>
             <p className="text-sm text-slate-600">
-              Open the verification email link. In development, you can paste the verification token shown after registration.
+              Confirm the token below, then click Verify Account. This explicit action prevents email link scanners from consuming your single-use token.
             </p>
             {status === "error" && (
               <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-4 text-sm text-rose-700 border border-rose-200">

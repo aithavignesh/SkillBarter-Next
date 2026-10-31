@@ -61,7 +61,7 @@ export async function sendVerificationEmail(
   displayName: string,
   token: string,
 ): Promise<boolean> {
-  const link = `${env.PUBLIC_API_URL.replace(/\/$/, "")}/auth/verify-email/link?token=${encodeURIComponent(token)}`;
+  const link = `${env.FRONTEND_URL.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}`;
   const safeName = escapeHtml(displayName);
 
   return sendEmail({
