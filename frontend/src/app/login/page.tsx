@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
-import { LogIn, AlertCircle } from "lucide-react";
+import { LogIn, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,7 +12,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [verificationStatus, setVerificationStatus] = useState<"success" | "failure" | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const verified = new URLSearchParams(window.location.search).get("verified");
+    if (verified === "1") setVerificationStatus("success");
+    if (verified === "0") setVerificationStatus("failure");
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +53,19 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
+
+        {verificationStatus === "success" && (
+          <div className="flex items-center gap-2 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800 border border-emerald-200">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <p>Your email has been verified. You can now sign in.</p>
+          </div>
+        )}
+        {verificationStatus === "failure" && (
+          <div className="flex items-center gap-2 rounded-xl bg-amber-50 p-4 text-sm text-amber-800 border border-amber-200">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <p>This verification link is invalid or expired. Please register again or contact support.</p>
+          </div>
+        )}
 
         {error && (
           <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-4 text-sm text-rose-700 border border-rose-200">

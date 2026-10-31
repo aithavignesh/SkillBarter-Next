@@ -2,18 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const { register } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [verificationToken, setVerificationToken] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,7 +25,7 @@ export default function RegisterPage() {
       if (token) {
         setVerificationToken(token);
       } else {
-        router.push("/onboarding");
+        setEmailSent(true);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to register");
@@ -65,16 +64,31 @@ export default function RegisterPage() {
             <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
             <h3 className="text-lg font-bold text-slate-900">Account Created!</h3>
             <p className="text-sm text-slate-600">
-              Your account has been registered. You can verify your email using the verification code below:
+              Development verification token (production users receive an email link):
             </p>
             <div className="rounded-xl bg-white p-3 font-mono text-xs text-slate-800 break-all select-all border border-emerald-300">
               {verificationToken}
             </div>
             <Link
-              href={`/verify-email?token=${verificationToken}`}
+              href={`/verify-email?token=${encodeURIComponent(verificationToken)}`}
               className="inline-block w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500"
             >
               Verify Email & Continue
+            </Link>
+          </div>
+        ) : emailSent ? (
+          <div className="space-y-4 rounded-2xl bg-emerald-50 p-6 border border-emerald-200 text-center">
+            <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
+            <h3 className="text-lg font-bold text-slate-900">Check your email</h3>
+            <p className="text-sm text-slate-700">
+              Your account has been created. We sent a verification link to <strong>{email}</strong>.
+              Open that email to verify your address before continuing.
+            </p>
+            <Link
+              href="/login"
+              className="inline-block w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500"
+            >
+              Go to Sign In
             </Link>
           </div>
         ) : (
