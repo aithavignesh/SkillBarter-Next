@@ -61,6 +61,12 @@ describe("Security middleware and admin access", () => {
     expect(setCookie?.some((cookie) => cookie.startsWith("refreshToken=;"))).toBe(true);
   });
 
+  it("rejects refresh requests without a refresh token", async () => {
+    const response = await request(app).post("/api/v1/auth/refresh");
+    expect(response.status).toBe(401);
+    expect(response.body.error.code).toBe("REFRESH_TOKEN_REQUIRED");
+  });
+
   it("redirects email verification links to the frontend without consuming the token on GET", async () => {
     const token = "verification-token-with-special-chars&next=/admin";
     const response = await request(app).get("/api/v1/auth/verify-email/link").query({ token });
