@@ -21,6 +21,7 @@ function MessagesContent() {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const conversationsRequestId = useRef(0);
+  const messagesRequestId = useRef(0);
 
   const fetchConversations = async () => {
     const requestId = ++conversationsRequestId.current;
@@ -55,12 +56,12 @@ function MessagesContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    let current = true;
+    const requestId = ++messagesRequestId.current;
     if (!activeConvId) {
       setMessages([]);
       setMessageError(false);
       return () => {
-        current = false;
+        messagesRequestId.current += 1;
       };
     }
 
@@ -69,20 +70,20 @@ function MessagesContent() {
     api.messages
       .getMessages(activeConvId)
       .then((res) => {
-        if (current) {
+        if (requestId === messagesRequestId.current) {
           setMessages(res);
           setMessageError(false);
         }
       })
       .catch(() => {
-        if (current) {
+        if (requestId === messagesRequestId.current) {
           setMessages([]);
           setMessageError(true);
         }
       });
 
     return () => {
-      current = false;
+      messagesRequestId.current += 1;
     };
   }, [activeConvId]);
 
@@ -204,10 +205,20 @@ function MessagesContent() {
                       type="button"
                       onClick={() => {
                         if (!activeConv) return;
+                        const requestId = ++messagesRequestId.current;
                         setMessageError(false);
                         api.messages.getMessages(activeConv.id)
-                          .then((res) => { setMessages(res); setMessageError(false); })
-                          .catch(() => setMessageError(true));
+                          .then((res) => {
+                            if (requestId === messagesRequestId.current) {
+                              setMessages(res);
+                              setMessageError(false);
+                            }
+                          })
+                          .catch(() => {
+                            if (requestId === messagesRequestId.current) {
+                              setMessageError(true);
+                            }
+                          });
                       }}
                       className="mt-3 rounded-lg border border-rose-300 px-3 py-2 font-semibold hover:bg-rose-100"
                     >
