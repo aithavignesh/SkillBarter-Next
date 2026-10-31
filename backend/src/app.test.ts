@@ -61,6 +61,14 @@ describe("Security middleware and admin access", () => {
     expect(setCookie?.some((cookie) => cookie.startsWith("refreshToken=;"))).toBe(true);
   });
 
+  it("rejects password changes without an authenticated session", async () => {
+    const response = await request(app).post("/api/v1/auth/change-password").send({
+      currentPassword: "Old-password-123!",
+      newPassword: "New-password-456!",
+    });
+    expect(response.status).toBe(401);
+  });
+
   it("rejects refresh requests without a refresh token", async () => {
     const response = await request(app).post("/api/v1/auth/refresh");
     expect(response.status).toBe(401);
