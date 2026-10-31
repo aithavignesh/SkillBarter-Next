@@ -28,6 +28,7 @@ export default function DiscoverPage() {
   const [format, setFormat] = useState("");
   const [mySkills, setMySkills] = useState<UserSkillDto[]>([]);
   const matchesRequestId = useRef(0);
+  const proposalSubmitLock = useRef(false);
 
   // Exchange proposal modal state
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
@@ -109,7 +110,8 @@ export default function DiscoverPage() {
 
   const handleSubmitProposal = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMatch) return;
+    if (!selectedMatch || proposalSubmitLock.current) return;
+    proposalSubmitLock.current = true;
     setProposalError(null);
     setSubmittingProposal(true);
 
@@ -128,6 +130,7 @@ export default function DiscoverPage() {
     } catch (err: unknown) {
       setProposalError(err instanceof Error ? err.message : "Failed to send proposal");
     } finally {
+      proposalSubmitLock.current = false;
       setSubmittingProposal(false);
     }
   };
