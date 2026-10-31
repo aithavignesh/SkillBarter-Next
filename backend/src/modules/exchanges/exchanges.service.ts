@@ -331,10 +331,9 @@ export class ExchangesService {
     const conflict = await ExchangeSession.findOne({
       exchangeId: exchange._id,
       status: "CONFIRMED",
-      $or: [
-        { startTime: { $lt: endTime, $gte: startTime } },
-        { endTime: { $gt: startTime, $lte: endTime } },
-      ],
+      // Two intervals overlap whenever each starts before the other ends.
+      startTime: { $lt: endTime },
+      endTime: { $gt: startTime },
     });
 
     if (conflict) {
