@@ -83,14 +83,14 @@ export default function LoginPage() {
     });
   };
 
-  const tabClass = (active: boolean) => `flex-1 rounded-lg px-2 py-3 text-sm font-semibold transition ${active ? "bg-indigo-600 text-white shadow" : "text-slate-600 hover:bg-slate-100"}`;
-  const inputClass = "mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600";
+  const tabClass = (active: boolean) => `flex-1 rounded-lg px-2 py-3 text-sm font-semibold transition ${active ? "bg-[#c62828] text-white shadow" : "text-slate-600 hover:bg-slate-100"}`;
+  const inputClass = "mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#c62828] focus:outline-none focus:ring-1 focus:ring-[#c62828]";
 
   return (
     <div className="flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-7 rounded-3xl border border-slate-200 bg-white p-7 shadow-lg sm:p-9">
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md"><LogIn className="h-6 w-6" /></div>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#c62828] text-white shadow-md"><LogIn className="h-6 w-6" /></div>
           <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-slate-900">Welcome back</h1>
           <p className="mt-2 text-sm text-slate-600">Sign in to your SkillBarter account</p>
         </div>
@@ -108,8 +108,8 @@ export default function LoginPage() {
           <form className="space-y-5" onSubmit={challengeId ? verifyPhone : submitPhone}>
             <div><label htmlFor="phone" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">Mobile number</label><input id="phone" type="tel" autoComplete="tel" required value={phone} onChange={e => { setPhone(e.target.value); setChallengeId(""); }} className={inputClass} placeholder="+91 98765 43210" /></div>
             {challengeId && <div><label htmlFor="phoneOtp" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">6-digit SMS OTP</label><input id="phoneOtp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={phoneOtp} onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} className={inputClass} placeholder="Enter OTP" /></div>}
-            <button disabled={busy} type="submit" className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50">{busy ? "Please wait…" : challengeId ? "Verify OTP & Sign In" : "Send OTP"}</button>
-            {challengeId && <button type="button" onClick={() => { setChallengeId(""); setPhoneOtp(""); setNotice(null); }} className="w-full text-sm font-semibold text-indigo-600 hover:text-indigo-500">Change number / resend OTP</button>}
+            <button disabled={busy} type="submit" className="w-full rounded-xl bg-[#c62828] py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#b71c1c] disabled:opacity-50">{busy ? "Please wait…" : challengeId ? "Verify OTP & Sign In" : "Send OTP"}</button>
+            {challengeId && <button type="button" onClick={() => { setChallengeId(""); setPhoneOtp(""); setNotice(null); }} className="w-full text-sm font-semibold text-[#b71c1c] hover:text-[#c62828]">Change number / resend OTP</button>}
           </form>
         )}
 
@@ -117,20 +117,20 @@ export default function LoginPage() {
           <form className="space-y-5" onSubmit={submitEmailOtp}>
             <div><label htmlFor="emailOtpAddress" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">Email address</label><input id="emailOtpAddress" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} className={inputClass} placeholder="you@example.com" /></div>
             {emailOtpSent && <div><label htmlFor="emailOtp" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">6-digit email OTP</label><input id="emailOtp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={emailOtp} onChange={e => setEmailOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} className={inputClass} placeholder="Enter OTP" /></div>}
-            <button disabled={busy} type="submit" className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50">{busy ? "Please wait…" : emailOtpSent ? "Verify OTP & Sign In" : "Send Email OTP"}</button>
-            {emailOtpSent && <button type="button" onClick={() => { setEmailOtpSent(false); setEmailOtp(""); setNotice(null); }} className="w-full text-sm font-semibold text-indigo-600 hover:text-indigo-500">Use a different email / request a new code</button>}
+            <button disabled={busy} type="submit" className="w-full rounded-xl bg-[#c62828] py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#b71c1c] disabled:opacity-50">{busy ? "Please wait…" : emailOtpSent ? "Verify OTP & Sign In" : "Send Email OTP"}</button>
+            {emailOtpSent && <button type="button" onClick={() => { setEmailOtpSent(false); setEmailOtp(""); setNotice(null); }} className="w-full text-sm font-semibold text-[#b71c1c] hover:text-[#c62828]">Use a different email / request a new code</button>}
           </form>
         )}
 
         {mode === "password" && (
           <form className="space-y-5" onSubmit={submitPassword}>
             <div><label htmlFor="passwordEmail" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">Email address</label><input id="passwordEmail" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} className={inputClass} placeholder="you@example.com" /></div>
-            <div><div className="flex items-center justify-between"><label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">Password</label><Link href="/forgot-password" className="text-xs font-semibold text-indigo-600 hover:text-indigo-500">Forgot password?</Link></div><input id="password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} className={inputClass} placeholder="Your password" /></div>
-            <button disabled={busy} type="submit" className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50">{busy ? "Signing in…" : "Sign In"}</button>
+            <div><div className="flex items-center justify-between"><label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">Password</label><Link href="/forgot-password" className="text-xs font-semibold text-[#b71c1c] hover:text-[#c62828]">Forgot password?</Link></div><input id="password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} className={inputClass} placeholder="Your password" /></div>
+            <button disabled={busy} type="submit" className="w-full rounded-xl bg-[#c62828] py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#b71c1c] disabled:opacity-50">{busy ? "Signing in…" : "Sign In"}</button>
           </form>
         )}
 
-        <p className="text-center text-sm text-slate-600">New to SkillBarter? <Link href="/register" className="font-semibold text-indigo-600 hover:text-indigo-500">Create an account</Link></p>
+        <p className="text-center text-sm text-slate-600">New to SkillBarter? <Link href="/register" className="font-semibold text-[#b71c1c] hover:text-[#c62828]">Create an account</Link></p>
       </div>
     </div>
   );
