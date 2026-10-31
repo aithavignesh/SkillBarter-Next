@@ -379,6 +379,14 @@ export class ExchangesService {
       throw new AppError("Unauthorized", 403, "FORBIDDEN");
     }
 
+    if (!["ACCEPTED", "SCHEDULED", "IN_PROGRESS"].includes(exchange.status)) {
+      throw new AppError(
+        `Cannot schedule a session while the exchange status is ${exchange.status}`,
+        400,
+        "INVALID_STATE"
+      );
+    }
+
     const startTime = new Date(input.startTime);
     const endTime = new Date(input.endTime);
 
@@ -460,6 +468,14 @@ export class ExchangesService {
 
     if (!isParticipant) {
       throw new AppError("Unauthorized", 403, "FORBIDDEN");
+    }
+
+    if (["COMPLETED", "REJECTED", "CANCELLED", "DISPUTED"].includes(exchange.status)) {
+      throw new AppError(
+        `Cannot update a session while the exchange status is ${exchange.status}`,
+        400,
+        "INVALID_STATE"
+      );
     }
 
     const allowedSessionTransitions: Record<string, string[]> = {
