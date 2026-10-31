@@ -74,6 +74,16 @@ describe("Security middleware and admin access", () => {
     expect(response.status).toBe(401);
   });
 
+  it("rejects conversation access without an authenticated session", async () => {
+    const response = await request(app).get("/api/v1/messages/conversations");
+    expect(response.status).toBe(401);
+  });
+
+  it("rejects exchange listing without an authenticated session", async () => {
+    const response = await request(app).get("/api/v1/exchanges");
+    expect(response.status).toBe(401);
+  });
+
   it("rejects password changes without an authenticated session", async () => {
     const response = await request(app).post("/api/v1/auth/change-password").send({
       currentPassword: "Old-password-123!",
