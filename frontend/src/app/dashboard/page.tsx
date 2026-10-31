@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
@@ -25,13 +25,19 @@ export default function DashboardPage() {
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const dashboardRequestId = useRef(0);
 
   const loadDashboard = async () => {
+    const requestId = ++dashboardRequestId.current;
+    setLoading(true);
     setLoadError(false);
     const [exchangeResult, notificationResult] = await Promise.allSettled([
       api.exchanges.list(),
       api.notifications.list(1),
     ]);
+
+    // Ignore responses from older requests (for example, a retry finishing first).
+    if (requestId !== dashboardRequestId.current) return;
 
     if (exchangeResult.status === "fulfilled") {
       setExchanges(exchangeResult.value.exchanges);
@@ -60,6 +66,12 @@ export default function DashboardPage() {
     if (user) {
       void loadDashboard();
     }
+
+    return () => {
+      // Invalidate any in-flight dashboard request when auth state changes or
+      // this page unmounts, so stale results cannot update the next view.
+      dashboardRequestId.current += 1;
+    };
   }, [user, authLoading, router]);
 
   if (authLoading || loading) {
