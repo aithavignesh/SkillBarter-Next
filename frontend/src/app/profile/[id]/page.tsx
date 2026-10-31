@@ -33,20 +33,6 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionPending, setActionPending] = useState<"connect" | "message" | null>(null);
 
-  const loadProfile = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const pRes = await api.users.getProfile(id);
-      setProfile(pRes.profile);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load profile");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const loadReviews = async () => {
     try {
       const rRes = await api.reviews.getUserReviews(id);
@@ -58,8 +44,41 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   };
 
   useEffect(() => {
-    void loadProfile();
-    void loadReviews();
+    let active = true;
+    setLoading(true);
+    setError(null);
+    setProfile(null);
+    setReviews([]);
+    setReviewsError(false);
+    setConnected(false);
+    setActionError(null);
+    setActionPending(null);
+
+    api.users.getProfile(id)
+      .then((result) => {
+        if (active) setProfile(result.profile);
+      })
+      .catch((err: unknown) => {
+        if (active) setError(err instanceof Error ? err.message : "Failed to load profile");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    api.reviews.getUserReviews(id)
+      .then((result) => {
+        if (active) {
+          setReviews(result.reviews);
+          setReviewsError(false);
+        }
+      })
+      .catch(() => {
+        if (active) setReviewsError(true);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [id]);
 
   const isOwner = user?.id === id;
