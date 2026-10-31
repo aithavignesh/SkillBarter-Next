@@ -40,4 +40,15 @@ describe("Security middleware and admin access", () => {
     const response = await request(app).post("/api/v1/admin/bootstrap").send({});
     expect(response.status).toBe(400);
   });
+
+  it("rejects admin bootstrap requests with an invalid secret", async () => {
+    const response = await request(app).post("/api/v1/admin/bootstrap").send({
+      secretKey: "definitely-not-the-bootstrap-secret",
+      email: "bootstrap-test@example.com",
+      password: "A-long-test-password-123!",
+      displayName: "Bootstrap Test",
+    });
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe("FORBIDDEN");
+  });
 });
