@@ -6,3 +6,45 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: #f7f7f5; color: #17233b; }
 a { color: inherit; text-decoration: none; transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease; }
+
+
+/* Shared visual language: warm neutral surfaces, SkillBarter red and soft depth. */
+:root {
+  --sb-primary: #d31d24;
+  --sb-primary-dark: #b71c1c;
+  --sb-ink: #17233b;
+  --sb-muted: #64748b;
+  --sb-surface: #ffffff;
+  --sb-page: #f7f7f5;
+}
+
+.auth-page {
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(211, 29, 36, 0.09), transparent 34%),
+    radial-gradient(ellipse at 88% 92%, rgba(211, 29, 36, 0.06), transparent 30%),
+    linear-gradient(180deg, #fff 0%, var(--sb-page) 100%);
+}
+
+.auth-card {
+  box-shadow: 0 24px 70px -38px rgba(23, 35, 59, 0.32);
+  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.auth-card:focus-within {
+  border-color: rgba(211, 29, 36, 0.28);
+  box-shadow: 0 28px 76px -38px rgba(23, 35, 59, 0.36);
+}
+
+::selection {
+  color: #fff;
+  background: var(--sb-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
