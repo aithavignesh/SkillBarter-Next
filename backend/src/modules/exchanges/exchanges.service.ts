@@ -253,7 +253,7 @@ export class ExchangesService {
   }
 
   async confirmCompletion(exchangeId: string, userId: string): Promise<ExchangeDto> {
-    const exchange = await Exchange.findById(exchangeId);
+    let exchange = await Exchange.findById(exchangeId);
     if (!exchange) {
       throw new AppError("Exchange not found", 404, "NOT_FOUND");
     }
