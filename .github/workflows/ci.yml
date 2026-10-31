@@ -51,6 +51,8 @@ jobs:
             console.log(JSON.stringify({name, severity:item.severity, isDirect:item.isDirect, range:item.range, fixAvailable:item.fixAvailable, via:item.via}));
           }
           NODE
+      - name: Block high and critical dependency vulnerabilities
+        run: npm audit --audit-level=high
       - run: npm run build -w shared
       - run: npm run typecheck
       - run: npm run lint
