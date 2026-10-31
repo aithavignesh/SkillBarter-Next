@@ -29,7 +29,7 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
 
     const user = await User.findById(payload.userId);
     if (!user) throw new AppError("User account not found", 401, "USER_NOT_FOUND");
-    if (user.passwordChangedAt && (!payload.iat || payload.iat < Math.floor(user.passwordChangedAt.getTime() / 1000))) {
+    if (user.passwordChangedAt && (!payload.iat || payload.iat < user.passwordChangedAt.getTime() / 1000)) {
       throw new AppError("Password changed; please sign in again", 401, "SESSION_REVOKED");
     }
     if (!user.isEmailVerified) {
@@ -65,7 +65,7 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
       const payload = verifyAccessToken(token);
       if (payload) {
         const user = await User.findById(payload.userId);
-        const tokenIsCurrent = !user?.passwordChangedAt || Boolean(payload.iat && payload.iat >= Math.floor(user.passwordChangedAt.getTime() / 1000));
+        const tokenIsCurrent = !user?.passwordChangedAt || Boolean(payload.iat && payload.iat >= user.passwordChangedAt.getTime() / 1000);
         if (user && tokenIsCurrent && user.isEmailVerified && !user.isSuspended) {
           req.user = user;
           req.tokenPayload = payload;
