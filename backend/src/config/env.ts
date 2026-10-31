@@ -14,6 +14,8 @@ const envBaseSchema = z.object({
   ADMIN_BOOTSTRAP_SECRET: z.string().min(32).optional(),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().min(1).optional(),
+  // Explicitly allow non-email staging deployments without weakening production token/cookie behavior.
+  EMAIL_DISABLED: z.enum(["true", "false"]).default("false"),
 });
 
 export const envSchema = envBaseSchema.superRefine((value, context) => {
@@ -26,8 +28,6 @@ export const envSchema = envBaseSchema.superRefine((value, context) => {
     "JWT_ACCESS_SECRET",
     "JWT_REFRESH_SECRET",
     "ADMIN_BOOTSTRAP_SECRET",
-    "RESEND_API_KEY",
-    "EMAIL_FROM",
   ] as const;
   for (const key of required) {
     if (!process.env[key]?.trim()) {
@@ -36,6 +36,18 @@ export const envSchema = envBaseSchema.superRefine((value, context) => {
         path: [key],
         message: `${key} must be explicitly configured in production`,
       });
+    }
+  }
+
+  if (value.EMAIL_DISABLED !== "true") {
+    for (const key of ["RESEND_API_KEY", "EMAIL_FROM"] as const) {
+      if (!process.env[key]?.trim()) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key],
+          message: `${key} must be explicitly configured in production unless EMAIL_DISABLED=true`,
+        });
+      }
     }
   }
 
@@ -65,5 +77,3 @@ export const envSchema = envBaseSchema.superRefine((value, context) => {
     }
   }
 });
-
-export const env = envSchema.parse(process.env);
