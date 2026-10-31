@@ -100,6 +100,6 @@ export async function sendLoginOtpEmail(email: string, displayName: string, code
     to: email,
     subject: "Your SkillBarter sign-in code",
     text: "Hi " + displayName + ", your SkillBarter sign-in code is " + code + ". It expires in 5 minutes. If you did not request it, you can ignore this email.",
-    html: "<p>Hi " + safeName + ",</p><p>Your SkillBarter sign-in code is:</p><p style=\\"font-size:28px;font-weight:700;letter-spacing:6px\\">" + code + "</p><p>This code expires in 5 minutes. If you did not request it, ignore this email.</p>",
+    html: '<p>Hi ' + safeName + ',</p><p>Your SkillBarter sign-in code is:</p><p style="font-size:28px;font-weight:700;letter-spacing:6px">' + code + '</p><p>This code expires in 5 minutes. If you did not request it, ignore this email.</p>',
   });
 }
