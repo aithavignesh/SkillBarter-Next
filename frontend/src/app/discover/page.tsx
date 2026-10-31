@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
@@ -27,6 +27,7 @@ export default function DiscoverPage() {
   const [search, setSearch] = useState("");
   const [format, setFormat] = useState("");
   const [mySkills, setMySkills] = useState<UserSkillDto[]>([]);
+  const matchesRequestId = useRef(0);
 
   // Exchange proposal modal state
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
@@ -38,16 +39,19 @@ export default function DiscoverPage() {
   const [proposalSuccess, setProposalSuccess] = useState<string | null>(null);
 
   const fetchMatches = async () => {
+    const requestId = ++matchesRequestId.current;
     setLoading(true);
     setLoadError(null);
     try {
       const data = await api.matches.discover(category, search, format);
-      setMatches(data);
+      if (requestId === matchesRequestId.current) setMatches(data);
     } catch (err: unknown) {
-      setMatches([]);
-      setLoadError(err instanceof Error ? err.message : "We couldn't load matches. Please try again.");
+      if (requestId === matchesRequestId.current) {
+        setMatches([]);
+        setLoadError(err instanceof Error ? err.message : "We couldn't load matches. Please try again.");
+      }
     } finally {
-      setLoading(false);
+      if (requestId === matchesRequestId.current) setLoading(false);
     }
   };
 
@@ -55,7 +59,11 @@ export default function DiscoverPage() {
     const timer = window.setTimeout(() => {
       void fetchMatches();
     }, search.trim() ? 300 : 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      // Invalidate an in-flight request as soon as the filters or user change.
+      matchesRequestId.current += 1;
+    };
   }, [category, format, search, user]);
 
   useEffect(() => {
