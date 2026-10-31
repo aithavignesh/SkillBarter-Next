@@ -125,6 +125,7 @@ export default function DiscoverPage() {
           <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
           <input
             type="text"
+            aria-label="Search by skill or member name"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && fetchMatches()}
@@ -135,6 +136,7 @@ export default function DiscoverPage() {
 
         <div className="sm:col-span-3">
           <select
+            aria-label="Filter by skill category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm bg-white focus:border-red-600 focus:outline-none"
@@ -148,6 +150,7 @@ export default function DiscoverPage() {
 
         <div className="sm:col-span-2">
           <select
+            aria-label="Filter by exchange format"
             value={format}
             onChange={(e) => setFormat(e.target.value)}
             className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm bg-white focus:border-red-600 focus:outline-none"
@@ -172,7 +175,7 @@ export default function DiscoverPage() {
 
       {/* Match Cards Grid */}
       {loading ? (
-        <div className="p-12 text-center text-sm font-medium text-slate-500">
+        <div role="status" aria-live="polite" className="p-12 text-center text-sm font-medium text-slate-500">
           Finding optimal skill matches...
         </div>
       ) : matches.length === 0 ? (
@@ -272,7 +275,7 @@ export default function DiscoverPage() {
       {/* Exchange Proposal Modal */}
       {selectedMatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-6 relative">
+          <div role="dialog" aria-modal="true" aria-labelledby="proposal-title" className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-6 relative">
             <button
               onClick={() => setSelectedMatch(null)}
               className="absolute right-6 top-6 text-slate-400 hover:text-slate-700"
@@ -284,7 +287,7 @@ export default function DiscoverPage() {
               <span className="text-xs font-bold uppercase tracking-wider text-red-700">
                 New Exchange Proposal
               </span>
-              <h3 className="mt-1 text-2xl font-bold text-slate-900">
+              <h3 id="proposal-title" className="mt-1 text-2xl font-bold text-slate-900">
                 Exchange with {selectedMatch.user.displayName}
               </h3>
             </div>
