@@ -147,7 +147,9 @@ export class AuthService {
     const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
     const data = await response.json().catch(() => null) as { Status?: string; Details?: string } | null;
     if (!response.ok || data?.Status !== "Success" || !data.Details) throw new AppError("The SMS provider could not send an OTP. Please try again later.", 502, "SMS_DELIVERY_FAILED");
-    return { challengeId: data.Details, phone };
+    const challengeId = generateSecureToken();
+    await OtpChallenge.create({ phone, challengeId, providerChallengeId: data.Details, expiresAt: new Date(Date.now() + 5 * 60 * 1000), attempts: 0 });
+    return { challengeId, phone };
   }
 
   async verifyPhoneOtp(phoneInput: string, otpInput: string, challengeId: string): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
@@ -156,10 +158,17 @@ export class AuthService {
     if (!/^\+[1-9]\d{7,14}$/.test(phone) || !/^\d{6}$/.test(otp) || !challengeId || challengeId.length > 200) throw new AppError("Invalid or expired OTP challenge", 400, "INVALID_OTP");
     if (!phone.startsWith("+91")) throw new AppError("SMS OTP currently supports Indian mobile numbers (+91).", 400, "PHONE_COUNTRY_UNSUPPORTED");
     if (!env.TWOFACTOR_API_KEY) throw new AppError("SMS OTP is not configured on the server.", 503, "SMS_NOT_CONFIGURED");
-    const url = "https://2factor.in/API/V1/" + encodeURIComponent(challengeId) + "/" + encodeURIComponent(otp);
+    const challenge = await OtpChallenge.findOne({ challengeId, phone, expiresAt: { $gt: new Date() } });
+    if (!challenge || challenge.attempts >= 5 || !challenge.providerChallengeId) throw new AppError("Invalid or expired mobile OTP. Request a new code.", 401, "INVALID_OTP");
+    const url = "https://2factor.in/API/V1/" + encodeURIComponent(env.TWOFACTOR_API_KEY) + "/SMS/VERIFY/" + encodeURIComponent(challenge.providerChallengeId) + "/" + encodeURIComponent(otp);
     const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
     const data = await response.json().catch(() => null) as { Status?: string; Details?: string } | null;
-    if (!response.ok || data?.Status !== "Success" || data.Details !== "OTP Matched") throw new AppError("Invalid or expired mobile OTP", 401, "INVALID_OTP");
+    if (!response.ok || data?.Status !== "Success" || data.Details !== "OTP Matched") {
+      challenge.attempts += 1;
+      await challenge.save();
+      throw new AppError("Invalid or expired mobile OTP", 401, "INVALID_OTP");
+    }
+    await OtpChallenge.deleteOne({ _id: challenge._id });
     const user = await User.findOne({ phone });
     if (!user) throw new AppError("Unable to sign in with this number. Create an account first.", 404, "ACCOUNT_NOT_FOUND");
     if (user.isSuspended) throw new AppError("This account has been suspended.", 403, "ACCOUNT_SUSPENDED");
