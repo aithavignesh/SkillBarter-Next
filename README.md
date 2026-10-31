@@ -134,3 +134,40 @@ npm run build
 - All ongoing implementation occurs on the `development` branch.
 - The `main` branch is protected and untouched.
 - The original SkillBarter legacy repository and its database remain completely untouched.
+
+## Staging Deployment Checklist (Render + Vercel)
+
+The backend is intentionally fail-closed in production. Configure real values in the hosting provider's secret/environment settings; never commit secrets or use placeholder values.
+
+### Required backend environment
+
+Set these on the Render backend service:
+
+- `NODE_ENV=production`
+- `FRONTEND_URL`: the deployed frontend origin (HTTPS, without a trailing slash)
+- `PUBLIC_API_URL`: the public backend origin (HTTPS, without a trailing slash)
+- `MONGODB_URI`: the MongoDB Atlas connection string for the staging database
+- `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `ADMIN_BOOTSTRAP_SECRET`: separate, strong secrets of at least 32 characters; do not reuse values
+- `RESEND_API_KEY`: a real Resend API key
+- `EMAIL_FROM`: a sender identity verified with the email provider, for example `SkillBarter <noreply@your-verified-domain.example>` only after replacing the example domain with a verified one
+
+Do not set `EMAIL_DISABLED=true` in production. Email verification and password recovery depend on the configured email provider. If the backend exits with a message that `RESEND_API_KEY` or `EMAIL_FROM` must be explicitly configured, fix the hosting environment with real credentials rather than weakening validation.
+
+### Render health check
+
+Configure the Render web service health-check path as `/api/v1/ready`. This endpoint checks database readiness; `/api/v1/health` is the liveness endpoint. The service settings in the Render dashboard must match the `healthCheckPath` in `render.yaml`.
+
+### Release verification
+
+After deploying, verify in order:
+
+1. The Render deploy reaches **Live** and application logs show no startup/configuration errors.
+2. `GET /api/v1/health` returns a healthy response.
+3. `GET /api/v1/ready` returns success only when MongoDB is connected.
+4. Register a staging test account and confirm the verification email is delivered.
+5. Verify the account, log in, refresh the session, and test password recovery.
+6. Run the two-user exchange flow through request, acceptance, scheduling, messaging, completion, and review.
+7. Run the repository CI checks: `npm run check`.
+
+Do not mark the migration production-ready based on a successful frontend build alone. Backend startup, database readiness, email delivery, and the critical user journey must also be verified.
+
