@@ -21,6 +21,10 @@ const authLimiter = rateLimit({
 
 authRouter.post("/register", authLimiter, (req, res, next) => authController.register(req, res, next));
 authRouter.post("/login", authLimiter, (req, res, next) => authController.login(req, res, next));
+authRouter.post("/phone/request-otp", authLimiter, (req, res, next) => authController.requestPhoneOtp(req, res, next));
+authRouter.post("/phone/verify-otp", authLimiter, (req, res, next) => authController.verifyPhoneOtp(req, res, next));
+authRouter.post("/email/request-otp", authLimiter, (req, res, next) => authController.requestEmailOtp(req, res, next));
+authRouter.post("/email/verify-otp", authLimiter, (req, res, next) => authController.verifyEmailOtp(req, res, next));
 authRouter.post("/logout", (req, res, next) => authController.logout(req, res, next));
 authRouter.get("/me", authenticate, (req, res, next) => authController.getMe(req, res, next));
 authRouter.get("/verify-email/link", (req, res) => authController.verifyEmailLink(req, res));
