@@ -51,4 +51,13 @@ describe("Security middleware and admin access", () => {
     expect(response.status).toBe(403);
     expect(response.body.error.code).toBe("FORBIDDEN");
   });
+
+  it("clears both authentication cookies on logout", async () => {
+    const response = await request(app).post("/api/v1/auth/logout");
+    expect(response.status).toBe(200);
+    const setCookie = response.headers["set-cookie"] as string[] | undefined;
+    expect(setCookie).toBeDefined();
+    expect(setCookie?.some((cookie) => cookie.startsWith("accessToken=") && /Max-Age=0/i.test(cookie))).toBe(true);
+    expect(setCookie?.some((cookie) => cookie.startsWith("refreshToken=") && /Max-Age=0/i.test(cookie))).toBe(true);
+  });
 });
