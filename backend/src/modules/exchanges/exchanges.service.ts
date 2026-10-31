@@ -269,14 +269,29 @@ export class ExchangesService {
       throw new AppError(`Cannot complete an exchange with status ${exchange.status}`, 400, "INVALID_STATE");
     }
 
-    if (isRequester) {
-      exchange.completionStatus.requesterConfirmed = true;
-    } else {
-      exchange.completionStatus.recipientConfirmed = true;
+    // Atomically persist only this participant's confirmation so concurrent
+    // requests cannot overwrite the other participant's confirmation.
+    const confirmationField = isRequester
+      ? "completionStatus.requesterConfirmed"
+      : "completionStatus.recipientConfirmed";
+    const updatedExchange = await Exchange.findOneAndUpdate(
+      {
+        _id: exchange._id,
+        status: { $in: ["ACCEPTED", "SCHEDULED", "IN_PROGRESS"] },
+      },
+      { $set: { [confirmationField]: true } },
+      { new: true }
+    );
+
+    if (!updatedExchange) {
+      throw new AppError(
+        "The exchange can no longer be confirmed as completed",
+        400,
+        "INVALID_STATE"
+      );
     }
 
-    // Persist the participant's confirmation before deciding whether both parties have confirmed.
-    await exchange.save();
+    exchange = updatedExchange;
 
     const bothConfirmed =
       exchange.completionStatus.requesterConfirmed &&
