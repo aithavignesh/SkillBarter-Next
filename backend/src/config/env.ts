@@ -77,3 +77,5 @@ export const envSchema = envBaseSchema.superRefine((value, context) => {
     }
   }
 });
+
+export const env = envSchema.parse(process.env);
