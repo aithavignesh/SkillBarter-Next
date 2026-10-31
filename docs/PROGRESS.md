@@ -63,3 +63,12 @@
 - No Vercel project/deployment is connected to `aithavignesh/SkillBarter-Next` yet. The available Render SkillBarter services still point to the legacy `aithavignesh/SkillBarter` repository; they have not been modified.
 - A dedicated MongoDB connection URI, Resend API key, and verified sender identity are not available in this workspace. These values must be configured as host secrets; they must not be guessed or committed.
 - Therefore a live deployment, live email verification/password reset, and production two-user smoke test are still unverified. Keep `main` and the legacy production repository/database untouched until the new staging deployment passes the documented checklist.
+
+### Migration Continuation — 2026-10-31
+
+- Re-checked the active branches: `development` is the working branch; `main` remains separate and unchanged by this work.
+- Verified latest CI run `41193850856` on commit `705ffe80f542f4e03d852e313a7c9e051744d590`: dependency gate, shared build, typecheck, lint, tests, and production build all passed.
+- Re-checked the live preview health and readiness endpoints; both responded successfully and readiness reported a connected database. This is only service-level evidence, not proof of a completed data migration.
+- Added `docs/MIGRATION-CUTOVER-STATUS.md` to separate verified evidence from unresolved migration gates and define a safe, repeatable cutover sequence.
+- **Still blocked from declaring migration complete:** the actual sanitized source PostgreSQL schema/export, reviewed source-to-target field mappings (including `connections`), verified isolated MongoDB staging credentials, staging import/reconciliation, configured email provider credentials, and live two-user end-to-end validation are not available as verified evidence in this workspace.
+- No source/production database writes or production cutover were performed. Keep the legacy application and production data untouched until the gates in `docs/MIGRATION-CUTOVER-STATUS.md` pass.
