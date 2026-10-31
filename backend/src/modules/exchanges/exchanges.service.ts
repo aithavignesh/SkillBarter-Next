@@ -211,8 +211,31 @@ export class ExchangesService {
       exchange.cancellationReason = input.reason || "Cancelled by participant";
     }
 
-    exchange.status = input.status;
-    await exchange.save();
+    // Apply the transition only if the status is still the one we validated.
+    // This prevents concurrent accept/reject/cancel/start requests from saving a
+    // stale document over a newer lifecycle state.
+    const updateFields: Record<string, unknown> = { status: input.status };
+    if (input.status === "CANCELLED") {
+      updateFields.cancellationReason = input.reason || "Cancelled by participant";
+    }
+    const updatedExchange = await Exchange.findOneAndUpdate(
+      { _id: exchange._id, status: exchange.status },
+      { $set: updateFields },
+      { new: true }
+    );
+
+    if (!updatedExchange) {
+      const currentExchange = await Exchange.findById(exchange._id);
+      const currentStatus = currentExchange?.status || "unavailable";
+      throw new AppError(
+        `Exchange status changed before the update could be applied (current status: ${currentStatus})`,
+        409,
+        "INVALID_STATE"
+      );
+    }
+
+    // Use the persisted result for notifications and the response path.
+    Object.assign(exchange, updatedExchange.toObject());
 
     // Notify other participant
     const otherUserId = isRequester ? exchange.recipientId : exchange.requesterId;
