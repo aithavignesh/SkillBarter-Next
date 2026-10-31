@@ -13,6 +13,7 @@ const envBaseSchema = z.object({
   REFRESH_TOKEN_TTL: z.string().default("7d"),
   ADMIN_BOOTSTRAP_SECRET: z.string().min(32).optional(),
   RESEND_API_KEY: z.string().optional(),
+  TWOFACTOR_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().min(1).optional(),
   // Explicitly allow non-email staging deployments without weakening production token/cookie behavior.
   EMAIL_DISABLED: z.enum(["true", "false"]).default("false"),
