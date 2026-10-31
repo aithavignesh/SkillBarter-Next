@@ -275,8 +275,14 @@ export class ExchangesService {
       exchange.completionStatus.recipientConfirmed = true;
     }
 
-    // If both confirmed, mark exchange as completed and update users' completed exchange counts
-    if (exchange.completionStatus.requesterConfirmed && exchange.completionStatus.recipientConfirmed) {
+    // Persist the participant's confirmation before deciding whether both parties have confirmed.
+    await exchange.save();
+
+    const bothConfirmed =
+      exchange.completionStatus.requesterConfirmed &&
+      exchange.completionStatus.recipientConfirmed;
+
+    if (bothConfirmed && exchange.status !== "COMPLETED") {
       exchange.status = "COMPLETED";
 
       await Promise.all([
@@ -290,9 +296,9 @@ export class ExchangesService {
         metadata: { exchangeId: exchange._id.toString() },
         timestamp: new Date(),
       });
-    }
 
-    await exchange.save();
+      await exchange.save();
+    }
 
     const otherUserId = isRequester ? exchange.recipientId : exchange.requesterId;
     const actorUser = await User.findById(userId);
@@ -300,9 +306,11 @@ export class ExchangesService {
     await Notification.create({
       recipientId: otherUserId,
       senderId: new mongoose.Types.ObjectId(userId),
-      type: "EXCHANGE_COMPLETED",
-      title: "Exchange Completion Update",
-      message: `${actorUser?.displayName || "Participant"} confirmed completion of the exchange.`,
+      type: bothConfirmed ? "EXCHANGE_COMPLETED" : "EXCHANGE_COMPLETION_CONFIRMED",
+      title: bothConfirmed ? "Exchange Completed" : "Completion Confirmation Received",
+      message: bothConfirmed
+        ? "Both participants confirmed completion of the exchange."
+        : `${actorUser?.displayName || "Participant"} confirmed completion. Waiting for the other participant.`,
       link: `/exchanges/${exchange._id.toString()}`,
     });
 
