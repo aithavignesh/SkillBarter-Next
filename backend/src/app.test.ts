@@ -57,7 +57,7 @@ describe("Security middleware and admin access", () => {
     expect(response.status).toBe(200);
     const setCookie = response.headers["set-cookie"] as string[] | undefined;
     expect(setCookie).toBeDefined();
-    expect(setCookie?.some((cookie) => cookie.startsWith("accessToken=") && /Max-Age=0/i.test(cookie))).toBe(true);
+    expect(setCookie?.some((cookie) => cookie.startsWith("accessToken=") && /Expires=Thu, 01 Jan 1970 00:00:00 GMT/i.test(cookie))).toBe(true);
     expect(setCookie?.some((cookie) => cookie.startsWith("refreshToken=") && /Max-Age=0/i.test(cookie))).toBe(true);
   });
 });
