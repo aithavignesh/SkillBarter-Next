@@ -117,7 +117,7 @@ async function fetchApi<T>(
     credentials: "include",
   });
 
-  const authEndpoint = endpoint.split("?")[0];
+  const authEndpoint = endpoint.split("?")[0] ?? endpoint;
   const shouldRefresh = ![
     "/auth/login",
     "/auth/register",
