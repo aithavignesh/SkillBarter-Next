@@ -506,9 +506,38 @@ export class ExchangesService {
       );
     }
 
+    if (
+      input.status === "CONFIRMED" &&
+      session.proposedById.toString() === userId
+    ) {
+      throw new AppError(
+        "The participant who proposed a session cannot confirm it",
+        403,
+        "FORBIDDEN"
+      );
+    }
+
     session.status = input.status;
     if (input.notes !== undefined) session.notes = input.notes;
     await session.save();
+
+    const otherUserId =
+      exchange.requesterId.toString() === userId
+        ? exchange.recipientId
+        : exchange.requesterId;
+    const actorUser = await User.findById(userId);
+
+    if (input.status === "CONFIRMED" || input.status === "CANCELLED") {
+      const isConfirmed = input.status === "CONFIRMED";
+      await Notification.create({
+        recipientId: otherUserId,
+        senderId: new mongoose.Types.ObjectId(userId),
+        type: isConfirmed ? "SESSION_CONFIRMED" : "SESSION_CANCELLED",
+        title: isConfirmed ? "Session Confirmed" : "Session Cancelled",
+        message: `${actorUser?.displayName || "Participant"} ${isConfirmed ? "confirmed" : "cancelled"} the session: ${session.title}`,
+        link: `/exchanges/${exchange._id.toString()}`,
+      });
+    }
 
     if (input.status === "CONFIRMED") {
       // If exchange was in ACCEPTED, advance to SCHEDULED
