@@ -358,15 +358,22 @@ export const api = {
   // Admin
   admin: {
     stats: () => fetchApi<{ stats: PlatformStatsDto }>("/admin/stats"),
-    users: (page = 1, search?: string, role?: string) =>
-      fetchApi<any[]>(`/admin/users?page=${page}&search=${search || ""}&role=${role || ""}`),
+    users: (page = 1, search?: string, role?: string) => {
+      const params = new URLSearchParams({ page: String(page) });
+      if (search) params.set("search", search);
+      if (role) params.set("role", role);
+      return fetchApi<any[]>(`/admin/users?${params.toString()}`);
+    },
     updateUser: (id: string, input: AdminUpdateUserInput) =>
       fetchApi<{ user: any }>(`/admin/users/${id}`, {
         method: "PATCH",
         body: JSON.stringify(input),
       }),
-    reports: (page = 1, status?: string) =>
-      fetchApi<ReportDto[]>(`/admin/reports?page=${page}&status=${status || ""}`),
+    reports: (page = 1, status?: string) => {
+      const params = new URLSearchParams({ page: String(page) });
+      if (status) params.set("status", status);
+      return fetchApi<ReportDto[]>(`/admin/reports?${params.toString()}`);
+    },
     handleReport: (id: string, input: AdminReportActionInput) =>
       fetchApi<{ report: ReportDto }>(`/admin/reports/${id}`, {
         method: "PATCH",
