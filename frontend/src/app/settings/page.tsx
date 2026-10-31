@@ -34,7 +34,7 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       <div>
-        <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+        <span className="text-xs font-bold uppercase tracking-wider text-red-600">
           Preferences
         </span>
         <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Account Settings</h1>
@@ -67,7 +67,7 @@ export default function SettingsPage() {
       {/* Change Password Card */}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-6 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
             <Lock className="h-5 w-5" />
           </div>
           <div>
@@ -122,7 +122,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-xl bg-indigo-600 px-6 py-2.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+            className="rounded-xl bg-red-600 px-6 py-2.5 text-xs font-semibold text-white hover:bg-red-500 disabled:opacity-50"
           >
             {loading ? "Updating..." : "Update Password"}
           </button>
