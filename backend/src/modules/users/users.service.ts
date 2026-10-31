@@ -11,7 +11,33 @@ import {
 } from "@skillbarter/shared";
 import { AppError } from "../../middleware/errorHandler";
 
+function isDuplicateKeyError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error &&
+    (error as { code?: unknown }).code === 11000;
+}
+
 export class UsersService {
+  private async findOrCreateSkill(name: string, category?: string, description?: string) {
+    const normalized = name.toLowerCase().trim();
+    const existing = await Skill.findOne({ normalizedName: normalized });
+    if (existing) return existing;
+
+    try {
+      return await Skill.create({
+        name: name.trim(),
+        normalizedName: normalized,
+        category: category || "General",
+        description: description || "",
+      });
+    } catch (error) {
+      // Another onboarding request may have inserted this normalized name concurrently.
+      if (!isDuplicateKeyError(error)) throw error;
+      const concurrentlyCreated = await Skill.findOne({ normalizedName: normalized });
+      if (!concurrentlyCreated) throw error;
+      return concurrentlyCreated;
+    }
+  }
+
   async completeOnboarding(userId: string, input: OnboardingInput): Promise<IUser> {
     const user = await User.findById(userId);
     if (!user) {
@@ -27,16 +53,7 @@ export class UsersService {
 
     // Process offered skills
     for (const item of input.offeredSkills) {
-      const normalized = item.skillName.toLowerCase().trim();
-      let skill = await Skill.findOne({ normalizedName: normalized });
-      if (!skill) {
-        skill = await Skill.create({
-          name: item.skillName.trim(),
-          normalizedName: normalized,
-          category: item.category || "General",
-          description: item.description || "",
-        });
-      }
+      const skill = await this.findOrCreateSkill(item.skillName, item.category, item.description);
 
       await UserSkill.findOneAndUpdate(
         { userId: user._id, skillId: skill._id, type: "offered" },
@@ -48,7 +65,7 @@ export class UsersService {
           type: "offered",
           proficiency: item.proficiency,
           description: item.description || "",
-          yearsExperience: item.yearsExperience || 1,
+          yearsExperience: item.yearsExperience ?? 1,
         },
         { upsert: true, new: true }
       );
@@ -56,16 +73,7 @@ export class UsersService {
 
     // Process wanted skills
     for (const item of input.wantedSkills) {
-      const normalized = item.skillName.toLowerCase().trim();
-      let skill = await Skill.findOne({ normalizedName: normalized });
-      if (!skill) {
-        skill = await Skill.create({
-          name: item.skillName.trim(),
-          normalizedName: normalized,
-          category: item.category || "General",
-          description: item.description || "",
-        });
-      }
+      const skill = await this.findOrCreateSkill(item.skillName, item.category, item.description);
 
       await UserSkill.findOneAndUpdate(
         { userId: user._id, skillId: skill._id, type: "wanted" },
@@ -77,7 +85,7 @@ export class UsersService {
           type: "wanted",
           proficiency: item.proficiency,
           description: item.description || "",
-          yearsExperience: item.yearsExperience || 1,
+          yearsExperience: item.yearsExperience ?? 1,
         },
         { upsert: true, new: true }
       );
