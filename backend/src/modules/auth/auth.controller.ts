@@ -92,7 +92,7 @@ export class AuthController {
   async requestEmailOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) throw new AppError("Enter a valid email address", 400, "INVALID_EMAIL");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new AppError("Enter a valid email address", 400, "INVALID_EMAIL");
       await authService.requestEmailOtp(email);
       sendSuccess(res, { message: "If an account exists for this email, a sign-in code has been sent." });
     } catch (error) { next(error); }
