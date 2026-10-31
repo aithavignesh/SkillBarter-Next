@@ -87,10 +87,10 @@ export default function LoginPage() {
   const inputClass = "mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#c62828] focus:outline-none focus:ring-1 focus:ring-[#c62828]";
 
   return (
-    <div className="flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-7 rounded-3xl border border-slate-200 bg-white p-7 shadow-lg sm:p-9">
+    <div className="auth-page flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <div className="auth-card w-full max-w-md space-y-7 rounded-3xl border border-slate-200 bg-white p-7 shadow-xl sm:p-9">
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#c62828] text-white shadow-md"><LogIn className="h-6 w-6" /></div>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d31d24] text-white shadow-md"><LogIn className="h-6 w-6" /></div>
           <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-slate-900">Welcome back</h1>
           <p className="mt-2 text-sm text-slate-600">Sign in to your SkillBarter account</p>
         </div>
