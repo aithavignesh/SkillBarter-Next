@@ -52,11 +52,29 @@ export default function DiscoverPage() {
   };
 
   useEffect(() => {
-    fetchMatches();
-    if (user) {
-      api.skills.mySkills().then((res) => setMySkills(res.skills)).catch(() => {});
+    const timer = window.setTimeout(() => {
+      void fetchMatches();
+    }, search.trim() ? 300 : 0);
+    return () => window.clearTimeout(timer);
+  }, [category, format, search, user]);
+
+  useEffect(() => {
+    if (!user) {
+      setMySkills([]);
+      return;
     }
-  }, [category, format, user]);
+    let active = true;
+    api.skills.mySkills()
+      .then((res) => {
+        if (active) setMySkills(res.skills);
+      })
+      .catch(() => {
+        if (active) setMySkills([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   const handleOpenProposal = (match: any) => {
     setSelectedMatch(match);
