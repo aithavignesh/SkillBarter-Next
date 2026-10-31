@@ -32,18 +32,18 @@ npm test -w frontend
 ## 3. Test Suites & Coverage
 
 ### Backend Tests (`backend/tests/` and `backend/src/`)
-1. **`src/app.test.ts`** (3 tests)
-   - `GET /api/v1/health` returns status ok.
-   - `GET /api/health` alias returns status ok.
-   - `GET /api/v1/ready` reports database connection status (`connected`).
+1. **`src/app.test.ts`** (23 tests)
+   - Health and readiness routes, secure headers, protected-route authorization, auth refresh/logout behavior, email verification-link safety, and shared session-time validation.
 2. **`src/config/database.test.ts`** (1 test)
    - Verifies environment configuration and local development database URI.
-3. **`tests/security.test.ts`** (4 tests)
+3. **`src/config/env.test.ts`** (5 tests)
+   - Validates distinct production JWT/admin secrets, minimum secret lengths, and rejects secret reuse.
+4. **`tests/security.test.ts`** (4 tests)
    - Argon2id password hashing and verification.
    - Rejecting invalid passwords.
    - JWT access token signing, decoding, and expiration validation.
    - Cryptographic random token generation.
-4. **`tests/integration.test.ts`** (13 tests)
+5. **`tests/integration.test.ts`** (13 tests)
    - **Step 1**: Independent registration of User A (Alice) and User B (Bob) with email verification.
    - **Step 2**: Login validation and credential rejection for incorrect credentials.
    - **Step 3**: Onboarding for User A (offering TypeScript, wanting Python) and User B (offering Python, wanting TypeScript).
@@ -58,22 +58,26 @@ npm test -w frontend
    - **Step 12**: Two-way blocking and moderation reporting.
    - **Step 13**: Secure admin bootstrapping, platform stats inspection, user moderation, and audit logs.
 
+6. **`src/modules/users/users.service.test.ts`** (1 test)
+   - Verifies onboarding preserves zero years of experience for offered and wanted skills.
+7. **`src/modules/admin/admin.service.test.ts`** (3 tests)
+   - Verifies literal search, oversized-search rejection, and safe pagination bounds.
+8. **`src/modules/safety/block-enforcement.test.ts`** (1 test)
+   - Verifies blocks prevent starting conversations and requesting connections.
+
 ### Frontend Tests (`frontend/tests/`)
-1. **`tests/client.test.ts`** (3 tests)
-   - Verification of API client service method bindings.
-   - Client-side registration schema validation.
-   - Client-side onboarding schema validation with skill arrays.
+1. **`tests/client.test.ts`** (5 tests)
+   - Verifies API client exports and registration/onboarding schemas.
+   - Verifies reserved search characters are URL-encoded for skills, matches, and admin search.
+   - Verifies expired access tokens refresh once and retry the request.
 
 ---
 
 ## 4. Current Test Verification Evidence
 
-```text
- ✓ backend/src/config/database.test.ts (1 test)
- ✓ backend/tests/security.test.ts (4 tests)
- ✓ backend/src/app.test.ts (3 tests)
- ✓ backend/tests/integration.test.ts (13 tests)
- ✓ frontend/tests/client.test.ts (3 tests)
+Latest completed CI run before the deployment-template-only update:
+- Backend: **8 test files, 51 passed tests, 0 failures**.
+- Frontend: **1 test file, 5 passed tests, 0 failures**.
+- Total: **56 passed tests, 0 failures**.
 
-Total: 5 test files, 24 passed tests, 0 failures.
-```
+The CI workflow also runs workspace type checking, linting, dependency audit (blocking high/critical findings), and the full production build. Confirm the latest workflow run is green before releasing.
