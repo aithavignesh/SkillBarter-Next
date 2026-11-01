@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
+import { AppPageShell } from "../../components/ui/AppPageShell";
 import { ConversationDto, MessageDto } from "@skillbarter/shared";
 import { MessageSquare, Send, User, AlertCircle } from "lucide-react";
 
@@ -117,6 +118,7 @@ function MessagesContent() {
   const otherParticipant = activeConv?.participants.find((p) => p.id !== user?.id);
 
   return (
+    <AppPageShell title="Messages" eyebrow="Conversations" description="Keep your skill exchanges moving with direct conversations." icon={<MessageSquare className="h-4 w-4" />}>
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       {loadError && (
         <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
@@ -292,6 +294,7 @@ function MessagesContent() {
         </div>
       </div>
     </div>
+    </AppPageShell>
   );
 }
 
