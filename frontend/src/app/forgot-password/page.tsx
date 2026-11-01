@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                 </div>
                 <Link
                   href={`/reset-password?token=${resetToken}`}
-                  className="inline-block mt-3 w-full rounded-xl bg-[#d31d24] py-2.5 text-sm font-semibold text-white hover:bg-[#b71c1c]"
+                  className="mt-3 inline-block w-full rounded-xl bg-[#d31d24] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
                 >
                   Proceed to Reset Password
                 </Link>
@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b71c1c] disabled:opacity-50"
+              className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Sending..." : "Send Reset Link"}
             </button>
@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
         )}
 
         <div className="text-center pt-2">
-          <Link href="/login" className="text-xs font-semibold text-[#b71c1c] hover:text-[#d31d24]">
+          <Link href="/login" className="rounded-sm text-xs font-semibold text-[#b71920] hover:text-[#d31d24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2">
             Back to Sign in
           </Link>
         </div>
