@@ -69,6 +69,7 @@ export default async function LegacyRoute({ params }: { params: Promise<{ legacy
     redirect(target);
   }
 
+  if (!section) notFound();
   const target = sectionTargets[section];
   if (!target) notFound();
   redirect(target);
