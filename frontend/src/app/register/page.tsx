@@ -47,7 +47,7 @@ export default function RegisterPage() {
           </h2>
           <p className="mt-2 text-sm text-slate-600">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-[#b71920] hover:text-[#d31d24]">
+            <Link href="/login" className="rounded-sm font-semibold text-[#b71920] hover:text-[#d31d24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2">
               Sign in
             </Link>
           </p>
@@ -72,7 +72,7 @@ export default function RegisterPage() {
             </div>
             <Link
               href={`/verify-email?token=${encodeURIComponent(verificationToken)}`}
-              className="inline-block w-full rounded-xl bg-[#d31d24] py-2.5 text-sm font-semibold text-white hover:bg-[#b71920]"
+              className="inline-block w-full rounded-xl bg-[#d31d24] py-2.5 text-sm font-semibold text-white hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
             >
               Verify Email & Continue
             </Link>
@@ -160,7 +160,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b71920] disabled:opacity-50 transition-all"
+              className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 disabled:opacity-50"
             >
               {loading ? "Creating account..." : "Create Account"}
             </button>
