@@ -20,6 +20,7 @@ describe("SkillBarter Two-User Complete Exchange Lifecycle", () => {
       .post("/api/v1/auth/register")
       .send({
         email: "alice@example.com",
+        phone: "+15550001001",
         password: "Password123!",
         displayName: "Alice Developer",
       });
@@ -63,6 +64,7 @@ describe("SkillBarter Two-User Complete Exchange Lifecycle", () => {
       .post("/api/v1/auth/register")
       .send({
         email: "bob@example.com",
+        phone: "+15550001002",
         password: "Password123!",
         displayName: "Bob DataScientist",
       });
