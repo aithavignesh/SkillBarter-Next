@@ -49,7 +49,7 @@ export default function NotificationsPage() {
       eyebrow="Activity Updates"
       title="Notifications"
       icon={<Bell className="h-3.5 w-3.5" />}
-      actions={notifications.some((n) => !n.read) ? <button type="button" onClick={handleMarkAllRead} className="sb-control inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><CheckCheck className="h-4 w-4" /> Mark All as Read</button> : undefined}
+      actions={notifications.some((n) => !n.read) ? <button type="button" onClick={handleMarkAllRead} className="sb-control inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"><CheckCheck className="h-4 w-4" /> Mark All as Read</button> : undefined}
     >
       <div className="space-y-6">
       {loading ? (
@@ -68,7 +68,7 @@ export default function NotificationsPage() {
             <div
               key={n.id}
               onClick={() => handleMarkOne(n.id)}
-              className={`rounded-2xl border p-5 transition-all flex items-start justify-between gap-4 ${
+              className={`rounded-2xl border p-5 transition-colors flex items-start justify-between gap-4 ${
                 n.read
                   ? "border-slate-200 bg-white text-slate-700"
                   : "border-red-200 bg-red-50/70 text-slate-900 shadow-sm"
@@ -90,7 +90,7 @@ export default function NotificationsPage() {
               {n.link && (
                 <Link
                   href={n.link}
-                  className="shrink-0 flex items-center gap-1 rounded-xl bg-white border border-slate-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                  className="shrink-0 flex items-center gap-1 rounded-xl bg-white border border-slate-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
                 >
                   View <ArrowRight className="h-3 w-3" />
                 </Link>
