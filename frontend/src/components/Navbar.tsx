@@ -228,14 +228,14 @@ export function Navbar() {
               <Link
                 href={`/profile/${user.id}`}
                 onClick={() => setMobileMenuOpen(false)}
-                className="block rounded-lg px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-100"
+                className="block rounded-lg px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
               >
                 My Profile
               </Link>
               <Link
                 href="/settings"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block rounded-lg px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-100"
+                className="block rounded-lg px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
               >
                 Settings
               </Link>
@@ -243,7 +243,7 @@ export function Navbar() {
                 <Link
                   href="/admin"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2 text-base font-medium text-[#b71920] hover:bg-red-50"
+                  className="block rounded-lg px-3 py-2 text-base font-medium text-[#b71920] hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
                 >
                   Admin Portal
                 </Link>
