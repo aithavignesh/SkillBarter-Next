@@ -118,7 +118,7 @@ export default function AdminDashboardPage() {
             <span className="text-xs text-slate-500">Completed</span>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm">
-            <span className="block text-2xl font-extrabold text-red-600">
+            <span className="block text-2xl font-extrabold text-[#d31d24]">
               {stats.activeSessions}
             </span>
             <span className="text-xs text-slate-500">Active Sessions</span>
@@ -142,7 +142,7 @@ export default function AdminDashboardPage() {
           <button
             onClick={() => setTab("users")}
             className={`pb-3 border-b-2 transition-all ${
-              tab === "users" ? "border-red-600 text-red-600" : "border-transparent text-slate-500"
+              tab === "users" ? "border-[#d31d24] text-[#d31d24]" : "border-transparent text-slate-500"
             }`}
           >
             User Management ({usersList.length})
@@ -150,7 +150,7 @@ export default function AdminDashboardPage() {
           <button
             onClick={() => setTab("reports")}
             className={`pb-3 border-b-2 transition-all ${
-              tab === "reports" ? "border-red-600 text-red-600" : "border-transparent text-slate-500"
+              tab === "reports" ? "border-[#d31d24] text-[#d31d24]" : "border-transparent text-slate-500"
             }`}
           >
             Safety Reports ({reports.length})
@@ -158,7 +158,7 @@ export default function AdminDashboardPage() {
           <button
             onClick={() => setTab("audit")}
             className={`pb-3 border-b-2 transition-all ${
-              tab === "audit" ? "border-red-600 text-red-600" : "border-transparent text-slate-500"
+              tab === "audit" ? "border-[#d31d24] text-[#d31d24]" : "border-transparent text-slate-500"
             }`}
           >
             Audit Trail ({auditLogs.length})
