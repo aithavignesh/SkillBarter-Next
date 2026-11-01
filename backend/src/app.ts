@@ -74,6 +74,10 @@ const handleReady = (_req: express.Request, res: express.Response) => {
   res.status(dbConnected ? 200 : 503).json(payload);
 };
 
+// Root health route keeps platform probes from treating the API service as unavailable.
+// The same payload is exposed at the versioned health endpoints below.
+app.get("/", handleHealth);
+
 // Health & Readiness routes
 app.get("/api/health", handleHealth);
 app.get("/api/v1/health", handleHealth);
