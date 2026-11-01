@@ -167,7 +167,6 @@ export default function ExchangesListPage() {
         </div>
       )}
     </div>
-      </div>
     </AppPageShell>
   );
 }
