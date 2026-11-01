@@ -58,7 +58,7 @@ export default function ProfileEditPage() {
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       <Link
         href={user ? `/profile/${user.id}` : "/dashboard"}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#d31d24] hover:text-[#b71920]"
       >
         <ArrowLeft className="h-4 w-4" /> Back to Profile
       </Link>
@@ -163,7 +163,7 @@ export default function ProfileEditPage() {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-[#d31d24] px-6 py-2.5 text-xs font-semibold text-white hover:bg-[#b71920] disabled:opacity-50"
             >
               <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save Changes"}
             </button>
