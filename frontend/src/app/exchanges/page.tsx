@@ -98,7 +98,7 @@ export default function ExchangesListPage() {
       ) : loadError ? (
         <div role="alert" className="rounded-2xl border border-red-200 bg-white p-10 text-center">
           <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-600" />
-          <h2 className="font-bold text-slate-900">Couldn't load your exchanges</h2>
+          <h2 className="font-bold text-slate-900">Couldn&apos;t load your exchanges</h2>
           <p className="mt-2 text-sm text-slate-600">The exchange service may be temporarily unavailable. You can retry without leaving this page.</p>
           <button type="button" onClick={() => void loadExchanges()} className="mt-4 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600">{loading ? "Retrying..." : "Try again"}</button>
         </div>
