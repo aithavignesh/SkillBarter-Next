@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
+import { MobileBottomNav } from "../components/MobileBottomNav";
 
 export const metadata: Metadata = {
   title: "SkillBarter-Next | Peer-to-Peer Skill Exchange",
@@ -14,11 +15,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="h-full bg-slate-50 text-slate-900 antialiased">
-      <body className="flex min-h-full flex-col font-sans">
+      <body className="flex min-h-full flex-col pb-16 font-sans md:pb-0">
         <AuthProvider>
           <Navbar />
           <div className="flex-1">{children}</div>
           <Footer />
+          <MobileBottomNav />
         </AuthProvider>
       </body>
     </html>
