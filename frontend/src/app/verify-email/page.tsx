@@ -43,7 +43,7 @@ function VerifyEmailContent() {
             <h2 className="text-2xl font-bold text-slate-900">Email Verified!</h2>
             <p className="text-sm text-slate-600">{message}</p>
             <p className="text-xs text-slate-400">Redirecting to sign in...</p>
-            <Link href="/login?verified=1" className="inline-block mt-4 rounded-xl bg-[#d31d24] px-6 py-2.5 text-sm font-semibold text-white">
+            <Link href="/login?verified=1" className="mt-4 inline-block rounded-xl bg-[#d31d24] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2">
               Continue to Sign In
             </Link>
           </div>
@@ -59,8 +59,8 @@ function VerifyEmailContent() {
               </div>
             )}
             <form onSubmit={(e) => { e.preventDefault(); if (token.trim()) void handleVerify(token.trim()); }} className="space-y-4">
-              <input type="text" required value={token} onChange={(e) => setToken(e.target.value)} placeholder="Enter verification token" className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-mono placeholder:font-sans focus:border-[#d31d24] focus:outline-none focus:ring-1 focus:ring-[#d31d24]" />
-              <button type="submit" disabled={status === "loading" || !token.trim()} className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white hover:bg-[#b71920] disabled:opacity-50">
+              <input type="text" required value={token} onChange={(e) => setToken(e.target.value)} placeholder="Enter verification token" className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-mono placeholder:font-sans transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20" />
+              <button type="submit" disabled={status === "loading" || !token.trim()} className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                 {status === "loading" ? "Verifying..." : "Verify Account"}
               </button>
             </form>
