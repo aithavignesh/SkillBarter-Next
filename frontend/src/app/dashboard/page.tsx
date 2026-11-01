@@ -94,7 +94,7 @@ export default function DashboardPage() {
             <p className="font-semibold text-red-800">Some dashboard data couldn&apos;t be loaded.</p>
             <p className="mt-1 text-sm text-red-700">Your account is still available. Retry to load exchanges and notifications.</p>
           </div>
-          <button type="button" onClick={() => { setLoading(true); void loadDashboard(); }} className="shrink-0 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600">Retry</button>
+          <button type="button" onClick={() => { setLoading(true); void loadDashboard(); }} className="shrink-0 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">Retry</button>
         </div>
       )}
       {/* Top Welcome Card */}
@@ -132,7 +132,7 @@ export default function DashboardPage() {
         <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
           <Link
             href="/discover"
-            className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-red-50 hover:border-red-200 transition-all text-center"
+            className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-red-50 hover:border-red-200 transition-colors text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
           >
             <Compass className="h-6 w-6 text-red-700 mb-2" />
             <span className="text-sm font-bold text-slate-900">Find Matches</span>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
 
           <Link
             href="/exchanges"
-            className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-red-50 hover:border-red-200 transition-all text-center"
+            className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-red-50 hover:border-red-200 transition-colors text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
           >
             <ArrowLeftRight className="h-6 w-6 text-red-700 mb-2" />
             <span className="text-sm font-bold text-slate-900">Exchanges</span>
@@ -150,7 +150,7 @@ export default function DashboardPage() {
 
           <Link
             href="/messages"
-            className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-red-50 hover:border-red-200 transition-all text-center"
+            className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-red-50 hover:border-red-200 transition-colors text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
           >
             <MessageSquare className="h-6 w-6 text-red-700 mb-2" />
             <span className="text-sm font-bold text-slate-900">Messages</span>
@@ -159,7 +159,7 @@ export default function DashboardPage() {
 
           <Link
             href="/skills"
-            className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-red-50 hover:border-red-200 transition-all text-center"
+            className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-red-50 hover:border-red-200 transition-colors text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
           >
             <BookOpen className="h-6 w-6 text-red-700 mb-2" />
             <span className="text-sm font-bold text-slate-900">My Skills</span>
@@ -176,7 +176,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-bold text-slate-900">Active Skill Exchanges</h2>
             <Link
               href="/exchanges"
-              className="text-xs font-semibold text-red-700 hover:text-red-700 flex items-center gap-1"
+              className="text-xs font-semibold text-red-700 hover:text-red-700 flex items-center gap-1 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
             >
               View all ({exchanges.length}) <ArrowRight className="h-3 w-3" />
             </Link>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
                 <Link
                   key={ex.id}
                   href={`/exchanges/${ex.id}`}
-                  className="block rounded-2xl border border-slate-200 bg-white p-5 hover:border-red-300 transition-all shadow-sm"
+                  className="block rounded-2xl border border-slate-200 bg-white p-5 hover:border-red-300 transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
                 >
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold bg-red-50 text-red-700">
@@ -237,7 +237,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-bold text-slate-900">Recent Notifications</h2>
             <Link
               href="/notifications"
-              className="text-xs font-semibold text-red-700 hover:text-red-700"
+              className="text-xs font-semibold text-red-700 hover:text-red-700 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
             >
               See all
             </Link>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
                 <Link
                   key={n.id}
                   href={n.link || "/notifications"}
-                  className={`block rounded-2xl border p-4 text-xs transition-all ${
+                  className={`block rounded-2xl border p-4 text-xs transition-colors ${
                     n.read ? "border-slate-200 bg-white text-slate-600" : "border-red-200 bg-red-50/60 text-slate-900 font-medium"
                   }`}
                 >
