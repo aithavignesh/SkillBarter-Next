@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
+import { AppPageShell } from "../../components/ui/AppPageShell";
 import { CommunityPostDto } from "@skillbarter/shared";
 import { MessageSquare, Plus, Trash2, Tag, AlertCircle } from "lucide-react";
 
@@ -70,29 +71,14 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-red-600">
-            Open Knowledge Forum
-          </span>
-          <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Community Feed</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Share learning milestones, exchange study roadmaps, and connect with fellow members.
-          </p>
-        </div>
-
-        {user && (
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-red-500 shadow-sm"
-          >
-            <Plus className="h-4 w-4" /> Share a Post
-          </button>
-        )}
-      </div>
-
+    <AppPageShell
+      eyebrow="Open Knowledge Forum"
+      title="Community Feed"
+      description="Share learning milestones, exchange study roadmaps, and connect with fellow members."
+      icon={<MessageSquare className="h-3.5 w-3.5" />}
+      actions={user ? <button type="button" onClick={() => setShowModal(true)} className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs"><Plus className="h-4 w-4" /> Share a Post</button> : undefined}
+    >
+      <div className="space-y-8">
       {loading ? (
         <div className="p-12 text-center text-sm text-slate-500">Loading community discussions...</div>
       ) : posts.length === 0 ? (
@@ -243,5 +229,7 @@ export default function CommunityPage() {
         </div>
       )}
     </div>
+      </div>
+    </AppPageShell>
   );
 }
