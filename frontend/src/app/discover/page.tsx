@@ -204,7 +204,7 @@ export default function DiscoverPage() {
       ) : loadError ? (
         <div role="alert" className="rounded-3xl border border-red-200 bg-white p-12 text-center">
           <AlertCircle className="mx-auto h-12 w-12 text-red-600 mb-3" />
-          <h3 className="text-base font-bold text-slate-900">We couldn't load skill matches</h3>
+          <h3 className="text-base font-bold text-slate-900">We couldn&apos;t load skill matches</h3>
           <p className="mt-1 text-sm text-slate-600 max-w-md mx-auto">
             The service may be temporarily unavailable. Your filters are preserved; try again in a moment.
           </p>
