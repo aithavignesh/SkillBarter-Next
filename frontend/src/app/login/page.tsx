@@ -83,7 +83,7 @@ export default function LoginPage() {
     });
   };
 
-  const tabClass = (active: boolean) => `flex-1 rounded-lg px-2 py-3 text-sm font-semibold transition ${active ? "bg-[#d31d24] text-white shadow" : "text-slate-600 hover:bg-slate-100"}`;
+  const tabClass = (active: boolean) => `flex-1 rounded-lg px-2 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 ${active ? "bg-[#d31d24] text-white shadow" : "text-slate-600 hover:bg-slate-100"}`;
   const inputClass = "mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#d31d24] focus:outline-none focus:ring-1 focus:ring-[#d31d24]";
 
   return (
