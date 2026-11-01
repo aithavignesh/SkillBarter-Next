@@ -157,6 +157,7 @@ export default function ConnectionsPage() {
           </div>
         )}
       </div>
+      </div>
     </AppPageShell>
   );
 }
