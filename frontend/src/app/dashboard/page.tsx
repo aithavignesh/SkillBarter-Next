@@ -91,7 +91,7 @@ export default function DashboardPage() {
       {loadError && (
         <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-semibold text-red-800">Some dashboard data couldn't be loaded.</p>
+            <p className="font-semibold text-red-800">Some dashboard data couldn&apos;t be loaded.</p>
             <p className="mt-1 text-sm text-red-700">Your account is still available. Retry to load exchanges and notifications.</p>
           </div>
           <button type="button" onClick={() => { setLoading(true); void loadDashboard(); }} className="shrink-0 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600">Retry</button>
