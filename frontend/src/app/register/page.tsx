@@ -47,7 +47,7 @@ export default function RegisterPage() {
           </h2>
           <p className="mt-2 text-sm text-slate-600">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-[#b71c1c] hover:text-[#c62828]">
+            <Link href="/login" className="font-semibold text-[#b71920] hover:text-[#d31d24]">
               Sign in
             </Link>
           </p>
@@ -72,7 +72,7 @@ export default function RegisterPage() {
             </div>
             <Link
               href={`/verify-email?token=${encodeURIComponent(verificationToken)}`}
-              className="inline-block w-full rounded-xl bg-[#d31d24] py-2.5 text-sm font-semibold text-white hover:bg-[#b71c1c]"
+              className="inline-block w-full rounded-xl bg-[#d31d24] py-2.5 text-sm font-semibold text-white hover:bg-[#b71920]"
             >
               Verify Email & Continue
             </Link>
@@ -104,7 +104,7 @@ export default function RegisterPage() {
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#c62828] focus:outline-none focus:ring-1 focus:ring-[#c62828]"
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#d31d24] focus:outline-none focus:ring-1 focus:ring-[#d31d24]"
                   placeholder="Alex Morgan"
                 />
               </div>
@@ -118,7 +118,7 @@ export default function RegisterPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#c62828] focus:outline-none focus:ring-1 focus:ring-[#c62828]"
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#d31d24] focus:outline-none focus:ring-1 focus:ring-[#d31d24]"
                   placeholder="alex@example.com"
                 />
               </div>
@@ -133,7 +133,7 @@ export default function RegisterPage() {
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#c62828] focus:outline-none focus:ring-1 focus:ring-[#c62828]"
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#d31d24] focus:outline-none focus:ring-1 focus:ring-[#d31d24]"
                   placeholder="+91 98765 43210"
                 />
                 <p className="mt-1 text-[11px] text-slate-500">Include your country code. You can use this number to sign in with OTP.</p>
@@ -148,7 +148,7 @@ export default function RegisterPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#c62828] focus:outline-none focus:ring-1 focus:ring-[#c62828]"
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#d31d24] focus:outline-none focus:ring-1 focus:ring-[#d31d24]"
                   placeholder="At least 8 chars, 1 uppercase, 1 number"
                 />
                 <p className="mt-1 text-[11px] text-slate-500">
@@ -160,7 +160,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b71c1c] disabled:opacity-50 transition-all"
+              className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b71920] disabled:opacity-50 transition-all"
             >
               {loading ? "Creating account..." : "Create Account"}
             </button>
