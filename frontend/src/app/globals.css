@@ -11,7 +11,7 @@ a { color: inherit; text-decoration: none; transition: color 160ms ease, backgro
 /* Shared visual language: warm neutral surfaces, SkillBarter red and soft depth. */
 :root {
   --sb-primary: #d31d24;
-  --sb-primary-dark: #b71c1c;
+  --sb-primary-dark: #b71920;
   --sb-ink: #17233b;
   --sb-muted: #64748b;
   --sb-surface: #ffffff;
