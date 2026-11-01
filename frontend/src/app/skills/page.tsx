@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { AppPageShell } from "../../components/ui/AppPageShell";
 import { api } from "../../services/api";
 import { UserSkillDto, skillCategories } from "@skillbarter/shared";
 import { Plus, Trash2, BookOpen, AlertCircle, CheckCircle2 } from "lucide-react";
@@ -76,6 +77,7 @@ export default function SkillsPage() {
   const wanted = skills.filter((s) => s.type === "wanted");
 
   return (
+    <AppPageShell title="Manage Your Skills" eyebrow="Skills Inventory" description="Manage the skills you offer to teach and the skills you want to learn." icon={<BookOpen className="h-4 w-4" />}>
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -327,5 +329,6 @@ export default function SkillsPage() {
         </div>
       )}
     </div>
+    </AppPageShell>
   );
 }
