@@ -84,7 +84,7 @@ export default function ForgotPasswordPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-[#d31d24] focus:outline-none focus:ring-1 focus:ring-[#d31d24]"
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                 placeholder="you@example.com"
               />
             </div>
