@@ -66,7 +66,7 @@ export function Navbar() {
     pathname === href || pathname.startsWith(`${href}/`);
 
   const navLinkClass = (active: boolean) =>
-    `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2 ${
+    `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 ${
       active
         ? "bg-red-50 text-[#b71c1c]"
         : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -78,10 +78,10 @@ export function Navbar() {
         <div className="flex items-center gap-8">
           <Link
             href={user ? "/dashboard" : "/"}
-            className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+            className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
             aria-label="SkillBarter home"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#c62828] text-white shadow-sm">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#d31d24] text-white shadow-sm">
               <Repeat aria-hidden="true" className="h-5 w-5" />
             </span>
             <span className="text-xl font-bold tracking-tight text-slate-900">
@@ -114,7 +114,7 @@ export function Navbar() {
               <Link
                 href="/notifications"
                 aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
-                className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+                className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
               >
                 <Bell aria-hidden="true" className="h-5 w-5" />
                 {unreadCount > 0 && (
@@ -127,7 +127,7 @@ export function Navbar() {
               {user.role === "admin" && (
                 <Link
                   href="/admin"
-                  className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-[#b71c1c] hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+                  className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-[#b71c1c] hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
                 >
                   <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
                   Admin
@@ -137,7 +137,7 @@ export function Navbar() {
               <div className="flex items-center gap-2 border-l border-slate-200 pl-2">
                 <Link
                   href={`/profile/${user.id}`}
-                  className="flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+                  className="flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
                 >
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-700">
                     {user.displayName.charAt(0).toUpperCase()}
@@ -148,7 +148,7 @@ export function Navbar() {
                 <button
                   type="button"
                   onClick={() => logout()}
-                  className="rounded-lg p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+                  className="rounded-lg p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
                   aria-label="Log out"
                   title="Log out"
                 >
@@ -160,13 +160,13 @@ export function Navbar() {
             <div className="flex items-center gap-3">
               <Link
                 href="/login"
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
               >
                 Sign in
               </Link>
               <Link
                 href="/register"
-                className="rounded-lg bg-[#c62828] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#b71c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+                className="rounded-lg bg-[#d31d24] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#b71c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
               >
                 Get Started
               </Link>
@@ -179,7 +179,7 @@ export function Navbar() {
             <Link
               href="/notifications"
               aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
-              className="relative rounded-lg p-2 text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+              className="relative rounded-lg p-2 text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
             >
               <Bell aria-hidden="true" className="h-5 w-5" />
               {unreadCount > 0 && (
@@ -192,7 +192,7 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen((open) => !open)}
-            className="rounded-lg p-2 text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+            className="rounded-lg p-2 text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
             aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={mobileMenuOpen}
             aria-controls="skillbarter-mobile-menu"
@@ -214,7 +214,7 @@ export function Navbar() {
               href={item.href}
               onClick={() => setMobileMenuOpen(false)}
               aria-current={isActive(item.href) ? "page" : undefined}
-              className={`block rounded-lg px-3 py-2 text-base font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2 ${
+              className={`block rounded-lg px-3 py-2 text-base font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 ${
                 isActive(item.href)
                   ? "bg-red-50 text-[#b71c1c]"
                   : "text-slate-700 hover:bg-slate-100"
@@ -254,7 +254,7 @@ export function Navbar() {
                   setMobileMenuOpen(false);
                   logout();
                 }}
-                className="w-full rounded-lg px-3 py-2 text-left text-base font-medium text-rose-600 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+                className="w-full rounded-lg px-3 py-2 text-left text-base font-medium text-rose-600 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
               >
                 Log Out
               </button>
@@ -264,14 +264,14 @@ export function Navbar() {
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block w-full rounded-lg border border-slate-300 py-2 text-center text-sm font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+                className="block w-full rounded-lg border border-slate-300 py-2 text-center text-sm font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block w-full rounded-lg bg-[#c62828] py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-[#b71c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] focus-visible:ring-offset-2"
+                className="block w-full rounded-lg bg-[#d31d24] py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-[#b71c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
               >
                 Get Started
               </Link>
