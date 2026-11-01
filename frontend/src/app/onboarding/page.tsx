@@ -158,7 +158,7 @@ export default function OnboardingPage() {
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                   placeholder="e.g. Alex Chen"
                 />
               </div>
@@ -171,7 +171,7 @@ export default function OnboardingPage() {
                   rows={3}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                   placeholder="Tell others what you do, your interests, and what motivates you to share skills."
                 />
               </div>
@@ -185,7 +185,7 @@ export default function OnboardingPage() {
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                    className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                     placeholder="e.g. London, UK (or Remote)"
                   />
                 </div>
@@ -196,7 +196,7 @@ export default function OnboardingPage() {
                   <select
                     value={preferredSessionFormat}
                     onChange={(e) => setPreferredSessionFormat(e.target.value as any)}
-                    className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white"
+                    className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                   >
                     <option value="video">Online Video Call</option>
                     <option value="chat">Chat / Asynchronous</option>
@@ -214,7 +214,7 @@ export default function OnboardingPage() {
                   type="text"
                   value={availability}
                   onChange={(e) => setAvailability(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                  className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                   placeholder="e.g. Tuesday evenings, Saturday mornings UTC"
                 />
               </div>
@@ -223,7 +223,7 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="rounded-xl bg-[#d31d24] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#b71920]"
+                  className="rounded-xl bg-[#d31d24] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
                 >
                   Next: Skills You Teach →
                 </button>
@@ -252,7 +252,7 @@ export default function OnboardingPage() {
                         <button
                           type="button"
                           onClick={() => removeOfferedSkill(index)}
-                          className="text-rose-500 hover:text-rose-700"
+                          className="rounded-md p-1 text-rose-500 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -270,7 +270,7 @@ export default function OnboardingPage() {
                             setOfferedSkills(updated);
                           }}
                           placeholder="Skill name (e.g. TypeScript, Spanish, Figma)"
-                          className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm bg-white"
+                          className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                         />
                       </div>
                       <div>
@@ -299,7 +299,7 @@ export default function OnboardingPage() {
                             updated[index]!.proficiency = e.target.value as any;
                             setOfferedSkills(updated);
                           }}
-                          className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm bg-white"
+                          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                         >
                           <option value="beginner">Beginner</option>
                           <option value="intermediate">Intermediate</option>
@@ -340,7 +340,7 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={addOfferedSkill}
-                  className="flex items-center gap-1.5 text-sm font-semibold text-[#d31d24] hover:text-[#b71920]"
+                  className="flex items-center gap-1.5 rounded-sm text-sm font-semibold text-[#d31d24] hover:text-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
                 >
                   <Plus className="h-4 w-4" /> Add Another Skill to Teach
                 </button>
@@ -350,7 +350,7 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="rounded-xl border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  className="rounded-xl border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
                 >
                   ← Back
                 </button>
@@ -457,7 +457,7 @@ export default function OnboardingPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-emerald-600 px-8 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:opacity-50"
+                  className="rounded-xl bg-emerald-600 px-8 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {loading ? "Completing Setup..." : "Complete Profile & Start Exchanging"}
                 </button>
