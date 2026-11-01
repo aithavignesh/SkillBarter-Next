@@ -21,6 +21,7 @@ describe("Frontend Client Services & Schemas", () => {
   it("validates registration schema on the client side", () => {
     const valid = registerSchema.safeParse({
       email: "learner@example.com",
+      phone: "+15550001003",
       password: "StrongPassword123!",
       displayName: "Learner One",
     });
