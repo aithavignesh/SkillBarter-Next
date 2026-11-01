@@ -24,6 +24,10 @@ import { analyticsRouter } from "./modules/analytics/analytics.routes";
 
 export const app = express();
 
+// Render terminates TLS and forwards client IPs through its trusted proxy.
+// Trust only the directly connected proxy so express-rate-limit can safely
+// derive client addresses from X-Forwarded-For without accepting arbitrary hops.
+app.set("trust proxy", 1);
 app.disable("x-powered-by");
 app.use(helmet());
 app.use(
