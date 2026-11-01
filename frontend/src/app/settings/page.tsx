@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { AppPageShell } from "../../components/ui/AppPageShell";
 import { api } from "../../services/api";
 import { ShieldCheck, Lock, AlertCircle, CheckCircle2 } from "lucide-react";
 
@@ -32,6 +33,7 @@ export default function SettingsPage() {
   };
 
   return (
+    <AppPageShell title="Account Settings" eyebrow="Preferences" description="Manage your account security and profile details." icon={<ShieldCheck className="h-4 w-4" />}>
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       <div>
         <span className="text-xs font-bold uppercase tracking-wider text-red-600">
@@ -129,5 +131,6 @@ export default function SettingsPage() {
         </form>
       </div>
     </div>
+    </AppPageShell>
   );
 }
