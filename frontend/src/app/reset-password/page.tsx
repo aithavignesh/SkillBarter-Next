@@ -62,7 +62,7 @@ function ResetPasswordContent() {
             <p className="text-sm text-slate-600">Redirecting to sign in...</p>
             <Link
               href="/login"
-              className="inline-block mt-2 rounded-xl bg-[#d31d24] px-6 py-2.5 text-sm font-semibold text-white"
+              className="mt-2 inline-block rounded-xl bg-[#d31d24] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
             >
               Sign In Now
             </Link>
@@ -78,7 +78,7 @@ function ResetPasswordContent() {
                 required
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
-                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-mono focus:border-[#d31d24] focus:outline-none focus:ring-1 focus:ring-[#d31d24]"
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-mono transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                 placeholder="Paste reset token here"
               />
             </div>
@@ -91,14 +91,14 @@ function ResetPasswordContent() {
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-[#d31d24] focus:outline-none focus:ring-1 focus:ring-[#d31d24]"
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                 placeholder="At least 8 chars, 1 uppercase, 1 number"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b71920] disabled:opacity-50"
+              className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Updating..." : "Update Password"}
             </button>
