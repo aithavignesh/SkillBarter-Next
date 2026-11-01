@@ -14,23 +14,23 @@ export function Footer() {
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900">Platform</h4>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
-              <li><Link href="/discover" className="hover:text-slate-900">Discover Skills</Link></li>
-              <li><Link href="/about" className="hover:text-slate-900">How It Works</Link></li>
-              <li><Link href="/community" className="hover:text-slate-900">Community Feed</Link></li>
+              <li><Link href="/discover" className="transition-colors hover:text-[#d31d24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 rounded-sm">Discover Skills</Link></li>
+              <li><Link href="/about" className="transition-colors hover:text-[#d31d24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 rounded-sm">How It Works</Link></li>
+              <li><Link href="/community" className="transition-colors hover:text-[#d31d24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 rounded-sm">Community Feed</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900">Trust & Safety</h4>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
-              <li><Link href="/safety" className="hover:text-slate-900">Safety & Moderation</Link></li>
-              <li><Link href="/about#guidelines" className="hover:text-slate-900">Exchange Guidelines</Link></li>
+              <li><Link href="/safety" className="transition-colors hover:text-[#d31d24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 rounded-sm">Safety & Moderation</Link></li>
+              <li><Link href="/about#guidelines" className="transition-colors hover:text-[#d31d24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 rounded-sm">Exchange Guidelines</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900">Account</h4>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
-              <li><Link href="/login" className="hover:text-slate-900">Sign In</Link></li>
-              <li><Link href="/register" className="hover:text-slate-900">Join Community</Link></li>
+              <li><Link href="/login" className="transition-colors hover:text-[#d31d24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 rounded-sm">Sign In</Link></li>
+              <li><Link href="/register" className="transition-colors hover:text-[#d31d24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 rounded-sm">Join Community</Link></li>
             </ul>
           </div>
         </div>
