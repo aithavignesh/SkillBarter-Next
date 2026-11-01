@@ -324,6 +324,28 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Legacy beta call-to-action, adapted to the existing Next.js routes */}
+      <section className="border-t border-slate-700 bg-[#17233b] text-white">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-16">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#e3a1a4]">Start with the community</p>
+            <h2 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">
+              Your next skill could come from someone you can help, too.
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">
+              Create your profile, choose what you can teach and what you want to learn, then discover people with complementary skills.
+            </p>
+          </div>
+          <Link
+            href={user ? "/discover" : "/register"}
+            className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#17233b] transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#17233b]"
+          >
+            {user ? "Find learning partners" : "Create your profile"}
+            <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
       {/* FAQs retained from the legacy landing page */}
       <section className="border-t border-slate-200 bg-white py-20">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
