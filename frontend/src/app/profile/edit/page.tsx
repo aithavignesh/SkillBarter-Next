@@ -58,7 +58,7 @@ export default function ProfileEditPage() {
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       <Link
         href={user ? `/profile/${user.id}` : "/dashboard"}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+        className="inline-flex items-center gap-1.5 rounded-md text-xs font-semibold text-[#d31d24] hover:text-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
       >
         <ArrowLeft className="h-4 w-4" /> Back to Profile
       </Link>
@@ -93,7 +93,7 @@ export default function ProfileEditPage() {
               required
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+              className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
             />
           </div>
 
@@ -105,7 +105,7 @@ export default function ProfileEditPage() {
               rows={4}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+              className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
               placeholder="Tell others about your professional background and interests."
             />
           </div>
@@ -119,7 +119,7 @@ export default function ProfileEditPage() {
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                 placeholder="e.g. San Francisco, CA"
               />
             </div>
@@ -130,7 +130,7 @@ export default function ProfileEditPage() {
               <select
                 value={preferredSessionFormat}
                 onChange={(e) => setPreferredSessionFormat(e.target.value as any)}
-                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white"
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
               >
                 <option value="video">Online Video</option>
                 <option value="chat">Chat / Async</option>
@@ -148,7 +148,7 @@ export default function ProfileEditPage() {
               type="text"
               value={availability}
               onChange={(e) => setAvailability(e.target.value)}
-              className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+              className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
               placeholder="e.g. Weekday evenings, Saturdays"
             />
           </div>
@@ -156,14 +156,14 @@ export default function ProfileEditPage() {
           <div className="pt-4 flex justify-end gap-3">
             <Link
               href={user ? `/profile/${user.id}` : "/dashboard"}
-              className="rounded-xl border border-slate-300 px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-xl border border-slate-300 px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-[#d31d24] px-6 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save Changes"}
             </button>

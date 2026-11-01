@@ -92,7 +92,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-[#b71c1c] shadow-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-[#b71920] shadow-sm">
                 <Sparkles className="h-3.5 w-3.5" />
                 Peer-to-peer skill exchange
               </div>
@@ -108,7 +108,7 @@ export default function HomePage() {
                 {user ? (
                   <Link
                     href="/dashboard"
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#d31d24] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#b71c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#d31d24] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
                   >
                     Go to Dashboard
                     <ArrowRight className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default function HomePage() {
                   <>
                     <Link
                       href="/register"
-                      className="inline-flex items-center gap-2 rounded-xl bg-[#d31d24] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#b71c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#d31d24] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
                     >
                       Join Community
                       <ArrowRight className="h-4 w-4" />
@@ -245,7 +245,7 @@ export default function HomePage() {
               const Icon = feature.icon;
               return (
                 <article key={feature.title} className="rounded-2xl border border-slate-200 bg-white p-6 transition-shadow hover:shadow-md">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-[#b71c1c]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-[#b71920]">
                     <Icon aria-hidden="true" className="h-5 w-5" />
                   </div>
                   <h3 className="mt-4 text-lg font-bold text-[#17233b]">{feature.title}</h3>
@@ -271,7 +271,7 @@ export default function HomePage() {
               const Icon = item.icon;
               return (
                 <article key={item.title} className="rounded-2xl border border-slate-200 bg-white p-7 transition-all hover:-translate-y-0.5 hover:shadow-md">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-[#b71c1c]">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-[#b71920]">
                     <Icon aria-hidden="true" className="h-6 w-6" />
                   </div>
                   <h3 className="mt-5 text-lg font-bold text-[#17233b]">{item.title}</h3>
@@ -288,7 +288,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="flex items-start gap-4">
-              <div className="rounded-xl bg-red-100 p-3 text-[#b71c1c]">
+              <div className="rounded-xl bg-red-100 p-3 text-[#b71920]">
                 <Shield aria-hidden="true" className="h-6 w-6" />
               </div>
               <div>
@@ -324,6 +324,28 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Legacy beta call-to-action, adapted to the existing Next.js routes */}
+      <section className="border-t border-slate-700 bg-[#17233b] text-white">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-16">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#e3a1a4]">Start with the community</p>
+            <h2 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">
+              Your next skill could come from someone you can help, too.
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">
+              Create your profile, choose what you can teach and what you want to learn, then discover people with complementary skills.
+            </p>
+          </div>
+          <Link
+            href={user ? "/discover" : "/register"}
+            className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#17233b] transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#17233b]"
+          >
+            {user ? "Find learning partners" : "Create your profile"}
+            <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
       {/* FAQs retained from the legacy landing page */}
       <section className="border-t border-slate-200 bg-white py-20">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
@@ -347,7 +369,7 @@ export default function HomePage() {
           <div className="mt-8 text-center">
             <Link
               href={user ? "/discover" : "/register"}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#d31d24] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#b71c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#d31d24] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
             >
               {user ? "Find a learning partner" : "Start exchanging skills"}
               <ArrowRight aria-hidden="true" className="h-4 w-4" />

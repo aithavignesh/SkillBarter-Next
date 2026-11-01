@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "../../services/api";
+import { AppPageShell } from "../../components/ui/AppPageShell";
 import { ShieldAlert, UserX, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function SafetyPage() {
@@ -67,17 +68,12 @@ export default function SafetyPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      <div>
-        <span className="text-xs font-bold uppercase tracking-wider text-red-600">
-          Trust & Safety
-        </span>
-        <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Safety & Moderation</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Report policy violations, protect your account, and manage blocked users.
-        </p>
-      </div>
-
+    <AppPageShell
+      eyebrow="Trust & Safety"
+      title="Safety & Moderation"
+      description="Report policy violations, protect your account, and manage blocked users."
+      icon={<ShieldAlert className="h-4 w-4" />}
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Submit Report */}
         <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-5 shadow-sm">
@@ -216,6 +212,6 @@ export default function SafetyPage() {
           )}
         </div>
       </div>
-    </div>
+    </AppPageShell>
   );
 }

@@ -40,7 +40,7 @@ function ResetPasswordContent() {
     <div className="flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-12">
       <div className="w-full max-w-md space-y-6 rounded-3xl border border-slate-200 bg-white p-8 sm:p-10 shadow-lg">
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d31d24] text-white shadow-md">
             <KeyRound className="h-6 w-6" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-slate-900">
@@ -62,7 +62,7 @@ function ResetPasswordContent() {
             <p className="text-sm text-slate-600">Redirecting to sign in...</p>
             <Link
               href="/login"
-              className="inline-block mt-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white"
+              className="mt-2 inline-block rounded-xl bg-[#d31d24] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
             >
               Sign In Now
             </Link>
@@ -78,7 +78,7 @@ function ResetPasswordContent() {
                 required
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
-                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-mono focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-mono transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                 placeholder="Paste reset token here"
               />
             </div>
@@ -91,14 +91,14 @@ function ResetPasswordContent() {
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                 placeholder="At least 8 chars, 1 uppercase, 1 number"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+              className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Updating..." : "Update Password"}
             </button>

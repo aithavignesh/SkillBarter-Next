@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
+import { AppPageShell } from "../../components/ui/AppPageShell";
 import { ConnectionDto } from "@skillbarter/shared";
 import { Users, UserCheck, X, MessageSquare } from "lucide-react";
 
@@ -52,16 +53,13 @@ export default function ConnectionsPage() {
   const accepted = connections.filter((c) => c.status === "ACCEPTED");
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      <div>
-        <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-          Peer Network
-        </span>
-        <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Connections</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          People you collaborate with, learn from, and stay in touch with across exchanges.
-        </p>
-      </div>
+    <AppPageShell
+      eyebrow="Peer Network"
+      title="Connections"
+      description="People you collaborate with, learn from, and stay in touch with across exchanges."
+      icon={<Users className="h-3.5 w-3.5" />}
+    >
+      <div className="space-y-8">
 
       {/* Pending Requests */}
       {pending.length > 0 && (
@@ -159,6 +157,7 @@ export default function ConnectionsPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </AppPageShell>
   );
 }

@@ -11,7 +11,7 @@ a { color: inherit; text-decoration: none; transition: color 160ms ease, backgro
 /* Shared visual language: warm neutral surfaces, SkillBarter red and soft depth. */
 :root {
   --sb-primary: #d31d24;
-  --sb-primary-dark: #b71c1c;
+  --sb-primary-dark: #b71920;
   --sb-ink: #17233b;
   --sb-muted: #64748b;
   --sb-surface: #ffffff;
@@ -48,3 +48,22 @@ a { color: inherit; text-decoration: none; transition: color 160ms ease, backgro
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* Ported legacy SkillBarter UI primitives for the Next.js application. */
+.sb-page-shell{min-width:0;min-height:calc(100vh - 1px);background:var(--sb-page);padding:1.5rem 1rem 5rem}
+.sb-page-shell__inner{width:100%;max-width:1320px;min-width:0;margin-inline:auto}
+.sb-page-shell__breadcrumb{display:flex;align-items:center;gap:.35rem;margin-bottom:1.25rem;color:#8a92a0;font-size:11px;font-weight:600}
+.sb-page-shell__breadcrumb-current{color:#4d5b72}
+.sb-page-heading{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1rem;border-bottom:1px solid #e1e4e8;padding-bottom:1.25rem}
+.sb-page-heading__eyebrow{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;color:var(--sb-primary);font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.sb-page-heading__title{color:var(--sb-ink);font-size:clamp(1.5rem,2.4vw,1.9rem);font-weight:800;letter-spacing:-.035em;line-height:1.2;overflow-wrap:anywhere}
+.sb-page-heading__description{max-width:48rem;margin-top:.4rem;color:#697386;font-size:.875rem;line-height:1.55rem}
+.sb-surface{min-width:0;border:1px solid #e1e4e8;border-radius:1rem;background:var(--sb-surface);box-shadow:0 8px 24px rgba(23,35,59,.045)}
+.sb-control{min-width:0;border:1px solid #d9dde2;border-radius:.7rem;background:#fff;color:var(--sb-ink);transition:border-color 160ms ease,box-shadow 160ms ease}
+.sb-control:focus-visible{border-color:var(--sb-primary);outline:none;box-shadow:0 0 0 3px rgba(211,29,36,.11)}
+.sb-button-primary{border:1px solid var(--sb-primary);border-radius:.7rem;background:var(--sb-primary);color:#fff;font-weight:700;transition:background-color 160ms ease,border-color 160ms ease,transform 160ms ease}
+.sb-button-primary:hover{background:var(--sb-primary-dark);border-color:var(--sb-primary-dark)}
+.sb-button-primary:active{transform:translateY(1px)}
+@media(min-width:640px){.sb-page-shell{padding:1.5rem 1.5rem 5rem}}
+@media(min-width:1024px){.sb-page-shell{padding:1.75rem 2rem 2rem}}

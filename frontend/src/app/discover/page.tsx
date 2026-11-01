@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
+import { AppPageShell } from "../../components/ui/AppPageShell";
 import { api } from "../../services/api";
 import { skillCategories, UserSkillDto } from "@skillbarter/shared";
 import {
@@ -138,18 +139,8 @@ export default function DiscoverPage() {
   const myOfferedSkills = mySkills.filter((s) => s.type === "offered");
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      <div>
-        <span className="text-xs font-bold uppercase tracking-wider text-red-700">
-          Match Engine
-        </span>
-        <h1 className="mt-1 text-3xl font-extrabold text-slate-900">
-          Discover Complementary Skill Matches
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Matches are sorted by reciprocal compatibility between what you can teach and what you want to learn.
-        </p>
-      </div>
+    <AppPageShell eyebrow="Match Engine" title="Discover Complementary Skill Matches" description="Matches are sorted by reciprocal compatibility between what you can teach and what you want to learn." icon={<Compass className="h-3.5 w-3.5" />}>
+      <div className="space-y-8">
 
       {/* Filter and Search Bar */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm grid grid-cols-1 sm:grid-cols-12 gap-3">
@@ -213,7 +204,7 @@ export default function DiscoverPage() {
       ) : loadError ? (
         <div role="alert" className="rounded-3xl border border-red-200 bg-white p-12 text-center">
           <AlertCircle className="mx-auto h-12 w-12 text-red-600 mb-3" />
-          <h3 className="text-base font-bold text-slate-900">We couldn't load skill matches</h3>
+          <h3 className="text-base font-bold text-slate-900">We couldn&apos;t load skill matches</h3>
           <p className="mt-1 text-sm text-slate-600 max-w-md mx-auto">
             The service may be temporarily unavailable. Your filters are preserved; try again in a moment.
           </p>
@@ -432,6 +423,7 @@ export default function DiscoverPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </AppPageShell>
   );
 }
