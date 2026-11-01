@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "../../services/api";
+import { AppPageShell } from "../../components/ui/AppPageShell";
 import { useAuth } from "../../context/AuthContext";
 import { ExchangeDto } from "@skillbarter/shared";
 import { ArrowLeftRight, Clock, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
@@ -54,26 +55,14 @@ export default function ExchangesListPage() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-red-700">
-            Lifecycle Management
-          </span>
-          <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Your Skill Exchanges</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Track active requests, scheduled lessons, and completed exchange milestones.
-          </p>
-        </div>
-
-        <Link
-          href="/discover"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-red-700 px-4 py-2.5 text-xs font-semibold text-white hover:bg-red-600 shadow-sm"
-        >
-          <ArrowLeftRight className="h-4 w-4" /> Start New Exchange
-        </Link>
-      </div>
-
+    <AppPageShell
+      eyebrow="Lifecycle Management"
+      title="Your Skill Exchanges"
+      description="Track active requests, scheduled lessons, and completed exchange milestones."
+      icon={<ArrowLeftRight className="h-3.5 w-3.5" />}
+      actions={<Link href="/discover" className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs"><ArrowLeftRight className="h-4 w-4" /> Start New Exchange</Link>}
+    >
+      <div className="space-y-6">
       {/* Filter Tabs */}
       <div className="flex gap-2 border-b border-slate-200 pb-2 overflow-x-auto text-xs font-semibold">
         {["ALL", "PENDING", "ACTIVE", "COMPLETED", "CANCELLED"].map((tab) => (
@@ -178,5 +167,7 @@ export default function ExchangesListPage() {
         </div>
       )}
     </div>
+      </div>
+    </AppPageShell>
   );
 }
