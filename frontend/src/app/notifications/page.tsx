@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "../../services/api";
+import { AppPageShell } from "../../components/ui/AppPageShell";
 import { NotificationDto } from "@skillbarter/shared";
 import { Bell, CheckCheck, ArrowRight } from "lucide-react";
 
@@ -44,26 +45,13 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-red-600">
-            Activity Updates
-          </span>
-          <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Notifications</h1>
-        </div>
-
-        {notifications.some((n) => !n.read) && (
-          <button
-            type="button"
-            onClick={handleMarkAllRead}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            <CheckCheck className="h-4 w-4" /> Mark All as Read
-          </button>
-        )}
-      </div>
-
+    <AppPageShell
+      eyebrow="Activity Updates"
+      title="Notifications"
+      icon={<Bell className="h-3.5 w-3.5" />}
+      actions={notifications.some((n) => !n.read) ? <button type="button" onClick={handleMarkAllRead} className="sb-control inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><CheckCheck className="h-4 w-4" /> Mark All as Read</button> : undefined}
+    >
+      <div className="space-y-6">
       {loading ? (
         <div className="p-12 text-center text-sm text-slate-500">Loading notifications...</div>
       ) : notifications.length === 0 ? (
@@ -112,5 +100,7 @@ export default function NotificationsPage() {
         </div>
       )}
     </div>
+      </div>
+    </AppPageShell>
   );
 }
