@@ -27,12 +27,22 @@ export default function WorkshopDetailsPage() {
     }
 
     try {
-      const posts = await api.community.listPosts(1);
-      const workshop = posts.find(
-        (item) =>
-          item.id === postId &&
-          item.tags.some((tag) => WORKSHOP_TAGS.has(tag.trim().toLowerCase()))
-      );
+      let page = 1;
+      let workshop: CommunityPostDto | undefined;
+
+      // The community endpoint is paginated (20 posts per page). Follow the
+      // shared post ID across pages instead of assuming it is in the newest page.
+      while (!workshop && page <= 100) {
+        const posts = await api.community.listPosts(page);
+        workshop = posts.find(
+          (item) =>
+            item.id === postId &&
+            item.tags.some((tag) => WORKSHOP_TAGS.has(tag.trim().toLowerCase()))
+        );
+
+        if (workshop || posts.length < 20) break;
+        page += 1;
+      }
 
       if (!workshop) {
         setPost(null);
