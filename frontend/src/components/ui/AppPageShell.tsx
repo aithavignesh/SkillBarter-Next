@@ -7,10 +7,13 @@ export function AppPageShell({ title, eyebrow, description, icon, actions, child
   return (
     <main className="sb-page-shell">
       <div className="sb-page-shell__inner">
-        <div className="sb-page-shell__breadcrumb" aria-label="Breadcrumb">
-          <span>Workspace</span><ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
-          <span className="sb-page-shell__breadcrumb-current">{title}</span>
-        </div>
+        <nav aria-label="Breadcrumb">
+          <ol className="sb-page-shell__breadcrumb">
+            <li>Workspace</li>
+            <li aria-hidden="true"><ChevronRight className="h-3.5 w-3.5" /></li>
+            <li aria-current="page" className="sb-page-shell__breadcrumb-current">{title}</li>
+          </ol>
+        </nav>
         <header className="sb-page-heading">
           <div className="min-w-0">
             {eyebrow && <div className="sb-page-heading__eyebrow">{icon}<span>{eyebrow}</span></div>}
