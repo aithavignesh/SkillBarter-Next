@@ -16,6 +16,9 @@ function AdminDashboardContent() {
   const [reports, setReports] = useState<ReportDto[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [tab, setTab] = useState<"users" | "reports" | "audit">("users");
+  const [userSearch, setUserSearch] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState("all");
+  const [reportStatusFilter, setReportStatusFilter] = useState("all");
 
   useEffect(() => {
     const section = searchParams.get("section");
@@ -30,8 +33,8 @@ function AdminDashboardContent() {
       // leave every dashboard table empty.
       const results = await Promise.allSettled([
         api.admin.stats(),
-        api.admin.users(1),
-        api.admin.reports(1),
+        api.admin.users(1, userSearch.trim() || undefined, userRoleFilter),
+        api.admin.reports(1, reportStatusFilter),
         api.admin.auditLogs(1),
       ]);
       const [statsResult, usersResult, reportsResult, auditResult] = results;
@@ -154,7 +157,30 @@ function AdminDashboardContent() {
         <div className="p-6">
           {/* TAB 1: USERS */}
           {tab === "users" && (
-            <div className="overflow-x-auto">
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  aria-label="Search people by name or email"
+                  value={userSearch}
+                  onChange={(event) => setUserSearch(event.target.value)}
+                  onKeyDown={(event) => { if (event.key === "Enter") fetchAdminData(); }}
+                  placeholder="Search by name or email..."
+                  className="min-w-0 flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100"
+                />
+                <select
+                  aria-label="Filter people by role"
+                  value={userRoleFilter}
+                  onChange={(event) => setUserRoleFilter(event.target.value)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                >
+                  <option value="all">All roles</option>
+                  <option value="user">Users</option>
+                  <option value="admin">Admins</option>
+                  <option value="owner">Platform Owner</option>
+                </select>
+                <button type="button" onClick={fetchAdminData} className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Search</button>
+              </div>
+              <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-400 uppercase tracking-wider">
@@ -248,6 +274,20 @@ function AdminDashboardContent() {
           {/* TAB 2: REPORTS */}
           {tab === "reports" && (
             <div className="space-y-4">
+              <div className="flex justify-end">
+                <select
+                  aria-label="Filter reports by status"
+                  value={reportStatusFilter}
+                  onChange={(event) => { setReportStatusFilter(event.target.value); }}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                >
+                  <option value="all">All reports</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="RESOLVED">Resolved</option>
+                  <option value="DISMISSED">Dismissed</option>
+                </select>
+                <button type="button" onClick={fetchAdminData} className="ml-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50">Apply</button>
+              </div>
               {reports.length === 0 ? (
                 <p className="text-xs text-slate-400 italic">No reports submitted.</p>
               ) : (
