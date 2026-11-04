@@ -221,7 +221,6 @@ export function Navbar() {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setMobileMenuOpen(false)}
               aria-current={isActive(item.href) ? "page" : undefined}
               onClick={() => { const section = new URLSearchParams(item.href.split("?")[1] || "").get("section"); if (section) setActiveAdminSection(section); setMobileMenuOpen(false); }}
               className={`block rounded-lg px-3 py-2 text-base font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 ${
