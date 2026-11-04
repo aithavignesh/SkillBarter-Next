@@ -31,7 +31,10 @@ export class AdminController {
   async updateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
-      const input = adminUpdateUserSchema.parse(req.body);\n      if (input.role !== undefined && req.user.role !== "owner") {\n        throw new AppError("Only the platform owner can grant or revoke administrator access", 403, "OWNER_REQUIRED");\n      }
+      const input = adminUpdateUserSchema.parse(req.body);
+      if (input.role !== undefined && req.user.role !== "owner") {
+        throw new AppError("Only the platform owner can grant or revoke administrator access", 403, "OWNER_REQUIRED");
+      }
       const user = await adminService.updateUser(
         req.user._id.toString(),
         req.params.id as string,
