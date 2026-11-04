@@ -89,8 +89,8 @@ export default function LoginPage() {
   const submitPassword = (e: React.FormEvent) => {
     e.preventDefault();
     void run(async () => {
-      await login({ email: email.trim(), password });
-      router.push("/dashboard");
+      const signedInUser = await login({ email: email.trim(), password });
+      router.push(signedInUser.role === "owner" || signedInUser.role === "admin" ? "/admin" : "/dashboard");
     });
   };
 
