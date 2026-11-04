@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
@@ -13,6 +13,8 @@ import {
   Users,
   Bell,
   ShieldCheck,
+  AlertTriangle,
+  History,
   LogOut,
   Menu,
   X,
@@ -22,6 +24,7 @@ import {
 export function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -57,7 +60,11 @@ export function Navbar() {
         { href: "/messages", label: "Messages", icon: MessageSquare },
         { href: "/community", label: "Community", icon: Users },
         ...(["admin", "owner"].includes(user.role)
-          ? [{ href: "/admin", label: "Admin", icon: ShieldCheck }]
+          ? [
+              { href: "/admin?section=users", label: "People", icon: Users },
+              { href: "/admin?section=reports", label: "Reports", icon: AlertTriangle },
+              { href: "/admin?section=audit", label: "Audit Trail", icon: History },
+            ]
           : []),
       ]
     : [
@@ -65,8 +72,13 @@ export function Navbar() {
         { href: "/discover", label: "Browse Skills", icon: Compass },
       ];
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (href: string) => {
+    const [path, query] = href.split("?");
+    if (!(pathname === path || pathname.startsWith(`${path}/`))) return false;
+    if (!query) return pathname === path;
+    const section = new URLSearchParams(query).get("section");
+    return searchParams.get("section") === section;
+  };
 
   const navLinkClass = (active: boolean) =>
     `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 ${
