@@ -12,7 +12,8 @@ import {
   MessageSquare,
   Users,
   Bell,
-  ShieldCheck,
+  AlertTriangle,
+  History,
   LogOut,
   Menu,
   X,
@@ -22,11 +23,16 @@ import {
 export function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  const [activeAdminSection, setActiveAdminSection] = useState("users");
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMobileMenuOpen(false);
+    if (pathname === "/admin" && typeof window !== "undefined") {
+      const section = new URLSearchParams(window.location.search).get("section");
+      setActiveAdminSection(section || "users");
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -57,7 +63,11 @@ export function Navbar() {
         { href: "/messages", label: "Messages", icon: MessageSquare },
         { href: "/community", label: "Community", icon: Users },
         ...(["admin", "owner"].includes(user.role)
-          ? [{ href: "/admin", label: "Admin", icon: ShieldCheck }]
+          ? [
+              { href: "/admin?section=users", label: "People", icon: Users },
+              { href: "/admin?section=reports", label: "Reports", icon: AlertTriangle },
+              { href: "/admin?section=audit", label: "Audit Trail", icon: History },
+            ]
           : []),
       ]
     : [
@@ -65,8 +75,13 @@ export function Navbar() {
         { href: "/discover", label: "Browse Skills", icon: Compass },
       ];
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (href: string) => {
+    const [path, query] = href.split("?");
+    if (!(pathname === path || pathname.startsWith(`${path}/`))) return false;
+    if (!query) return pathname === path;
+    const section = new URLSearchParams(query).get("section");
+    return activeAdminSection === section;
+  };
 
   const navLinkClass = (active: boolean) =>
     `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 ${
@@ -101,6 +116,7 @@ export function Navbar() {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
+                  onClick={() => { const section = new URLSearchParams(item.href.split("?")[1] || "").get("section"); if (section) setActiveAdminSection(section); }}
                   className={navLinkClass(active)}
                 >
                   <Icon aria-hidden="true" className="h-4 w-4" />
@@ -205,8 +221,8 @@ export function Navbar() {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setMobileMenuOpen(false)}
               aria-current={isActive(item.href) ? "page" : undefined}
+              onClick={() => { const section = new URLSearchParams(item.href.split("?")[1] || "").get("section"); if (section) setActiveAdminSection(section); setMobileMenuOpen(false); }}
               className={`block rounded-lg px-3 py-2 text-base font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 ${
                 isActive(item.href)
                   ? "bg-red-50 text-[#b71920]"
