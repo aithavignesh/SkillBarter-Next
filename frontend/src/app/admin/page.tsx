@@ -15,7 +15,7 @@ function AdminDashboardContent() {
   const [usersList, setUsersList] = useState<any[]>([]);
   const [reports, setReports] = useState<ReportDto[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
-  const [tab, setTab] = useState<"users" | "reports" | "audit">("users");
+  const [tab, setTab] = useState<"overview" | "users" | "reports" | "audit">("overview");
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [reportStatusFilter, setReportStatusFilter] = useState("all");
@@ -25,8 +25,8 @@ function AdminDashboardContent() {
 
   useEffect(() => {
     const section = searchParams.get("section");
-    if (section === "reports" || section === "audit" || section === "users") setTab(section);
-    else setTab("users");
+    if (section === "reports" || section === "audit" || section === "users" || section === "overview") setTab(section);
+    else setTab("overview");
   }, [searchParams]);
   const [loading, setLoading] = useState(true);
 
@@ -154,10 +154,62 @@ function AdminDashboardContent() {
       {/* Main website navigation controls the active admin section. */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-bold text-slate-900">{tab === "users" ? "People" : tab === "reports" ? "Safety Reports" : "Audit Trail"}</h2>
-          <p className="mt-1 text-xs text-slate-500">{tab === "users" ? "Manage platform members and their access." : tab === "reports" ? "Review and resolve community safety reports." : "Review administrative activity across the platform."}</p>
+          <h2 className="text-lg font-bold text-slate-900">{tab === "overview" ? "Overview" : tab === "users" ? "People" : tab === "reports" ? "Safety Reports" : "Audit Trail"}</h2>
+          <p className="mt-1 text-xs text-slate-500">{tab === "overview" ? "A quick view of platform moderation and recent administrative activity." : tab === "users" ? "Manage platform members and their access." : tab === "reports" ? "Review and resolve community safety reports." : "Review administrative activity across the platform."}</p>
         </div>
         <div className="p-6">
+          {/* ADMIN OVERVIEW */}
+          {tab === "overview" && (
+            <div className="grid gap-6 lg:grid-cols-2">
+              <section className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Pending moderation</h3>
+                    <p className="text-xs text-slate-500">Reports that still need review.</p>
+                  </div>
+                  <a href="/admin?section=reports" className="text-xs font-semibold text-red-700 hover:text-red-800">View all reports</a>
+                </div>
+                {reports.filter((report) => report.status === "PENDING").length === 0 ? (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">No pending reports in the latest results.</div>
+                ) : (
+                  reports.filter((report) => report.status === "PENDING").slice(0, 5).map((report) => (
+                    <div key={report.id} className="rounded-xl border border-slate-200 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-xs font-bold uppercase text-rose-700">{report.targetType}: {report.reason}</span>
+                        <span className="rounded-full bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-700">Pending</span>
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-sm text-slate-700">{report.description}</p>
+                      <p className="mt-2 text-[11px] text-slate-400">Reported by {report.reporterName || "Community member"}</p>
+                    </div>
+                  ))
+                )}
+              </section>
+              <section className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Recent admin activity</h3>
+                    <p className="text-xs text-slate-500">Latest recorded governance actions.</p>
+                  </div>
+                  <a href="/admin?section=audit" className="text-xs font-semibold text-red-700 hover:text-red-800">Open audit trail</a>
+                </div>
+                {auditLogs.length === 0 ? (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">No administrative activity has been recorded yet.</div>
+                ) : (
+                  auditLogs.slice(0, 5).map((log) => (
+                    <div key={log.id} className="rounded-xl border border-slate-200 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-xs font-bold text-slate-800">{log.actorName || log.actorEmail || "Administrator"}</span>
+                        <time className="text-[10px] text-slate-400">{new Date(log.timestamp).toLocaleString()}</time>
+                      </div>
+                      <p className="mt-2 text-xs font-semibold text-red-700">{log.action}</p>
+                      <p className="mt-1 text-[11px] text-slate-500">{log.targetType} · {log.targetId}</p>
+                    </div>
+                  ))
+                )}
+              </section>
+            </div>
+          )}
+
           {/* TAB 1: USERS */}
           {tab === "users" && (
             <div className="space-y-4">

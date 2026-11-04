@@ -11,6 +11,7 @@ import {
   ArrowLeftRight,
   MessageSquare,
   Users,
+  ShieldCheck,
   Bell,
   AlertTriangle,
   History,
@@ -23,7 +24,7 @@ import {
 export function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
-  const [activeAdminSection, setActiveAdminSection] = useState("users");
+  const [activeAdminSection, setActiveAdminSection] = useState("overview");
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -31,7 +32,7 @@ export function Navbar() {
     setMobileMenuOpen(false);
     if (pathname === "/admin" && typeof window !== "undefined") {
       const section = new URLSearchParams(window.location.search).get("section");
-      setActiveAdminSection(section || "users");
+      setActiveAdminSection(section || "overview");
     }
   }, [pathname]);
 
@@ -64,6 +65,7 @@ export function Navbar() {
         { href: "/community", label: "Community", icon: Users },
         ...(["admin", "owner"].includes(user.role)
           ? [
+              { href: "/admin?section=overview", label: "Admin Overview", icon: ShieldCheck },
               { href: "/admin?section=users", label: "People", icon: Users },
               { href: "/admin?section=reports", label: "Reports", icon: AlertTriangle },
               { href: "/admin?section=audit", label: "Audit Trail", icon: History },
