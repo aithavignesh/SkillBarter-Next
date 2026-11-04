@@ -262,7 +262,7 @@ function AdminDashboardContent() {
                   <option value="admin">Admins</option>
                   <option value="owner">Platform Owner</option>
                 </select>
-                <button type="button" onClick={() => { setUsersPage(1); fetchAdminData(); }} className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Search</button>
+                <button type="button" onClick={() => { setUsersPage(1); api.admin.users(1, userSearch.trim() || undefined, userRoleFilter).then((result) => { setUsersList(result.items); setUsersMeta(result.meta); }).catch((err) => alert(err instanceof Error ? err.message : "Could not load users")); }} className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Search</button>
               </div>
               <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
@@ -372,7 +372,7 @@ function AdminDashboardContent() {
                   <option value="RESOLVED">Resolved</option>
                   <option value="DISMISSED">Dismissed</option>
                 </select>
-                <button type="button" onClick={() => { setReportsPage(1); fetchAdminData(); }} className="ml-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50">Apply</button>
+                <button type="button" onClick={() => { setReportsPage(1); api.admin.reports(1, reportStatusFilter).then((result) => { setReports(result.items); setReportsMeta(result.meta); }).catch((err) => alert(err instanceof Error ? err.message : "Could not load reports")); }} className="ml-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50">Apply</button>
               </div>
               {reports.length === 0 ? (
                 <p className="text-xs text-slate-400 italic">No reports submitted.</p>
@@ -447,7 +447,7 @@ function AdminDashboardContent() {
                   onChange={(event) => setAuditToDate(event.target.value)}
                   className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
                 />
-                <button type="button" onClick={() => { setAuditPage(1); fetchAdminData(); }} className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Apply filters</button>
+                <button type="button" onClick={() => { setAuditPage(1); api.admin.auditLogs(1, auditActionFilter === "all" ? undefined : auditActionFilter, auditFromDate || undefined, auditToDate || undefined).then((result) => { setAuditLogs(result.items); setAuditMeta(result.meta); }).catch((err) => alert(err instanceof Error ? err.message : "Could not load audit logs")); }} className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Apply filters</button>
               </div>
               <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
