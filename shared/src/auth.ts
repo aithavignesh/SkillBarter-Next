@@ -54,7 +54,7 @@ export interface AuthUser {
   id: string;
   email: string;
   displayName: string;
-  role: "user" | "admin";
+  role: "user" | "admin" | "owner";
   isEmailVerified: boolean;
   onboardingCompleted: boolean;
   avatarUrl?: string;
