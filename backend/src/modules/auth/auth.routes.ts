@@ -65,6 +65,7 @@ const emailOtpDestinationLimiter = createOtpDestinationLimiter("email");
 const phoneOtpDestinationLimiter = createOtpDestinationLimiter("phone");
 
 authRouter.post("/register", registrationLimiter, (req, res, next) => authController.register(req, res, next));
+authRouter.post("/resend-verification", registrationLimiter, (req, res, next) => authController.resendVerificationEmail(req, res, next));
 authRouter.post("/login", authLimiter, (req, res, next) => authController.login(req, res, next));
 authRouter.post(
   "/phone/request-otp",
