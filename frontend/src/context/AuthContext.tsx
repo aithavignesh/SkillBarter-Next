@@ -8,7 +8,7 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   error: string | null;
-  login: (input: LoginInput) => Promise<void>;
+  login: (input: LoginInput) => Promise<AuthUser>;
   requestPhoneOtp: (phone: string) => Promise<{ challengeId: string; phone: string }>;
   verifyPhoneOtp: (phone: string, otp: string, challengeId: string) => Promise<void>;
   requestEmailOtp: (email: string) => Promise<void>;
@@ -40,12 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { void refreshUser(); }, []);
 
-  const login = async (input: LoginInput) => {
+  const login = async (input: LoginInput): Promise<AuthUser> => {
     setError(null);
     try {
       const res = await api.auth.login(input);
       if (typeof window !== "undefined") localStorage.setItem("skillbarter_token", res.accessToken);
       setUser(res.user);
+      return res.user;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to log in";
       setError(msg);
