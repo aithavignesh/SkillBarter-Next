@@ -268,6 +268,7 @@ function AdminDashboardContent() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
 
