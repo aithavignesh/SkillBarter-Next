@@ -56,6 +56,9 @@ export function Navbar() {
         { href: "/exchanges", label: "Exchanges", icon: ArrowLeftRight },
         { href: "/messages", label: "Messages", icon: MessageSquare },
         { href: "/community", label: "Community", icon: Users },
+        ...(["admin", "owner"].includes(user.role)
+          ? [{ href: "/admin", label: "Admin", icon: ShieldCheck }]
+          : []),
       ]
     : [
         { href: "/about", label: "How It Works", icon: BookOpen },
@@ -123,16 +126,6 @@ export function Navbar() {
                   </span>
                 )}
               </Link>
-
-              {user.role === "admin" && (
-                <Link
-                  href="/admin"
-                  className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-[#b71920] hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
-                >
-                  <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
-                  Admin
-                </Link>
-              )}
 
               <div className="flex items-center gap-2 border-l border-slate-200 pl-2">
                 <Link
@@ -239,15 +232,6 @@ export function Navbar() {
               >
                 Settings
               </Link>
-              {user.role === "admin" && (
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2 text-base font-medium text-[#b71920] hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2"
-                >
-                  Admin Portal
-                </Link>
-              )}
               <button
                 type="button"
                 onClick={() => {
