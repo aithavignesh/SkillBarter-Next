@@ -22,6 +22,15 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [cooldownUntil, setCooldownUntil] = useState(0);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  useEffect(() => {
+    const update = () => setCooldownSeconds(Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000)));
+    update();
+    const timer = window.setInterval(update, 1000);
+    return () => window.clearInterval(timer);
+  }, [cooldownUntil]);
+  const startCooldown = () => setCooldownUntil(Date.now() + 60_000);
   const busy = loading || authLoading;
 
   useEffect(() => {
@@ -47,6 +56,7 @@ export default function LoginPage() {
       const result = await requestPhoneOtp(normalized);
       setPhone(result.phone || normalized);
       setChallengeId(result.challengeId);
+      startCooldown();
       setNotice("If this number belongs to a registered account, an OTP has been requested. Check your SMS.");
     });
   };
@@ -65,6 +75,7 @@ export default function LoginPage() {
     void run(async () => {
       if (!emailOtpSent) {
         await requestEmailOtp(email.trim());
+        startCooldown();
         setEmailOtpSent(true);
         setNotice("If an account exists for this email, a one-time code has been sent.");
         return;
@@ -108,7 +119,7 @@ export default function LoginPage() {
           <form className="space-y-5" onSubmit={challengeId ? verifyPhone : submitPhone}>
             <div><label htmlFor="phone" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">Mobile number</label><input id="phone" type="tel" autoComplete="tel" required value={phone} onChange={e => { setPhone(e.target.value); setChallengeId(""); }} className={inputClass} placeholder="+91 98765 43210" /></div>
             {challengeId && <div><label htmlFor="phoneOtp" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">6-digit SMS OTP</label><input id="phoneOtp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={phoneOtp} onChange={e => setPhoneOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} className={inputClass} placeholder="Enter OTP" /></div>}
-            <button disabled={busy} type="submit" className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 disabled:opacity-50">{busy ? "Please wait…" : challengeId ? "Verify OTP & Sign In" : "Send OTP"}</button>
+            <button disabled={busy || (!challengeId && cooldownSeconds > 0)} type="submit" className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 disabled:opacity-50">{busy ? "Please wait…" : challengeId ? "Verify OTP & Sign In" : cooldownSeconds > 0 ? `Resend available in ${cooldownSeconds}s` : "Send OTP"}</button>
             {challengeId && <button type="button" onClick={() => { setChallengeId(""); setPhoneOtp(""); setNotice(null); }} className="w-full rounded-sm text-sm font-semibold text-[#b71920] hover:text-[#d31d24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2">Change number / resend OTP</button>}
           </form>
         )}
@@ -117,7 +128,7 @@ export default function LoginPage() {
           <form className="space-y-5" onSubmit={submitEmailOtp}>
             <div><label htmlFor="emailOtpAddress" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">Email address</label><input id="emailOtpAddress" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} className={inputClass} placeholder="you@example.com" /></div>
             {emailOtpSent && <div><label htmlFor="emailOtp" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">6-digit email OTP</label><input id="emailOtp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={emailOtp} onChange={e => setEmailOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} className={inputClass} placeholder="Enter OTP" /></div>}
-            <button disabled={busy} type="submit" className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 disabled:opacity-50">{busy ? "Please wait…" : emailOtpSent ? "Verify OTP & Sign In" : "Send Email OTP"}</button>
+            <button disabled={busy || (!emailOtpSent && cooldownSeconds > 0)} type="submit" className="w-full rounded-xl bg-[#d31d24] py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#b71920] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 disabled:opacity-50">{busy ? "Please wait…" : emailOtpSent ? "Verify OTP & Sign In" : cooldownSeconds > 0 ? `Resend available in ${cooldownSeconds}s` : "Send Email OTP"}</button>
             {emailOtpSent && <button type="button" onClick={() => { setEmailOtpSent(false); setEmailOtp(""); setNotice(null); }} className="w-full rounded-sm text-sm font-semibold text-[#b71920] hover:text-[#d31d24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2">Use a different email / request a new code</button>}
           </form>
         )}

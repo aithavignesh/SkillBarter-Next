@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
@@ -17,6 +17,14 @@ export default function RegisterPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [emailDeliveryFailed, setEmailDeliveryFailed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [cooldownUntil, setCooldownUntil] = useState(0);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  useEffect(() => {
+    const update = () => setCooldownSeconds(Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000)));
+    update();
+    const timer = window.setInterval(update, 1000);
+    return () => window.clearInterval(timer);
+  }, [cooldownUntil]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +53,7 @@ export default function RegisterPage() {
       await api.auth.resendVerification(email);
       setEmailSent(true);
       setEmailDeliveryFailed(false);
+      setCooldownUntil(Date.now() + 60_000);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Could not resend verification email");
     } finally {
@@ -86,10 +95,10 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={handleResendVerification}
-              disabled={loading || !email}
+              disabled={loading || !email || cooldownSeconds > 0}
               className="w-full rounded-xl border border-amber-300 bg-white py-2.5 text-sm font-semibold text-amber-900 hover:bg-amber-100 disabled:opacity-50"
             >
-              {loading ? "Sending..." : "Resend verification email"}
+              {loading ? "Sending..." : cooldownSeconds > 0 ? `Resend available in ${cooldownSeconds}s` : "Resend verification email"}
             </button>
           </div>
         )}
