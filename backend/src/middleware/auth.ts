@@ -32,9 +32,6 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     if (user.passwordChangedAt && (!payload.iat || payload.iat < user.passwordChangedAt.getTime() / 1000)) {
       throw new AppError("Password changed; please sign in again", 401, "SESSION_REVOKED");
     }
-    if (!user.isEmailVerified) {
-      throw new AppError("Please verify your email address to access this feature.", 403, "EMAIL_NOT_VERIFIED");
-    }
     if (user.isSuspended) {
       throw new AppError(
         `Your account has been suspended: ${user.suspensionReason || "Violation of terms"}`,
@@ -43,6 +40,8 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
       );
     }
 
+    // Email verification is optional. A valid authenticated session (including
+    // one established by verified mobile OTP) is sufficient to use the app.
     req.user = user;
     req.tokenPayload = payload;
     next();
@@ -66,7 +65,7 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
       if (payload) {
         const user = await User.findById(payload.userId);
         const tokenIsCurrent = !user?.passwordChangedAt || Boolean(payload.iat && payload.iat >= user.passwordChangedAt.getTime() / 1000);
-        if (user && tokenIsCurrent && user.isEmailVerified && !user.isSuspended) {
+        if (user && tokenIsCurrent && !user.isSuspended) {
           req.user = user;
           req.tokenPayload = payload;
         }
