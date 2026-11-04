@@ -223,7 +223,7 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="py-3 text-right">
                         <div className="inline-flex flex-wrap justify-end gap-2">
-                          {u.id !== user?.id && (\n                            <>
+                          {u.id !== user?.id && (
                             <>
                               {user?.role === "owner" && <button
                                 type="button"
