@@ -160,6 +160,10 @@ export const api = {
         "/auth/register",
         { method: "POST", body: JSON.stringify(input) }
       ),
+    resendVerification: (email: string) =>
+      fetchApi<{ message: string }>("/auth/resend-verification", {
+        method: "POST", body: JSON.stringify({ email }),
+      }),
     login: (input: LoginInput) =>
       fetchApi<{ user: AuthUser; accessToken: string }>("/auth/login", {
         method: "POST",
