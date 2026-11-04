@@ -1,5 +1,6 @@
 import { User, IUser } from "../../models/User";
 import { OtpChallenge } from "../../models/OtpChallenge";
+import { AuthCooldown } from "../../models/AuthCooldown";
 import { createHash, randomInt } from "node:crypto";
 import { AnalyticsEvent } from "../../models/AnalyticsEvent";
 import {
@@ -38,6 +39,25 @@ export function formatAuthUser(user: IUser): AuthUser {
     completedExchangesCount: user.completedExchangesCount,
     createdAt: user.createdAt.toISOString(),
   };
+}
+
+const AUTH_RESEND_COOLDOWN_MS = 60_000;
+
+async function enforceResendCooldown(channel: "email" | "phone", destination: string): Promise<void> {
+  const key = createHash("sha256").update(channel + ":" + destination.trim().toLowerCase()).digest("hex");
+  try {
+    await AuthCooldown.create({ key, expiresAt: new Date(Date.now() + AUTH_RESEND_COOLDOWN_MS) });
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === 11000) {
+      throw new AppError("Please wait 60 seconds before requesting another code or email.", 429, "RESEND_COOLDOWN");
+    }
+    throw error;
+  }
+}
+
+async function releaseResendCooldown(channel: "email" | "phone", destination: string): Promise<void> {
+  const key = createHash("sha256").update(channel + ":" + destination.trim().toLowerCase()).digest("hex");
+  await AuthCooldown.deleteOne({ key });
 }
 
 export class AuthService {
@@ -144,13 +164,18 @@ export class AuthService {
     if (!/^\+[1-9]\d{7,14}$/.test(phone)) throw new AppError("Enter a valid mobile number with country code", 400, "INVALID_PHONE");
     const user = await User.findOne({ phone });
     if (!user) throw new AppError("Unable to sign in with this number. Check the number or create an account.", 404, "ACCOUNT_NOT_FOUND");
+    if (!user.isEmailVerified) throw new AppError("Please verify your email address before signing in.", 403, "EMAIL_NOT_VERIFIED");
     if (user.isSuspended) throw new AppError("This account has been suspended.", 403, "ACCOUNT_SUSPENDED");
     if (!phone.startsWith("+91")) throw new AppError("SMS OTP currently supports Indian mobile numbers (+91). Use email OTP for other countries.", 400, "PHONE_COUNTRY_UNSUPPORTED");
     if (!env.TWOFACTOR_API_KEY) throw new AppError("SMS OTP is not configured on the server. Please use email OTP or email and password.", 503, "SMS_NOT_CONFIGURED");
+    await enforceResendCooldown("phone", phone);
     const url = "https://2factor.in/API/V1/" + encodeURIComponent(env.TWOFACTOR_API_KEY) + "/SMS/" + encodeURIComponent(phone.slice(3)) + "/AUTOGEN";
     const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
     const data = await response.json().catch(() => null) as { Status?: string; Details?: string } | null;
-    if (!response.ok || data?.Status !== "Success" || !data.Details) throw new AppError("The SMS provider could not send an OTP. Please try again later.", 502, "SMS_DELIVERY_FAILED");
+    if (!response.ok || data?.Status !== "Success" || !data.Details) {
+      await releaseResendCooldown("phone", phone);
+      throw new AppError("The SMS provider could not send an OTP. Please try again later.", 502, "SMS_DELIVERY_FAILED");
+    }
     const challengeId = generateSecureToken();
     await OtpChallenge.create({ phone, challengeId, providerChallengeId: data.Details, expiresAt: new Date(Date.now() + 5 * 60 * 1000), attempts: 0 });
     return { challengeId, phone };
@@ -175,6 +200,7 @@ export class AuthService {
     await OtpChallenge.deleteOne({ _id: challenge._id });
     const user = await User.findOne({ phone });
     if (!user) throw new AppError("Unable to sign in with this number. Create an account first.", 404, "ACCOUNT_NOT_FOUND");
+    if (!user.isEmailVerified) throw new AppError("Please verify your email address before signing in.", 403, "EMAIL_NOT_VERIFIED");
     if (user.isSuspended) throw new AppError("This account has been suspended.", 403, "ACCOUNT_SUSPENDED");
     return this.createSession(user);
   }
@@ -184,6 +210,7 @@ export class AuthService {
     const user = await User.findOne({ email });
     // Do not reveal whether an address is registered or already verified.
     if (!user || user.isEmailVerified || user.isSuspended) return;
+    await enforceResendCooldown("email", email);
 
     const verificationToken = generateSecureToken();
     user.verificationToken = verificationToken;
@@ -196,6 +223,7 @@ export class AuthService {
       console.error("[auth] Verification email resend failed.", {
         reason: error instanceof Error ? error.message.slice(0, 160) : "unknown",
       });
+      await releaseResendCooldown("email", email);
       throw new AppError("The verification email provider is unavailable. Please try again later.", 503, "EMAIL_DELIVERY_FAILED");
     }
   }
@@ -204,6 +232,8 @@ export class AuthService {
     const email = emailInput.trim().toLowerCase();
     const user = await User.findOne({ email });
     if (!user || user.isSuspended) return;
+    if (!user.isEmailVerified) throw new AppError("Please verify your email address before requesting a sign-in code.", 403, "EMAIL_NOT_VERIFIED");
+    await enforceResendCooldown("email", email);
     await OtpChallenge.deleteMany({ email });
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
     const codeHash = createHash("sha256").update(code).digest("hex");
@@ -212,6 +242,7 @@ export class AuthService {
       await sendLoginOtpEmail(email, user.displayName, code);
     } catch {
       await OtpChallenge.deleteMany({ email, codeHash });
+      await releaseResendCooldown("email", email);
       throw new AppError("Unable to send email OTP right now. Please try again later.", 503, "EMAIL_DELIVERY_FAILED");
     }
   }
@@ -231,12 +262,7 @@ export class AuthService {
     await OtpChallenge.deleteMany({ email });
     const user = await User.findOne({ email });
     if (!user || user.isSuspended) throw new AppError("Unable to sign in with these details.", 401, "INVALID_CREDENTIALS");
-    if (!user.isEmailVerified) {
-      user.isEmailVerified = true;
-      user.verificationToken = undefined;
-      user.verificationTokenExpiresAt = undefined;
-      await user.save();
-    }
+    if (!user.isEmailVerified) throw new AppError("Please verify your email address before signing in.", 403, "EMAIL_NOT_VERIFIED");
     return this.createSession(user);
   }
 
@@ -323,6 +349,7 @@ export class AuthService {
     if (!user || user.isSuspended) {
       throw new AppError("User account not accessible", 401, "UNAUTHORIZED");
     }
+    if (!user.isEmailVerified) throw new AppError("Please verify your email address before signing in.", 403, "EMAIL_NOT_VERIFIED");
     if (user.passwordChangedAt && (!payload.iat || payload.iat < user.passwordChangedAt.getTime() / 1000)) {
       throw new AppError("Password changed; please sign in again", 401, "SESSION_REVOKED");
     }
