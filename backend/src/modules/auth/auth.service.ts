@@ -70,10 +70,14 @@ export class AuthService {
 
     try {
       await sendVerificationEmail(user.email, user.displayName, verificationToken);
-    } catch {
-      await user.deleteOne();
+    } catch (error) {
+      // Keep the unverified account so a failed provider request does not force
+      // the user to repeat registration. They can use the resend endpoint.
+      console.error("[auth] Registration verification email failed.", {
+        reason: error instanceof Error ? error.message.slice(0, 160) : "unknown",
+      });
       throw new AppError(
-        "We could not send the verification email. Please try again later.",
+        "Your account was saved, but the verification email could not be sent. Use the resend option to try again.",
         503,
         "EMAIL_DELIVERY_FAILED",
       );
@@ -173,6 +177,27 @@ export class AuthService {
     if (!user) throw new AppError("Unable to sign in with this number. Create an account first.", 404, "ACCOUNT_NOT_FOUND");
     if (user.isSuspended) throw new AppError("This account has been suspended.", 403, "ACCOUNT_SUSPENDED");
     return this.createSession(user);
+  }
+
+  async resendVerificationEmail(emailInput: string): Promise<void> {
+    const email = emailInput.trim().toLowerCase();
+    const user = await User.findOne({ email });
+    // Do not reveal whether an address is registered or already verified.
+    if (!user || user.isEmailVerified || user.isSuspended) return;
+
+    const verificationToken = generateSecureToken();
+    user.verificationToken = verificationToken;
+    user.verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await user.save();
+
+    try {
+      await sendVerificationEmail(user.email, user.displayName, verificationToken);
+    } catch (error) {
+      console.error("[auth] Verification email resend failed.", {
+        reason: error instanceof Error ? error.message.slice(0, 160) : "unknown",
+      });
+      throw new AppError("The verification email provider is unavailable. Please try again later.", 503, "EMAIL_DELIVERY_FAILED");
+    }
   }
 
   async requestEmailOtp(emailInput: string): Promise<void> {
