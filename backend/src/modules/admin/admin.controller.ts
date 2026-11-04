@@ -80,8 +80,11 @@ export class AdminController {
     try {
       const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+      const action = req.query.action as string | undefined;
+      const from = req.query.from as string | undefined;
+      const to = req.query.to as string | undefined;
 
-      const result = await adminService.listAuditLogs(page, limit);
+      const result = await adminService.listAuditLogs(page, limit, action, from, to);
       sendSuccess(res, result.logs, result.meta);
     } catch (error) {
       next(error);
