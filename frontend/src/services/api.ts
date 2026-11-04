@@ -411,7 +411,13 @@ export const api = {
         method: "PATCH",
         body: JSON.stringify(input),
       }),
-    auditLogs: (page = 1) => fetchApi<any[]>(`/admin/audit-logs?page=${page}`),
+    auditLogs: (page = 1, action?: string, from?: string, to?: string) => {
+      const params = new URLSearchParams({ page: String(page) });
+      if (action) params.set("action", action);
+      if (from) params.set("from", from);
+      if (to) params.set("to", to);
+      return fetchApi<any[]>(`/admin/audit-logs?${params.toString()}`);
+    },
     bootstrap: (secretKey: string, email: string, password: string, displayName: string) =>
       fetchApi<{ message: string; adminId: string }>("/admin/bootstrap", {
         method: "POST",
