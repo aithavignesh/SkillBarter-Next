@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
 import { PlatformStatsDto, ReportDto } from "@skillbarter/shared";
@@ -18,12 +18,19 @@ import {
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<PlatformStatsDto | null>(null);
   const [usersList, setUsersList] = useState<any[]>([]);
   const [reports, setReports] = useState<ReportDto[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [tab, setTab] = useState<"users" | "reports" | "audit">("users");
+
+  useEffect(() => {
+    const section = searchParams.get("section");
+    if (section === "reports" || section === "audit" || section === "users") setTab(section);
+    else setTab("users");
+  }, [searchParams]);
   const [loading, setLoading] = useState(true);
 
   const fetchAdminData = async () => {
@@ -147,35 +154,12 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Admin Tabs */}
+      {/* Main website navigation controls the active admin section. */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex border-b border-slate-200 bg-slate-50/50 px-6 pt-3 gap-4 text-xs font-bold">
-          <button
-            onClick={() => setTab("users")}
-            className={`pb-3 border-b-2 transition-all ${
-              tab === "users" ? "border-[#d31d24] text-[#d31d24]" : "border-transparent text-slate-500"
-            }`}
-          >
-            User Management ({usersList.length})
-          </button>
-          <button
-            onClick={() => setTab("reports")}
-            className={`pb-3 border-b-2 transition-all ${
-              tab === "reports" ? "border-[#d31d24] text-[#d31d24]" : "border-transparent text-slate-500"
-            }`}
-          >
-            Safety Reports ({reports.length})
-          </button>
-          <button
-            onClick={() => setTab("audit")}
-            className={`pb-3 border-b-2 transition-all ${
-              tab === "audit" ? "border-[#d31d24] text-[#d31d24]" : "border-transparent text-slate-500"
-            }`}
-          >
-            Audit Trail ({auditLogs.length})
-          </button>
+        <div className="border-b border-slate-200 px-6 py-4">
+          <h2 className="text-lg font-bold text-slate-900">{tab === "users" ? "People" : tab === "reports" ? "Safety Reports" : "Audit Trail"}</h2>
+          <p className="mt-1 text-xs text-slate-500">{tab === "users" ? "Manage platform members and their access." : tab === "reports" ? "Review and resolve community safety reports." : "Review administrative activity across the platform."}</p>
         </div>
-
         <div className="p-6">
           {/* TAB 1: USERS */}
           {tab === "users" && (
