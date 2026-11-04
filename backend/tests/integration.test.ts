@@ -30,34 +30,10 @@ describe("SkillBarter Two-User Complete Exchange Lifecycle", () => {
     expect(resA.body.data.user.email).toBe("alice@example.com");
     userAId = resA.body.data.user.id;
 
-    // Unverified users must not be able to establish a session.
-    const unverifiedLoginA = await request(app)
-      .post("/api/v1/auth/login")
-      .send({ email: "alice@example.com", password: "Password123!" });
-    expect(unverifiedLoginA.status).toBe(403);
-    expect(unverifiedLoginA.body.error.code).toBe("EMAIL_NOT_VERIFIED");
-
-    // A GET link visit must not consume the token (email scanners may prefetch it).
-    const prefetchedLinkA = await request(app)
-      .get(`/api/v1/auth/verify-email/link?token=${encodeURIComponent(resA.body.data.verificationToken)}`);
-    expect(prefetchedLinkA.status).toBe(303);
-    expect(prefetchedLinkA.headers.location).toContain("/verify-email?token=");
-    const stillUnverifiedA = await request(app)
-      .post("/api/v1/auth/login")
-      .send({ email: "alice@example.com", password: "Password123!" });
-    expect(stillUnverifiedA.status).toBe(403);
-
-    // Verify email for User A, then authenticate.
-    const verifyResA = await request(app)
-      .post("/api/v1/auth/verify-email")
-      .send({ token: resA.body.data.verificationToken });
-    expect(verifyResA.status).toBe(200);
-    expect(verifyResA.body.data.user.isEmailVerified).toBe(true);
-    const loginA = await request(app)
-      .post("/api/v1/auth/login")
-      .send({ email: "alice@example.com", password: "Password123!" });
-    expect(loginA.status).toBe(200);
-    userAToken = loginA.body.data.accessToken;
+    // Registration creates an active account and authenticated session immediately.
+    expect(resA.body.data.user.isEmailVerified).toBe(true);
+    expect(resA.body.data.accessToken).toBeDefined();
+    userAToken = resA.body.data.accessToken;
 
     // User B
     const resB = await request(app)
@@ -72,16 +48,10 @@ describe("SkillBarter Two-User Complete Exchange Lifecycle", () => {
     expect(resB.status).toBe(201);
     userBId = resB.body.data.user.id;
 
-    // Verify email for User B, then authenticate.
-    const verifyResB = await request(app)
-      .post("/api/v1/auth/verify-email")
-      .send({ token: resB.body.data.verificationToken });
-    expect(verifyResB.status).toBe(200);
-    const loginB = await request(app)
-      .post("/api/v1/auth/login")
-      .send({ email: "bob@example.com", password: "Password123!" });
-    expect(loginB.status).toBe(200);
-    userBToken = loginB.body.data.accessToken;
+    // User B also receives an authenticated session without email verification.
+    expect(resB.body.data.user.isEmailVerified).toBe(true);
+    expect(resB.body.data.accessToken).toBeDefined();
+    userBToken = resB.body.data.accessToken;
   });
 
   it("2. Validates login and rejected invalid credentials", async () => {
