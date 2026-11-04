@@ -23,7 +23,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 export interface TokenPayload {
   userId: string;
   email: string;
-  role: "user" | "admin";
+  role: "user" | "admin" | "owner";
   iat?: number;
 }
 
