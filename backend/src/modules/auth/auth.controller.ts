@@ -72,7 +72,7 @@ export class AuthController {
   async resendVerificationEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         throw new AppError("Enter a valid email address", 400, "INVALID_EMAIL");
       }
       await authService.resendVerificationEmail(email);
