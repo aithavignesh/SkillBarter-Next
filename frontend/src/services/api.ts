@@ -42,6 +42,9 @@ const API_BASE_URL =
         (process.env.NEXT_PUBLIC_API_URL?.startsWith("http") ? process.env.NEXT_PUBLIC_API_URL : undefined) ||
         "http://localhost:4000/api/v1";
 
+type AdminPaginationMeta = { page: number; limit: number; total: number; totalPages: number };
+type AdminPage<T> = { items: T; meta: AdminPaginationMeta };
+
 class ApiError extends Error {
   code: string;
   details?: unknown;
@@ -94,6 +97,7 @@ async function fetchApi<T>(
   endpoint: string,
   options: RequestInit = {},
   retryAfterRefresh = true,
+  includeMeta = false,
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 
@@ -134,7 +138,7 @@ async function fetchApi<T>(
   ].includes(authEndpoint);
 
   if (res.status === 401 && retryAfterRefresh && shouldRefresh && await refreshAccessToken()) {
-    return fetchApi<T>(endpoint, options, false);
+    return fetchApi<T>(endpoint, options, false, includeMeta);
   }
 
   const data: ApiResponse<T> = await res.json().catch(() => ({
@@ -150,7 +154,7 @@ async function fetchApi<T>(
     throw new ApiError(error.message, error.code, error.details);
   }
 
-  return data.data as T;
+  return (includeMeta ? { items: data.data, meta: data.meta } : data.data) as T;
 }
 export const api = {
   // Auth
@@ -394,7 +398,7 @@ export const api = {
       const params = new URLSearchParams({ page: String(page) });
       if (search) params.set("search", search);
       if (role) params.set("role", role);
-      return fetchApi<any[]>(`/admin/users?${params.toString()}`);
+      return fetchApi<AdminPage<any[]>>(`/admin/users?${params.toString()}`, {}, true, true);
     },
     updateUser: (id: string, input: AdminUpdateUserInput) =>
       fetchApi<{ user: any }>(`/admin/users/${id}`, {
@@ -404,7 +408,7 @@ export const api = {
     reports: (page = 1, status?: string) => {
       const params = new URLSearchParams({ page: String(page) });
       if (status) params.set("status", status);
-      return fetchApi<ReportDto[]>(`/admin/reports?${params.toString()}`);
+      return fetchApi<AdminPage<ReportDto[]>>(`/admin/reports?${params.toString()}`, {}, true, true);
     },
     handleReport: (id: string, input: AdminReportActionInput) =>
       fetchApi<{ report: ReportDto }>(`/admin/reports/${id}`, {
@@ -416,7 +420,7 @@ export const api = {
       if (action) params.set("action", action);
       if (from) params.set("from", from);
       if (to) params.set("to", to);
-      return fetchApi<any[]>(`/admin/audit-logs?${params.toString()}`);
+      return fetchApi<AdminPage<any[]>>(`/admin/audit-logs?${params.toString()}`, {}, true, true);
     },
     bootstrap: (secretKey: string, email: string, password: string, displayName: string) =>
       fetchApi<{ message: string; adminId: string }>("/admin/bootstrap", {
