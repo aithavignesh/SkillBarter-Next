@@ -58,7 +58,7 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     if (!authLoading) {
-      if (!user || user.role !== "admin") {
+      if (!user || user.role !== "admin" && user.role !== "owner") {
         router.push("/dashboard");
         return;
       }
@@ -203,7 +203,7 @@ export default function AdminDashboardPage() {
                     <tr key={u.id} className="hover:bg-slate-50/60">
                       <td className="py-3 font-bold text-slate-900">{u.displayName}</td>
                       <td className="py-3 text-slate-600">{u.email}</td>
-                      <td className="py-3 uppercase text-[10px] font-bold text-red-700">{u.role}</td>
+                      <td className="py-3 uppercase text-[10px] font-bold text-red-700">{u.role === "owner" ? "Platform Owner" : u.role}</td>
                       <td className="py-3">
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${u.isEmailVerified ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
                           {u.isEmailVerified ? "Verified" : "Unverified"}
@@ -223,7 +223,7 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="py-3 text-right">
                         <div className="inline-flex flex-wrap justify-end gap-2">
-                          {u.id !== user?.id && (
+                          {u.id !== user?.id && (\n                            <>
                             <>
                               <button
                                 type="button"
