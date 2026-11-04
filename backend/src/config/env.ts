@@ -12,6 +12,7 @@ const envBaseSchema = z.object({
   ACCESS_TOKEN_TTL: z.string().default("15m"),
   REFRESH_TOKEN_TTL: z.string().default("7d"),
   ADMIN_BOOTSTRAP_SECRET: z.string().min(32).optional(),
+  PLATFORM_OWNER_EMAIL: z.string().email().transform((value) => value.toLowerCase().trim()).optional(),
   RESEND_API_KEY: z.string().optional(),
   TWOFACTOR_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().min(1).optional(),
