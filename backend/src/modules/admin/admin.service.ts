@@ -242,17 +242,41 @@ export class AdminService {
     return report;
   }
 
-  async listAuditLogs(page = 1, limit = 50) {
+  async listAuditLogs(page = 1, limit = 50, action?: string, from?: string, to?: string) {
     const normalizedPage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
     const normalizedLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 50;
     const skip = (normalizedPage - 1) * normalizedLimit;
+    const filter: Record<string, unknown> = {};
+
+    if (action?.trim()) {
+      filter.action = action.trim();
+    }
+    if (from || to) {
+      const timestamp: Record<string, Date> = {};
+      if (from) {
+        const fromDate = new Date(from);
+        if (Number.isNaN(fromDate.getTime())) throw new AppError("Invalid audit start date", 400, "INVALID_DATE");
+        timestamp.$gte = fromDate;
+      }
+      if (to) {
+        const toDate = new Date(to);
+        if (Number.isNaN(toDate.getTime())) throw new AppError("Invalid audit end date", 400, "INVALID_DATE");
+        toDate.setUTCHours(23, 59, 59, 999);
+        timestamp.$lte = toDate;
+      }
+      if (from && to && new Date(from) > new Date(to)) {
+        throw new AppError("Start date must be on or before end date", 400, "INVALID_DATE_RANGE");
+      }
+      filter.timestamp = timestamp;
+    }
+
     const [logs, total] = await Promise.all([
-      AuditLog.find()
+      AuditLog.find(filter)
         .populate("actorId", "displayName email")
         .sort({ timestamp: -1 })
         .skip(skip)
         .limit(normalizedLimit),
-      AuditLog.countDocuments(),
+      AuditLog.countDocuments(filter),
     ]);
 
     return {
