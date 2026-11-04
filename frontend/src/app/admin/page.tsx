@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
@@ -196,7 +197,7 @@ function AdminDashboardContent() {
                     <h3 className="text-sm font-bold text-slate-900">Pending moderation</h3>
                     <p className="text-xs text-slate-500">Reports that still need review.</p>
                   </div>
-                  <a href="/admin?section=reports" className="text-xs font-semibold text-red-700 hover:text-red-800">View all reports</a>
+                  <Link href="/admin?section=reports" className="text-xs font-semibold text-red-700 hover:text-red-800">View all reports</Link>
                 </div>
                 {reports.filter((report) => report.status === "PENDING").length === 0 ? (
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">No pending reports in the latest results.</div>
@@ -219,7 +220,7 @@ function AdminDashboardContent() {
                     <h3 className="text-sm font-bold text-slate-900">Recent admin activity</h3>
                     <p className="text-xs text-slate-500">Latest recorded governance actions.</p>
                   </div>
-                  <a href="/admin?section=audit" className="text-xs font-semibold text-red-700 hover:text-red-800">Open audit trail</a>
+                  <Link href="/admin?section=audit" className="text-xs font-semibold text-red-700 hover:text-red-800">Open audit trail</Link>
                 </div>
                 {auditLogs.length === 0 ? (
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">No administrative activity has been recorded yet.</div>
