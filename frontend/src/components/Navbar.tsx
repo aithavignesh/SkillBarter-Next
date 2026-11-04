@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
@@ -24,16 +24,13 @@ import {
 export function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
-  const [activeAdminSection, setActiveAdminSection] = useState("overview");
+  const searchParams = useSearchParams();
+  const activeAdminSection = pathname === "/admin" ? searchParams.get("section") || "overview" : "";
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMobileMenuOpen(false);
-    if (pathname === "/admin" && typeof window !== "undefined") {
-      const section = new URLSearchParams(window.location.search).get("section");
-      setActiveAdminSection(section || "overview");
-    }
   }, [pathname]);
 
   useEffect(() => {
@@ -118,7 +115,7 @@ export function Navbar() {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  onClick={() => { const section = new URLSearchParams(item.href.split("?")[1] || "").get("section"); if (section) setActiveAdminSection(section); }}
+                  
                   className={navLinkClass(active)}
                 >
                   <Icon aria-hidden="true" className="h-4 w-4" />
@@ -224,7 +221,7 @@ export function Navbar() {
               key={item.href}
               href={item.href}
               aria-current={isActive(item.href) ? "page" : undefined}
-              onClick={() => { const section = new URLSearchParams(item.href.split("?")[1] || "").get("section"); if (section) setActiveAdminSection(section); setMobileMenuOpen(false); }}
+              onClick={() => setMobileMenuOpen(false)}
               className={`block rounded-lg px-3 py-2 text-base font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 ${
                 isActive(item.href)
                   ? "bg-red-50 text-[#b71920]"
