@@ -225,7 +225,7 @@ export default function AdminDashboardPage() {
                         <div className="inline-flex flex-wrap justify-end gap-2">
                           {u.id !== user?.id && (\n                            <>
                             <>
-                              <button
+                              {user?.role === "owner" && <button
                                 type="button"
                                 onClick={async () => {
                                   const nextRole = u.role === "admin" ? "user" : "admin";
@@ -247,7 +247,7 @@ export default function AdminDashboardPage() {
                                 }`}
                               >
                                 {u.role === "admin" ? "Remove Admin" : "Make Admin"}
-                              </button>
+                              </button>}
                               <button
                                 type="button"
                                 onClick={() => handleToggleSuspend(u)}
