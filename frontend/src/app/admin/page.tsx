@@ -28,16 +28,27 @@ export default function AdminDashboardPage() {
 
   const fetchAdminData = async () => {
     try {
-      const [statsRes, usersRes, reportsRes, auditRes] = await Promise.all([
+      // Load each admin section independently so one failed endpoint does not
+      // leave every dashboard table empty.
+      const results = await Promise.allSettled([
         api.admin.stats(),
         api.admin.users(1),
         api.admin.reports(1),
         api.admin.auditLogs(1),
       ]);
-      setStats(statsRes.stats);
-      setUsersList(usersRes);
-      setReports(reportsRes);
-      setAuditLogs(auditRes);
+      const [statsResult, usersResult, reportsResult, auditResult] = results;
+
+      if (statsResult.status === "fulfilled") setStats(statsResult.value.stats);
+      else console.error("Admin stats could not be loaded:", statsResult.reason);
+
+      if (usersResult.status === "fulfilled") setUsersList(usersResult.value);
+      else console.error("Admin users could not be loaded:", usersResult.reason);
+
+      if (reportsResult.status === "fulfilled") setReports(reportsResult.value);
+      else console.error("Admin reports could not be loaded:", reportsResult.reason);
+
+      if (auditResult.status === "fulfilled") setAuditLogs(auditResult.value);
+      else console.error("Admin audit logs could not be loaded:", auditResult.reason);
     } catch (err) {
       console.error("Admin fetch error:", err);
     } finally {
@@ -175,14 +186,20 @@ export default function AdminDashboardPage() {
                     <th className="pb-3">User</th>
                     <th className="pb-3">Email</th>
                     <th className="pb-3">Role</th>
-                    <th className="pb-3">Email</th>
+                    <th className="pb-3">Email Status</th>
                     <th className="pb-3">Exchanges</th>
                     <th className="pb-3">Status</th>
                     <th className="pb-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {usersList.map((u) => (
+                  {usersList.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-10 text-center text-sm text-slate-500">
+                        No users returned by the admin API. Check the admin API request and database connection.
+                      </td>
+                    </tr>
+                  ) : usersList.map((u) => (
                     <tr key={u.id} className="hover:bg-slate-50/60">
                       <td className="py-3 font-bold text-slate-900">{u.displayName}</td>
                       <td className="py-3 text-slate-600">{u.email}</td>
