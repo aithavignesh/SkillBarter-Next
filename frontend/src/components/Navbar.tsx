@@ -12,7 +12,6 @@ import {
   MessageSquare,
   Users,
   Bell,
-  ShieldCheck,
   AlertTriangle,
   History,
   LogOut,
