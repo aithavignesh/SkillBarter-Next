@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
+import { api } from "../../services/api";
 import { UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function RegisterPage() {
@@ -14,6 +15,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [verificationToken, setVerificationToken] = useState<string | null>(null);
   const [emailSent, setEmailSent] = useState(false);
+  const [emailDeliveryFailed, setEmailDeliveryFailed] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,6 +32,21 @@ export default function RegisterPage() {
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to register");
+      setEmailDeliveryFailed(Boolean(err && typeof err === "object" && "code" in err && err.code === "EMAIL_DELIVERY_FAILED"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await api.auth.resendVerification(email);
+      setEmailSent(true);
+      setEmailDeliveryFailed(false);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Could not resend verification email");
     } finally {
       setLoading(false);
     }
@@ -57,6 +74,23 @@ export default function RegisterPage() {
           <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-4 text-sm text-rose-700 border border-rose-200">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <p>{error}</p>
+          </div>
+        )}
+
+        {emailDeliveryFailed && (
+          <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm text-amber-900">
+              Your account details were saved, but the verification email could not be delivered.
+              You can retry sending the link without creating another account.
+            </p>
+            <button
+              type="button"
+              onClick={handleResendVerification}
+              disabled={loading || !email}
+              className="w-full rounded-xl border border-amber-300 bg-white py-2.5 text-sm font-semibold text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+            >
+              {loading ? "Sending..." : "Resend verification email"}
+            </button>
           </div>
         )}
 

@@ -25,14 +25,11 @@ export function isEmailConfigured(): boolean {
 }
 
 async function sendEmail(payload: EmailPayload): Promise<boolean> {
-  // EMAIL_DISABLED is intentionally limited to non-production environments.
-  // Production env validation rejects this flag, so account verification cannot silently stop.
-  if (env.EMAIL_DISABLED === "true" && env.NODE_ENV !== "production") {
-    return false;
-  }
+  if (env.EMAIL_DISABLED === "true" && env.NODE_ENV !== "production") return false;
 
   if (!isEmailConfigured()) {
     if (env.NODE_ENV === "production") {
+      console.error("[email] Transactional email is not configured (RESEND_API_KEY or EMAIL_FROM missing).");
       throw new Error("Transactional email is not configured");
     }
     return false;
@@ -55,21 +52,27 @@ async function sendEmail(payload: EmailPayload): Promise<boolean> {
   });
 
   if (!response.ok) {
-    // Do not log the response body: provider responses may contain recipient data.
-    throw new Error(`Transactional email provider returned HTTP ${response.status}`);
+    // Log only provider status and a stable error name. Never log recipient,
+    // request body, API key, or the provider's free-form message.
+    const providerError = await response.json().catch(() => null) as
+      | { name?: unknown; statusCode?: unknown }
+      | null;
+    const errorName = typeof providerError?.name === "string"
+      ? providerError.name.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 48)
+      : "unknown";
+    console.error("[email] Resend rejected an email request.", {
+      httpStatus: response.status,
+      providerError: errorName,
+    });
+    throw new Error(`Transactional email provider rejected the request (HTTP ${response.status}, ${errorName})`);
   }
 
   return true;
 }
 
-export async function sendVerificationEmail(
-  email: string,
-  displayName: string,
-  token: string,
-): Promise<boolean> {
+export async function sendVerificationEmail(email: string, displayName: string, token: string): Promise<boolean> {
   const link = `${env.FRONTEND_URL.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}`;
   const safeName = escapeHtml(displayName);
-
   return sendEmail({
     to: email,
     subject: "Verify your SkillBarter email",
@@ -78,14 +81,9 @@ export async function sendVerificationEmail(
   });
 }
 
-export async function sendPasswordResetEmail(
-  email: string,
-  displayName: string,
-  token: string,
-): Promise<boolean> {
+export async function sendPasswordResetEmail(email: string, displayName: string, token: string): Promise<boolean> {
   const link = `${env.FRONTEND_URL.replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
   const safeName = escapeHtml(displayName);
-
   return sendEmail({
     to: email,
     subject: "Reset your SkillBarter password",
