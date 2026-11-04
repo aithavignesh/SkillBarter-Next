@@ -173,16 +173,25 @@ export class AuthService {
     if (!phone.startsWith("+91")) throw new AppError("SMS OTP currently supports Indian mobile numbers (+91). Use email OTP for other countries.", 400, "PHONE_COUNTRY_UNSUPPORTED");
     if (!env.TWOFACTOR_API_KEY) throw new AppError("SMS OTP is not configured on the server. Please use email OTP or email and password.", 503, "SMS_NOT_CONFIGURED");
     await enforceResendCooldown("phone", phone);
-    const url = "https://2factor.in/API/V1/" + encodeURIComponent(env.TWOFACTOR_API_KEY) + "/SMS/" + encodeURIComponent(phone.slice(3)) + "/AUTOGEN";
-    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    const data = await response.json().catch(() => null) as { Status?: string; Details?: string } | null;
-    if (!response.ok || data?.Status !== "Success" || !data.Details) {
+    try {
+      const url = "https://2factor.in/API/V1/" + encodeURIComponent(env.TWOFACTOR_API_KEY) + "/SMS/" + encodeURIComponent(phone.slice(3)) + "/AUTOGEN";
+      const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      const data = await response.json().catch(() => null) as { Status?: string; Details?: string } | null;
+      if (!response.ok || data?.Status !== "Success" || !data.Details) {
+        throw new AppError("The SMS provider could not send an OTP. Please try again later.", 502, "SMS_DELIVERY_FAILED");
+      }
+      const challengeId = generateSecureToken();
+      await OtpChallenge.create({ phone, challengeId, providerChallengeId: data.Details, expiresAt: new Date(Date.now() + 5 * 60 * 1000), attempts: 0 });
+      return { challengeId, phone };
+    } catch (error) {
+      // Do not strand the user behind a cooldown if the provider or persistence fails.
       await releaseResendCooldown("phone", phone);
+      if (error instanceof AppError) throw error;
+      console.error("[auth] SMS OTP request failed.", {
+        reason: error instanceof Error ? error.message.slice(0, 160) : "unknown",
+      });
       throw new AppError("The SMS provider could not send an OTP. Please try again later.", 502, "SMS_DELIVERY_FAILED");
     }
-    const challengeId = generateSecureToken();
-    await OtpChallenge.create({ phone, challengeId, providerChallengeId: data.Details, expiresAt: new Date(Date.now() + 5 * 60 * 1000), attempts: 0 });
-    return { challengeId, phone };
   }
 
   async verifyPhoneOtp(phoneInput: string, otpInput: string, challengeId: string): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
