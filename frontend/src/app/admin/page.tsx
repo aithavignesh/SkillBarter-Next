@@ -1,22 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
 import { PlatformStatsDto, ReportDto } from "@skillbarter/shared";
-import {
-  ShieldCheck,
-  Users,
-  ArrowLeftRight,
-  BookOpen,
-  AlertTriangle,
-  History,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
-export default function AdminDashboardPage() {
+function AdminDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
@@ -331,5 +322,14 @@ export default function AdminDashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+
+export default function AdminDashboardPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-sm text-slate-500">Loading admin section...</div>}>
+      <AdminDashboardContent />
+    </Suspense>
   );
 }
