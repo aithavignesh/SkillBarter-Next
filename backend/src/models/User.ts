@@ -6,7 +6,7 @@ export interface IUser extends Document {
   passwordHash: string;
   passwordChangedAt?: Date;
   displayName: string;
-  role: "user" | "admin";
+  role: "user" | "admin" | "owner";
   isEmailVerified: boolean;
   verificationToken?: string;
   verificationTokenExpiresAt?: Date;
@@ -34,7 +34,7 @@ const userSchema = new Schema<IUser>(
     passwordHash: { type: String, required: true },
     passwordChangedAt: { type: Date },
     displayName: { type: String, required: true, trim: true },
-    role: { type: String, enum: ["user", "admin"], default: "user", index: true },
+    role: { type: String, enum: ["user", "admin", "owner"], default: "user", index: true },
     isEmailVerified: { type: Boolean, default: false },
     verificationToken: { type: String },
     verificationTokenExpiresAt: { type: Date },

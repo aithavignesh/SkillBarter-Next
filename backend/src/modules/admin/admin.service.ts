@@ -106,6 +106,10 @@ export class AdminService {
 
     const changes: Record<string, unknown> = {};
 
+    if ((targetUser.role as string) === "owner" && input.role !== undefined) {
+      throw new AppError("The platform owner role cannot be changed through user management", 403, "OWNER_PROTECTED");
+    }
+
     if (input.role !== undefined && input.role !== targetUser.role) {
       if (adminId === targetUser._id.toString()) {
         throw new AppError("You cannot change your own administrator role", 400, "SELF_ROLE_CHANGE");

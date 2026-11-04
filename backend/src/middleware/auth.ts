@@ -81,7 +81,7 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
 export function requireRole(role: "admin" | "user") {
   return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.user) return next(new AppError("Authentication required", 401, "UNAUTHORIZED"));
-    if (role === "admin" && req.user.role !== "admin") {
+    if (role === "admin" && req.user.role !== "admin" && req.user.role !== "owner") {
       return next(new AppError("Administrative privileges required", 403, "FORBIDDEN"));
     }
     next();

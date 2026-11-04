@@ -116,6 +116,12 @@ export class AuthService {
       );
     }
 
+    // Promote only the explicitly configured, password-authenticated owner account.
+    if (env.PLATFORM_OWNER_EMAIL && user.email.toLowerCase() === env.PLATFORM_OWNER_EMAIL && user.isEmailVerified && user.role !== "owner") {
+      user.role = "owner";
+      await user.save();
+    }
+
     const tokenPayload = {
       userId: user._id.toString(),
       email: user.email,
