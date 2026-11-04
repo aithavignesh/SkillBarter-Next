@@ -19,6 +19,9 @@ function AdminDashboardContent() {
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [reportStatusFilter, setReportStatusFilter] = useState("all");
+  const [auditActionFilter, setAuditActionFilter] = useState("all");
+  const [auditFromDate, setAuditFromDate] = useState("");
+  const [auditToDate, setAuditToDate] = useState("");
 
   useEffect(() => {
     const section = searchParams.get("section");
@@ -35,7 +38,7 @@ function AdminDashboardContent() {
         api.admin.stats(),
         api.admin.users(1, userSearch.trim() || undefined, userRoleFilter),
         api.admin.reports(1, reportStatusFilter),
-        api.admin.auditLogs(1),
+        api.admin.auditLogs(1, auditActionFilter === "all" ? undefined : auditActionFilter, auditFromDate || undefined, auditToDate || undefined),
       ]);
       const [statsResult, usersResult, reportsResult, auditResult] = results;
 
@@ -333,7 +336,37 @@ function AdminDashboardContent() {
 
           {/* TAB 3: AUDIT TRAIL */}
           {tab === "audit" && (
-            <div className="overflow-x-auto">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+                <select
+                  aria-label="Filter audit actions"
+                  value={auditActionFilter}
+                  onChange={(event) => setAuditActionFilter(event.target.value)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                >
+                  <option value="all">All actions</option>
+                  <option value="ADMIN_UPDATE_USER">User account updates</option>
+                  <option value="ADMIN_RESOLVE_REPORT">Report moderation</option>
+                </select>
+                <input
+                  aria-label="Audit start date"
+                  type="date"
+                  value={auditFromDate}
+                  max={auditToDate || undefined}
+                  onChange={(event) => setAuditFromDate(event.target.value)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                />
+                <input
+                  aria-label="Audit end date"
+                  type="date"
+                  value={auditToDate}
+                  min={auditFromDate || undefined}
+                  onChange={(event) => setAuditToDate(event.target.value)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                />
+                <button type="button" onClick={fetchAdminData} className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Apply filters</button>
+              </div>
+              <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-400 uppercase tracking-wider">
@@ -358,6 +391,7 @@ function AdminDashboardContent() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </div>
