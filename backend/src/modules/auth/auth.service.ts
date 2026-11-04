@@ -46,7 +46,11 @@ const AUTH_RESEND_COOLDOWN_MS = 60_000;
 async function enforceResendCooldown(channel: "email" | "phone", destination: string): Promise<void> {
   const key = createHash("sha256").update(channel + ":" + destination.trim().toLowerCase()).digest("hex");
   try {
-    await AuthCooldown.create({ key, expiresAt: new Date(Date.now() + AUTH_RESEND_COOLDOWN_MS) });
+    await AuthCooldown.updateOne(
+      { key, expiresAt: { $lte: new Date() } },
+      { $set: { expiresAt: new Date(Date.now() + AUTH_RESEND_COOLDOWN_MS) }, $setOnInsert: { key } },
+      { upsert: true },
+    );
   } catch (error) {
     if (error && typeof error === "object" && "code" in error && error.code === 11000) {
       throw new AppError("Please wait 60 seconds before requesting another code or email.", 429, "RESEND_COOLDOWN");
