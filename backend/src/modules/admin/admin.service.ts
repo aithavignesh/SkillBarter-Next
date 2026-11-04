@@ -106,7 +106,7 @@ export class AdminService {
 
     const changes: Record<string, unknown> = {};
 
-    if (targetUser.role === "owner" && input.role !== undefined && input.role !== "owner") {
+    if ((targetUser.role as string) === "owner" && input.role !== undefined) {
       throw new AppError("The platform owner role cannot be changed through user management", 403, "OWNER_PROTECTED");
     }
 
