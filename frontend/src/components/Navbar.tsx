@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
@@ -24,14 +24,26 @@ import {
 export function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const activeAdminSection = pathname === "/admin" ? searchParams.get("section") || "overview" : "";
+  const [activeAdminSection, setActiveAdminSection] = useState("overview");
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMobileMenuOpen(false);
+    if (pathname === "/admin") {
+      setActiveAdminSection(new URLSearchParams(window.location.search).get("section") || "overview");
+    }
   }, [pathname]);
+
+  useEffect(() => {
+    const syncAdminSection = () => {
+      if (window.location.pathname === "/admin") {
+        setActiveAdminSection(new URLSearchParams(window.location.search).get("section") || "overview");
+      }
+    };
+    window.addEventListener("popstate", syncAdminSection);
+    return () => window.removeEventListener("popstate", syncAdminSection);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -221,7 +233,7 @@ export function Navbar() {
               key={item.href}
               href={item.href}
               aria-current={isActive(item.href) ? "page" : undefined}
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={() => { const section = new URLSearchParams(item.href.split("?")[1] || "").get("section"); if (section) setActiveAdminSection(section); setMobileMenuOpen(false); }}
               className={`block rounded-lg px-3 py-2 text-base font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 ${
                 isActive(item.href)
                   ? "bg-red-50 text-[#b71920]"
