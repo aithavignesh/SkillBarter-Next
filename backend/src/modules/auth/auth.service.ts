@@ -65,7 +65,7 @@ async function releaseResendCooldown(channel: "email" | "phone", destination: st
 }
 
 export class AuthService {
-  async register(input: RegisterInput): Promise<{ user: AuthUser; verificationToken: string }> {
+  async register(input: RegisterInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
     let normalizedPhone = input.phone.replace(/[\s()-]/g, "");
     if (/^\d{10}$/.test(normalizedPhone)) normalizedPhone = "+91" + normalizedPhone;
     else if (/^91\d{10}$/.test(normalizedPhone)) normalizedPhone = "+" + normalizedPhone;
@@ -78,34 +78,14 @@ export class AuthService {
     }
 
     const passwordHash = await hashPassword(input.password);
-    const verificationToken = generateSecureToken();
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
     const user = await User.create({
       email: input.email.toLowerCase().trim(),
       phone: normalizedPhone,
       passwordHash,
       displayName: input.displayName.trim(),
       role: "user",
-      isEmailVerified: false,
-      verificationToken,
-      verificationTokenExpiresAt: verificationExpires,
+      isEmailVerified: true,
     });
-
-    try {
-      await sendVerificationEmail(user.email, user.displayName, verificationToken);
-    } catch (error) {
-      // Keep the unverified account so a failed provider request does not force
-      // the user to repeat registration. They can use the resend endpoint.
-      console.error("[auth] Registration verification email failed.", {
-        reason: error instanceof Error ? error.message.slice(0, 160) : "unknown",
-      });
-      throw new AppError(
-        "Your account was saved, but the verification email could not be sent. Use the resend option to try again.",
-        503,
-        "EMAIL_DELIVERY_FAILED",
-      );
-    }
 
     await AnalyticsEvent.create({
       eventName: "USER_REGISTERED",
@@ -114,8 +94,7 @@ export class AuthService {
       timestamp: new Date(),
     });
 
-    // Do not issue an authenticated session until the email address is verified.
-    return { user: formatAuthUser(user), verificationToken };
+    return this.createSession(user);
   }
 
   async login(input: LoginInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
@@ -127,14 +106,6 @@ export class AuthService {
     const isValid = await verifyPassword(input.password, user.passwordHash);
     if (!isValid) {
       throw new AppError("Invalid email or password", 401, "INVALID_CREDENTIALS");
-    }
-
-    if (!user.isEmailVerified) {
-      throw new AppError(
-        "Please verify your email address before signing in.",
-        403,
-        "EMAIL_NOT_VERIFIED",
-      );
     }
 
     if (user.isSuspended) {
@@ -168,7 +139,6 @@ export class AuthService {
     if (!/^\+[1-9]\d{7,14}$/.test(phone)) throw new AppError("Enter a valid mobile number with country code", 400, "INVALID_PHONE");
     const user = await User.findOne({ phone });
     if (!user) throw new AppError("Unable to sign in with this number. Check the number or create an account.", 404, "ACCOUNT_NOT_FOUND");
-    if (!user.isEmailVerified) throw new AppError("Please verify your email address before signing in.", 403, "EMAIL_NOT_VERIFIED");
     if (user.isSuspended) throw new AppError("This account has been suspended.", 403, "ACCOUNT_SUSPENDED");
     if (!phone.startsWith("+91")) throw new AppError("SMS OTP currently supports Indian mobile numbers (+91). Use email OTP for other countries.", 400, "PHONE_COUNTRY_UNSUPPORTED");
     if (!env.TWOFACTOR_API_KEY) throw new AppError("SMS OTP is not configured on the server. Please use email OTP or email and password.", 503, "SMS_NOT_CONFIGURED");
@@ -213,7 +183,6 @@ export class AuthService {
     await OtpChallenge.deleteOne({ _id: challenge._id });
     const user = await User.findOne({ phone });
     if (!user) throw new AppError("Unable to sign in with this number. Create an account first.", 404, "ACCOUNT_NOT_FOUND");
-    if (!user.isEmailVerified) throw new AppError("Please verify your email address before signing in.", 403, "EMAIL_NOT_VERIFIED");
     if (user.isSuspended) throw new AppError("This account has been suspended.", 403, "ACCOUNT_SUSPENDED");
     return this.createSession(user);
   }
@@ -245,7 +214,6 @@ export class AuthService {
     const email = emailInput.trim().toLowerCase();
     const user = await User.findOne({ email });
     if (!user || user.isSuspended) return;
-    if (!user.isEmailVerified) throw new AppError("Please verify your email address before requesting a sign-in code.", 403, "EMAIL_NOT_VERIFIED");
     await enforceResendCooldown("email", email);
     await OtpChallenge.deleteMany({ email });
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
@@ -275,7 +243,6 @@ export class AuthService {
     await OtpChallenge.deleteMany({ email });
     const user = await User.findOne({ email });
     if (!user || user.isSuspended) throw new AppError("Unable to sign in with these details.", 401, "INVALID_CREDENTIALS");
-    if (!user.isEmailVerified) throw new AppError("Please verify your email address before signing in.", 403, "EMAIL_NOT_VERIFIED");
     return this.createSession(user);
   }
 
@@ -362,7 +329,6 @@ export class AuthService {
     if (!user || user.isSuspended) {
       throw new AppError("User account not accessible", 401, "UNAUTHORIZED");
     }
-    if (!user.isEmailVerified) throw new AppError("Please verify your email address before signing in.", 403, "EMAIL_NOT_VERIFIED");
     if (user.passwordChangedAt && (!payload.iat || payload.iat < user.passwordChangedAt.getTime() / 1000)) {
       throw new AppError("Password changed; please sign in again", 401, "SESSION_REVOKED");
     }

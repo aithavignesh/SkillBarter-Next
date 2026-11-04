@@ -43,15 +43,8 @@ export class AuthController {
       const input = registerSchema.parse(req.body);
       const result = await authService.register(input);
 
-      sendSuccess(
-        res,
-        {
-          user: result.user,
-          ...(env.NODE_ENV !== "production" ? { verificationToken: result.verificationToken } : {}),
-        },
-        undefined,
-        201
-      );
+      setAuthCookies(res, result.accessToken, result.refreshToken);
+      sendSuccess(res, { user: result.user, accessToken: result.accessToken }, undefined, 201);
     } catch (error) {
       next(error);
     }

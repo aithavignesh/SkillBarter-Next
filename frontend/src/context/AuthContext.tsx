@@ -13,7 +13,7 @@ interface AuthContextType {
   verifyPhoneOtp: (phone: string, otp: string, challengeId: string) => Promise<void>;
   requestEmailOtp: (email: string) => Promise<void>;
   verifyEmailOtp: (email: string, otp: string) => Promise<void>;
-  register: (input: RegisterInput) => Promise<string | undefined>;
+  register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
@@ -71,13 +71,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     establishOtpSession(result);
   };
 
-  const register = async (input: RegisterInput): Promise<string | undefined> => {
+  const register = async (input: RegisterInput): Promise<void> => {
     setError(null);
     try {
       const res = await api.auth.register(input);
-      if (typeof window !== "undefined") localStorage.removeItem("skillbarter_token");
-      setUser(null);
-      return res.verificationToken;
+      if (typeof window !== "undefined") localStorage.setItem("skillbarter_token", res.accessToken);
+      setUser(res.user);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Registration failed";
       setError(msg);
