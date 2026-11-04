@@ -22,6 +22,12 @@ function AdminDashboardContent() {
   const [auditActionFilter, setAuditActionFilter] = useState("all");
   const [auditFromDate, setAuditFromDate] = useState("");
   const [auditToDate, setAuditToDate] = useState("");
+  const [usersPage, setUsersPage] = useState(1);
+  const [reportsPage, setReportsPage] = useState(1);
+  const [auditPage, setAuditPage] = useState(1);
+  const [usersMeta, setUsersMeta] = useState({ page: 1, limit: 20, total: 0, totalPages: 0 });
+  const [reportsMeta, setReportsMeta] = useState({ page: 1, limit: 20, total: 0, totalPages: 0 });
+  const [auditMeta, setAuditMeta] = useState({ page: 1, limit: 50, total: 0, totalPages: 0 });
 
   useEffect(() => {
     const section = searchParams.get("section");
@@ -36,22 +42,22 @@ function AdminDashboardContent() {
       // leave every dashboard table empty.
       const results = await Promise.allSettled([
         api.admin.stats(),
-        api.admin.users(1, userSearch.trim() || undefined, userRoleFilter),
-        api.admin.reports(1, reportStatusFilter),
-        api.admin.auditLogs(1, auditActionFilter === "all" ? undefined : auditActionFilter, auditFromDate || undefined, auditToDate || undefined),
+        api.admin.users(usersPage, userSearch.trim() || undefined, userRoleFilter),
+        api.admin.reports(reportsPage, reportStatusFilter),
+        api.admin.auditLogs(auditPage, auditActionFilter === "all" ? undefined : auditActionFilter, auditFromDate || undefined, auditToDate || undefined),
       ]);
       const [statsResult, usersResult, reportsResult, auditResult] = results;
 
       if (statsResult.status === "fulfilled") setStats(statsResult.value.stats);
       else console.error("Admin stats could not be loaded:", statsResult.reason);
 
-      if (usersResult.status === "fulfilled") setUsersList(usersResult.value);
+      if (usersResult.status === "fulfilled") { setUsersList(usersResult.value.items); setUsersMeta(usersResult.value.meta); }
       else console.error("Admin users could not be loaded:", usersResult.reason);
 
-      if (reportsResult.status === "fulfilled") setReports(reportsResult.value);
+      if (reportsResult.status === "fulfilled") { setReports(reportsResult.value.items); setReportsMeta(reportsResult.value.meta); }
       else console.error("Admin reports could not be loaded:", reportsResult.reason);
 
-      if (auditResult.status === "fulfilled") setAuditLogs(auditResult.value);
+      if (auditResult.status === "fulfilled") { setAuditLogs(auditResult.value.items); setAuditMeta(auditResult.value.meta); }
       else console.error("Admin audit logs could not be loaded:", auditResult.reason);
     } catch (err) {
       console.error("Admin fetch error:", err);
@@ -69,6 +75,29 @@ function AdminDashboardContent() {
       fetchAdminData();
     }
   }, [user, authLoading, router]);
+
+
+  const changeUsersPage = async (nextPage: number) => {
+    const result = await api.admin.users(nextPage, userSearch.trim() || undefined, userRoleFilter);
+    setUsersList(result.items); setUsersMeta(result.meta); setUsersPage(nextPage);
+  };
+  const changeReportsPage = async (nextPage: number) => {
+    const result = await api.admin.reports(nextPage, reportStatusFilter);
+    setReports(result.items); setReportsMeta(result.meta); setReportsPage(nextPage);
+  };
+  const changeAuditPage = async (nextPage: number) => {
+    const result = await api.admin.auditLogs(nextPage, auditActionFilter === "all" ? undefined : auditActionFilter, auditFromDate || undefined, auditToDate || undefined);
+    setAuditLogs(result.items); setAuditMeta(result.meta); setAuditPage(nextPage);
+  };
+  const pagination = (meta: { page: number; totalPages: number; total: number }, onPage: (page: number) => void) => (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-xs text-slate-500">
+      <span>{"Showing page " + meta.page + " of " + Math.max(meta.totalPages, 1) + " · " + meta.total + " records"}</span>
+      <div className="flex gap-2">
+        <button type="button" disabled={meta.page <= 1} onClick={() => onPage(meta.page - 1)} className="rounded-lg border border-slate-200 px-3 py-1.5 font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+        <button type="button" disabled={meta.page >= meta.totalPages} onClick={() => onPage(meta.page + 1)} className="rounded-lg border border-slate-200 px-3 py-1.5 font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+      </div>
+    </div>
+  );
 
   const handleToggleSuspend = async (targetUser: any) => {
     const action = targetUser.isSuspended ? "restore" : "suspend";
@@ -233,7 +262,7 @@ function AdminDashboardContent() {
                   <option value="admin">Admins</option>
                   <option value="owner">Platform Owner</option>
                 </select>
-                <button type="button" onClick={fetchAdminData} className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Search</button>
+                <button type="button" onClick={() => { setUsersPage(1); fetchAdminData(); }} className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Search</button>
               </div>
               <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
@@ -324,6 +353,7 @@ function AdminDashboardContent() {
                 </tbody>
               </table>
               </div>
+              {pagination(usersMeta, changeUsersPage)}
             </div>
           )}
 
@@ -342,7 +372,7 @@ function AdminDashboardContent() {
                   <option value="RESOLVED">Resolved</option>
                   <option value="DISMISSED">Dismissed</option>
                 </select>
-                <button type="button" onClick={fetchAdminData} className="ml-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50">Apply</button>
+                <button type="button" onClick={() => { setReportsPage(1); fetchAdminData(); }} className="ml-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50">Apply</button>
               </div>
               {reports.length === 0 ? (
                 <p className="text-xs text-slate-400 italic">No reports submitted.</p>
@@ -383,6 +413,7 @@ function AdminDashboardContent() {
                   </div>
                 ))
               )}
+              {pagination(reportsMeta, changeReportsPage)}
             </div>
           )}
 
@@ -416,7 +447,7 @@ function AdminDashboardContent() {
                   onChange={(event) => setAuditToDate(event.target.value)}
                   className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
                 />
-                <button type="button" onClick={fetchAdminData} className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Apply filters</button>
+                <button type="button" onClick={() => { setAuditPage(1); fetchAdminData(); }} className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Apply filters</button>
               </div>
               <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
@@ -444,6 +475,7 @@ function AdminDashboardContent() {
                 </tbody>
               </table>
               </div>
+              {pagination(auditMeta, changeAuditPage)}
             </div>
           )}
         </div>
