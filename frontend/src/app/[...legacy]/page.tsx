@@ -1,12 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 
 // Compatibility layer for deep links that existed in the legacy React Router app.
-// These routes redirect only to the closest currently implemented Next.js destination;
-// they do not pretend that unported legacy screens have their own data/UI yet.
+// Redirect only to real Next.js destinations; unported workflows must not appear as
+// separate pages until their data and actions are implemented.
 const sectionTargets: Record<string, string> = {
   home: "/dashboard",
   learning: "/skills",
-  workshops: "/community",
+  workshops: "/workshops/workshops",
   requests: "/exchanges",
   membership: "/monetization",
   support: "/support/support",
@@ -14,6 +14,7 @@ const sectionTargets: Record<string, string> = {
   discover: "/discover",
   matches: "/discover",
   notifications: "/notifications",
+  trust: "/trust",
 };
 
 const screenTargets: Record<string, string> = {
@@ -45,13 +46,13 @@ const screenTargets: Record<string, string> = {
   "post-details": "/community",
   groups: "/community",
   "group-details": "/community",
-  workshops: "/community",
-  "create-workshop": "/community",
-  "workshop-details": "/community",
-  "my-workshops": "/community",
+  workshops: "/workshops/workshops",
+  "create-workshop": "/workshops/create-workshop",
+  "workshop-details": "/workshops/workshops",
+  "my-workshops": "/workshops/my-workshops",
   credits: "/monetization",
   premium: "/monetization",
-  verification: "/safety",
+  verification: "/trust",
   support: "/support/support",
   faq: "/support/faq",
   privacy: "/settings",
@@ -64,7 +65,7 @@ export default async function LegacyRoute({ params }: { params: Promise<{ legacy
   const [section, slug] = legacy;
 
   if (section === "screens") {
-    const target = slug ? screenTargets[slug] : "/dashboard";
+    const target = slug ? screenTargets[slug] : "/screens";
     if (!target) notFound();
     redirect(target);
   }
