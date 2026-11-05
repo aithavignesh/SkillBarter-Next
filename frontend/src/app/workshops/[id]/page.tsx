@@ -26,7 +26,18 @@ export default function WorkshopsPage() {
     setLoading(true);
     setError(null);
     try {
-      const allPosts = await api.community.listPosts(1);
+      const allPosts: CommunityPostDto[] = [];
+      let page = 1;
+
+      // The community feed is paginated. Continue until the final partial
+      // page so older workshop announcements are not silently omitted.
+      while (page <= 100) {
+        const pagePosts = await api.community.listPosts(page);
+        allPosts.push(...pagePosts);
+        if (pagePosts.length < 20) break;
+        page += 1;
+      }
+
       const workshopPosts = allPosts.filter((post) =>
         post.tags.some((tag) => WORKSHOP_TAGS.has(tag.trim().toLowerCase()))
       );
