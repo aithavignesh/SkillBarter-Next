@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -69,7 +69,7 @@ function isCurrentPath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function useEscapeToClose(open: boolean, close: () => void, triggerRef: React.RefObject<HTMLButtonElement | null>) {
+function useEscapeToClose(open: boolean, close: () => void, triggerRef: RefObject<HTMLButtonElement | null>) {
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -194,7 +194,7 @@ export function ProductNavigation() {
                         <ChevronDown aria-hidden="true" className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />
                       </button>
                       {expanded && (
-                        <nav id={groupId} aria-label={group.label} className="ml-5 mt-1 space-y-0.5 border-l border-slate-200 py-1 pl-3">
+                        <div id={groupId} role="group" aria-label={group.label} className="ml-5 mt-1 space-y-0.5 border-l border-slate-200 py-1 pl-3">
                           {group.items.map((item) => {
                             const itemActive = isCurrentPath(pathname, item.href);
                             return (
