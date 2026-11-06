@@ -209,7 +209,7 @@ export function ProductNavigation() {
                               </Link>
                             );
                           })}
-                        </nav>
+                        </div>
                       )}
                     </div>
                   );
