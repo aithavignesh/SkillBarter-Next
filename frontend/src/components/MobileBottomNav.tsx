@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeftRight, Compass, MessageSquare, Repeat, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { ProductNavigationMobile } from "./ProductNavigation";
 
 export function MobileBottomNav() {
   const { user } = useAuth();
@@ -40,6 +41,7 @@ export function MobileBottomNav() {
           </Link>
         );
       })}
+      <ProductNavigationMobile />
     </nav>
   );
 }
