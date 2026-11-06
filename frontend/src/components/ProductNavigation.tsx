@@ -5,19 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ArrowLeftRight,
-  Bell,
-  BookOpen,
   Compass,
   GraduationCap,
   LayoutGrid,
-  LifeBuoy,
   MessageSquare,
   Search,
-  Settings,
   ShieldCheck,
-  ShieldAlert,
-  UserPlus,
-  Users,
   X,
   ChevronDown,
 } from "lucide-react";
