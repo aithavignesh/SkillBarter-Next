@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
+import { ProductNavigation } from "./ProductNavigation";
 import {
   Repeat,
   Compass,
@@ -135,6 +136,7 @@ export function Navbar() {
                 </Link>
               );
             })}
+            <ProductNavigation />
           </nav>
         </div>
 
