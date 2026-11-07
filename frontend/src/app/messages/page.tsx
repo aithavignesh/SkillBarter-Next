@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
 import { AppPageShell } from "../../components/ui/AppPageShell";
@@ -9,7 +9,8 @@ import { ConversationDto, MessageDto } from "@skillbarter/shared";
 import { MessageSquare, Send, User, AlertCircle } from "lucide-react";
 
 function MessagesContent() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [conversations, setConversations] = useState<ConversationDto[]>([]);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
@@ -24,9 +25,36 @@ function MessagesContent() {
   const conversationsRequestId = useRef(0);
   const messagesRequestId = useRef(0);
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     const requestId = ++conversationsRequestId.current;
     try {
+      if (authLoading) return;
+      if (!user) {
+        router.replace("/login");
+        return;
+      }
+      if (!user.isEmailVerified) {
+        router.replace(
+          user.onboardingCompleted
+            ? `/verify-email?email=${encodeURIComponent(user.email)}`
+            : "/onboarding"
+        );
+        return;
+      }
+
+      const queryPartner = searchParams.get("partner");
+      if (queryPartner) {
+        const result = await api.messages.getOrCreateConversation(queryPartner);
+        if (requestId !== conversationsRequestId.current) return;
+        const conversationList = await api.messages.conversations();
+        if (requestId !== conversationsRequestId.current) return;
+        setConversations(conversationList.conversations);
+        setActiveConvId(result.conversation.id);
+        router.replace(`/messages?c=${encodeURIComponent(result.conversation.id)}`);
+        setLoadError(false);
+        return;
+      }
+
       const res = await api.messages.conversations();
       if (requestId !== conversationsRequestId.current) return;
       setConversations(res.conversations);
@@ -47,14 +75,14 @@ function MessagesContent() {
     } finally {
       if (requestId === conversationsRequestId.current) setLoading(false);
     }
-  };
+  }, [authLoading, router, searchParams, user?.email, user?.id, user?.isEmailVerified, user?.onboardingCompleted]);
 
   useEffect(() => {
-    void fetchConversations();
+    if (!authLoading) void fetchConversations();
     return () => {
       conversationsRequestId.current += 1;
     };
-  }, [searchParams]);
+  }, [authLoading, fetchConversations]);
 
   useEffect(() => {
     const requestId = ++messagesRequestId.current;
