@@ -11,6 +11,7 @@ const validProductionEnv = {
   ADMIN_BOOTSTRAP_SECRET: "admin-secret-that-is-at-least-32-characters",
   RESEND_API_KEY: "re_test_key",
   EMAIL_FROM: "SkillBarter <noreply@skillbarter.example>",
+  TWOFACTOR_API_KEY: "test-twofactor-provider-key",
 };
 
 function setProductionEnvironment(values: typeof validProductionEnv) {
@@ -73,6 +74,22 @@ describe("production environment secret validation", () => {
       expect(result.error.issues.some((issue) =>
         issue.path.includes("ADMIN_BOOTSTRAP_SECRET") &&
         issue.message.includes("must use different secrets"),
+      )).toBe(true);
+    }
+  });
+
+  it("requires the SMS provider key for production phone OTP", () => {
+    const values = {
+      ...validProductionEnv,
+      TWOFACTOR_API_KEY: "",
+    };
+    setProductionEnvironment(values);
+    const result = envSchema.safeParse(values);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) =>
+        issue.path.includes("TWOFACTOR_API_KEY") &&
+        issue.message.includes("must be explicitly configured"),
       )).toBe(true);
     }
   });
