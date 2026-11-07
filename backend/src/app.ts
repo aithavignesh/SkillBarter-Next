@@ -52,12 +52,20 @@ app.use(
   })
 );
 
+// Render provides these non-secret deployment identifiers at runtime. Exposing
+// them on health probes lets staging checks compare the live API to GitHub SHA.
+const getDeploymentMetadata = () => ({
+  commit: process.env.RENDER_GIT_COMMIT || null,
+  branch: process.env.RENDER_GIT_BRANCH || null,
+});
+
 // Health check handler
 const handleHealth = (_req: express.Request, res: express.Response) => {
   const payload = apiHealthSchema.parse({
     status: "ok",
     service: "skillbarter-api",
     timestamp: new Date().toISOString(),
+    ...getDeploymentMetadata(),
   });
   res.status(200).json(payload);
 };
@@ -70,6 +78,7 @@ const handleReady = (_req: express.Request, res: express.Response) => {
     service: "skillbarter-api",
     database: dbConnected ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
+    ...getDeploymentMetadata(),
   });
   res.status(dbConnected ? 200 : 503).json(payload);
 };
