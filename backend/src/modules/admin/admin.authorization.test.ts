@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import request from "supertest";
 import { User } from "../../models/User";
 import { AuditLog } from "../../models/AuditLog";
+import { Report } from "../../models/Report";
 import { app } from "../../app";
 import { signAccessToken } from "../../utils/security";
 
@@ -9,6 +10,12 @@ describe("Admin authorization boundaries", () => {
   const createdUserIds: string[] = [];
 
   afterAll(async () => {
+    await Report.deleteMany({
+      $or: [
+        { reporterId: { $in: createdUserIds } },
+        { targetId: { $in: createdUserIds } },
+      ],
+    });
     await AuditLog.deleteMany({ actorId: { $in: createdUserIds } });
     await User.deleteMany({ _id: { $in: createdUserIds } });
   });
@@ -81,6 +88,46 @@ describe("Admin authorization boundaries", () => {
       .send({ role: "admin" });
     expect(allowedPromotion.status).toBe(200);
     expect(allowedPromotion.body.data.user.role).toBe("admin");
+
+    const deniedOwnerSuspension = await request(app)
+      .patch("/api/v1/admin/users/" + owner._id.toString())
+      .set("Authorization", "Bearer " + adminToken)
+      .send({ isSuspended: true, suspensionReason: "Unauthorized suspension attempt" });
+    expect(deniedOwnerSuspension.status).toBe(403);
+    expect(deniedOwnerSuspension.body.error.code).toBe("OWNER_PROTECTED");
+
+    const deniedAdminSuspension = await request(app)
+      .patch("/api/v1/admin/users/" + admin._id.toString())
+      .set("Authorization", "Bearer " + adminToken)
+      .send({ isSuspended: true, suspensionReason: "Unauthorized self-suspension attempt" });
+    expect(deniedAdminSuspension.status).toBe(403);
+    expect(deniedAdminSuspension.body.error.code).toBe("OWNER_REQUIRED");
+
+    const ownerReport = await Report.create({
+      reporterId: target._id,
+      targetType: "user",
+      targetId: owner._id.toString(),
+      reason: "Impersonation",
+      description: "This report is a fixture for owner protection testing.",
+      status: "PENDING",
+    });
+    const deniedReportSuspension = await request(app)
+      .patch("/api/v1/admin/reports/" + ownerReport._id.toString())
+      .set("Authorization", "Bearer " + adminToken)
+      .send({
+        status: "RESOLVED",
+        actionTaken: "account_suspended",
+        moderationNotes: "Unauthorized owner suspension attempt",
+      });
+    expect(deniedReportSuspension.status).toBe(403);
+    expect(deniedReportSuspension.body.error.code).toBe("OWNER_PROTECTED");
+
+    const ownerSuspendsAdmin = await request(app)
+      .patch("/api/v1/admin/users/" + admin._id.toString())
+      .set("Authorization", "Bearer " + ownerToken)
+      .send({ isSuspended: true, suspensionReason: "Owner-authorized test" });
+    expect(ownerSuspendsAdmin.status).toBe(200);
+    expect(ownerSuspendsAdmin.body.data.user.isSuspended).toBe(true);
   });
 
   it("denies ordinary members access to moderation reports", async () => {
