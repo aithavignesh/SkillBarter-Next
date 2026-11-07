@@ -262,6 +262,10 @@ export const api = {
 
   // Matches
   matches: {
+    recommendations: (page = 1) => {
+      const params = new URLSearchParams({ page: String(page), limit: "50" });
+      return fetchApi<any[]>(`/matches/recommendations?${params.toString()}`);
+    },
     discover: (category?: string, search?: string, format?: string, page = 1) => {
       const params = new URLSearchParams({ page: String(page) });
       if (category) params.set("category", category);
