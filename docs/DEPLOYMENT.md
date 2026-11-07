@@ -9,7 +9,9 @@ SkillBarter-Next is designed for cloud or containerized deployment:
 
 ## 2. Backend Deployment with Render
 
-A repository Blueprint is provided at `render.yaml`. In Render, create a new Blueprint instance and select this repository's `development` branch for a non-production validation deployment. The manifest builds the shared package and Express backend, starts the API workspace, and checks `/api/v1/ready`.
+A repository Blueprint is provided at `render.yaml`. The staging API service is explicitly pinned to this repository's `development` branch and uses `autoDeployTrigger: checksPass`, so it deploys only after the linked GitHub checks pass. It must not track the production `main` branch. The manifest builds the shared package and Express backend, starts the API workspace, and checks `/api/v1/ready`.
+
+After each staging deploy, compare the API's `/api/v1/health` and `/api/v1/ready` `commit` and `branch` fields with the exact GitHub `development` SHA. Do not treat a successful health check without a matching commit as proof that the latest code is deployed.
 
 Before the service can become ready, set the prompted environment values in Render:
 - `FRONTEND_URL`: the exact frontend origin (no trailing path).
