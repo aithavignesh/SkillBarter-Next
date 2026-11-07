@@ -124,7 +124,7 @@ export function ProductNavigation() {
       >
         <LayoutGrid aria-hidden="true" className="h-4 w-4" />
         All features
-        <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+        <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700">
           {featureGroups.reduce((count, group) => count + group.items.length, 0)}
         </span>
         <ChevronDown aria-hidden="true" className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
