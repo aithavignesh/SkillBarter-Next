@@ -1,0 +1,58 @@
+name: Browser accessibility smoke
+
+on:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-a11y:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Install browser audit tools
+        run: npm install --no-save --package-lock=false playwright @axe-core/playwright
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build shared workspace
+        run: npm run build -w shared
+      - name: Build Next.js frontend
+        run: npm run build -w frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:4000/api/v1
+          NEXT_TELEMETRY_DISABLED: "1"
+      - name: Start production frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          NEXT_PUBLIC_API_URL=http://127.0.0.1:4000/api/v1 npm run start -w frontend -- --hostname 127.0.0.1 --port 3000 > /tmp/skillbarter-next-frontend.log 2>&1 &
+          echo $! > /tmp/skillbarter-next-frontend.pid
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:3000/ >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/skillbarter-next-frontend.log
+          exit 1
+      - name: Audit routes at mobile and desktop viewports
+        run: node frontend/tests/a11y-smoke.mjs
+        env:
+          BASE_URL: http://127.0.0.1:3000
+      - name: Upload frontend server log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skillbarter-frontend-server-log
+          path: /tmp/skillbarter-next-frontend.log
