@@ -103,10 +103,11 @@ export default function SafetyPage() {
 
           <form onSubmit={handleReport} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+              <label htmlFor="safety-report-type" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                 Report Type
               </label>
               <select
+                id="safety-report-type"
                 value={targetType}
                 onChange={(e) => setTargetType(e.target.value as any)}
                 className="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white"
@@ -119,10 +120,11 @@ export default function SafetyPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+              <label htmlFor="safety-target-id" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                 Target User ID or Content ID
               </label>
               <input
+                id="safety-target-id"
                 type="text"
                 required
                 value={targetId}
@@ -133,10 +135,11 @@ export default function SafetyPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+              <label htmlFor="safety-report-reason" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                 Reason
               </label>
               <input
+                id="safety-report-reason"
                 type="text"
                 required
                 value={reason}
@@ -147,10 +150,11 @@ export default function SafetyPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+              <label htmlFor="safety-report-description" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                 Detailed Description
               </label>
               <textarea
+                id="safety-report-description"
                 rows={3}
                 required
                 value={description}
