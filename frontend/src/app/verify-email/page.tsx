@@ -70,7 +70,7 @@ function VerifyEmailContent() {
               </button>
             </form>
             <div className="border-t border-slate-200 pt-5 text-left">
-              <h3 className="text-sm font-semibold text-slate-900">Didn't receive the email?</h3>
+              <h3 className="text-sm font-semibold text-slate-900">Did not receive the email?</h3>
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
