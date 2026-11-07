@@ -5,15 +5,13 @@ import Link from "next/link";
 import { AppPageShell } from "../../components/ui/AppPageShell";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
-import { CommunityPostDto, UserSkillDto } from "@skillbarter/shared";
+import type { CommunityPostDto, UserSkillDto } from "@skillbarter/shared";
 import {
   AlertCircle,
   ArrowRight,
   BookOpen,
-  CheckCircle2,
   Heart,
   MapPin,
-  Plus,
   RefreshCw,
   Repeat,
   Send,
