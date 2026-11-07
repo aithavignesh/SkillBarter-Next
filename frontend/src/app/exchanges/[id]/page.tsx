@@ -28,6 +28,7 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
   const [sessions, setSessions] = useState<ExchangeSessionDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Session proposal modal state
   const [showSessionModal, setShowSessionModal] = useState(false);
@@ -65,25 +66,42 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
   }, [id]);
 
   const handleUpdateStatus = async (status: any, reason?: string) => {
+    setActionError(null);
     try {
       await api.exchanges.updateStatus(id, { status, reason });
       await fetchData();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Action failed");
+      setActionError(err instanceof Error ? err.message : "Action failed. Please try again.");
     }
   };
 
   const handleConfirmCompletion = async () => {
+    setActionError(null);
     try {
       await api.exchanges.complete(id);
       await fetchData();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to confirm completion");
+      setActionError(err instanceof Error ? err.message : "Failed to confirm completion. Please try again.");
     }
   };
 
   const handleCreateSession = async (e: React.FormEvent) => {
     e.preventDefault();
+    setActionError(null);
+    const start = new Date(sessionStartTime);
+    const end = new Date(sessionEndTime);
+    if (!sessionStartTime || !sessionEndTime || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      setActionError("Choose a valid start and end time for the session.");
+      return;
+    }
+    if (end <= start) {
+      setActionError("The session end time must be later than its start time.");
+      return;
+    }
+    if (start <= new Date()) {
+      setActionError("Choose a session start time in the future.");
+      return;
+    }
     setProposingSession(true);
     try {
       await api.exchanges.createSession(id, {
@@ -98,23 +116,25 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
       setSessionTitle("");
       await fetchData();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to propose session");
+      setActionError(err instanceof Error ? err.message : "Failed to propose session. Please try again.");
     } finally {
       setProposingSession(false);
     }
   };
 
   const handleConfirmSession = async (sessionId: string) => {
+    setActionError(null);
     try {
       await api.exchanges.updateSessionStatus(id, sessionId, { status: "CONFIRMED" });
       await fetchData();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to confirm session");
+      setActionError(err instanceof Error ? err.message : "Failed to confirm session. Please try again.");
     }
   };
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
+    setActionError(null);
     setSubmittingReview(true);
     try {
       await api.reviews.create({
@@ -125,7 +145,7 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
       setReviewSuccess(true);
       setTimeout(() => setShowReviewModal(false), 1200);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to submit review");
+      setActionError(err instanceof Error ? err.message : "Failed to submit review. Please try again.");
     } finally {
       setSubmittingReview(false);
     }
@@ -159,6 +179,13 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
       >
         <ArrowLeft className="h-4 w-4" /> Back to Exchanges
       </Link>
+
+      {actionError && (
+        <div role="alert" className="flex items-start justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <p>{actionError}</p>
+          <button type="button" onClick={() => setActionError(null)} className="shrink-0 font-semibold underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700">Dismiss</button>
+        </div>
+      )}
 
       {/* Main Status & Header Card */}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 shadow-sm space-y-6">
