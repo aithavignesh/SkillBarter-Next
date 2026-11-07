@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AppPageShell } from "../../components/ui/AppPageShell";
 import { Copy, Check, Mail, Share2, Users } from "lucide-react";
@@ -8,11 +8,12 @@ import { Copy, Check, Mail, Share2, Users } from "lucide-react";
 export default function InvitePage() {
   const [copied, setCopied] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
-  const inviteUrl = useMemo(() => {
-    if (typeof window === "undefined") return "/signup?ref=peer-invite";
+  const [inviteUrl, setInviteUrl] = useState("/signup?ref=peer-invite");
+
+  useEffect(() => {
     const url = new URL("/signup", window.location.origin);
     url.searchParams.set("ref", "peer-invite");
-    return url.toString();
+    setInviteUrl(url.toString());
   }, []);
   const inviteMessage = `I'm using SkillBarter to learn practical skills from peers while sharing what I know. Join me and create your learning profile: ${inviteUrl}`;
 
