@@ -125,6 +125,7 @@ export class ExchangesController {
       if (!req.user) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
       const input = updateSessionStatusSchema.parse(req.body);
       const session = await exchangesService.updateSessionStatus(
+        req.params.id as string,
         req.params.sessionId as string,
         req.user._id.toString(),
         input

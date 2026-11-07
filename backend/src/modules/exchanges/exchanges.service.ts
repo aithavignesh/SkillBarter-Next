@@ -586,6 +586,7 @@ export class ExchangesService {
   }
 
   async updateSessionStatus(
+    exchangeId: string,
     sessionId: string,
     userId: string,
     input: UpdateSessionStatusInput
@@ -594,8 +595,11 @@ export class ExchangesService {
     if (!session) {
       throw new AppError("Session not found", 404, "NOT_FOUND");
     }
+    if (session.exchangeId.toString() !== exchangeId) {
+      throw new AppError("Session not found for this exchange", 404, "NOT_FOUND");
+    }
 
-    const exchange = await Exchange.findById(session.exchangeId);
+    const exchange = await Exchange.findById(exchangeId);
     if (!exchange) {
       throw new AppError("Exchange not found", 404, "NOT_FOUND");
     }
