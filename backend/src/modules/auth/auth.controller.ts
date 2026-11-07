@@ -44,7 +44,11 @@ export class AuthController {
       const result = await authService.register(input);
 
       setAuthCookies(res, result.accessToken, result.refreshToken);
-      sendSuccess(res, { user: result.user, accessToken: result.accessToken }, undefined, 201);
+      sendSuccess(res, {
+        user: result.user,
+        accessToken: result.accessToken,
+        verificationEmailSent: result.verificationEmailSent,
+      }, undefined, 201);
     } catch (error) {
       next(error);
     }
