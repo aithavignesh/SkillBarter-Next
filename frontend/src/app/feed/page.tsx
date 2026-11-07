@@ -108,7 +108,7 @@ export default function FeedPage() {
       setSkills([]);
     }
     setLoading(false);
-  }, [user?.id, user?.isEmailVerified]);
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading) void loadData();
