@@ -25,6 +25,29 @@ describe("Health and Readiness API", () => {
     expect(response.body.status).toBe("ready");
     expect(response.body.database).toBe("connected");
   });
+
+  it("exposes the current Render commit and branch on health probes", async () => {
+    const originalCommit = process.env.RENDER_GIT_COMMIT;
+    const originalBranch = process.env.RENDER_GIT_BRANCH;
+    process.env.RENDER_GIT_COMMIT = "a".repeat(40);
+    process.env.RENDER_GIT_BRANCH = "development";
+
+    try {
+      const [health, ready] = await Promise.all([
+        request(app).get("/api/v1/health"),
+        request(app).get("/api/v1/ready"),
+      ]);
+      expect(health.body.commit).toBe("a".repeat(40));
+      expect(health.body.branch).toBe("development");
+      expect(ready.body.commit).toBe("a".repeat(40));
+      expect(ready.body.branch).toBe("development");
+    } finally {
+      if (originalCommit === undefined) delete process.env.RENDER_GIT_COMMIT;
+      else process.env.RENDER_GIT_COMMIT = originalCommit;
+      if (originalBranch === undefined) delete process.env.RENDER_GIT_BRANCH;
+      else process.env.RENDER_GIT_BRANCH = originalBranch;
+    }
+  });
 });
 
 describe("Security middleware and admin access", () => {
