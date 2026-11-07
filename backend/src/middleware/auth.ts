@@ -58,6 +58,16 @@ function createAuthenticate(options: { allowUnverifiedEmail?: boolean } = {}) {
 export const authenticate = createAuthenticate();
 export const authenticateForOnboarding = createAuthenticate({ allowUnverifiedEmail: true });
 
+export function requireOnboardingCompleted(req: Request, _res: Response, next: NextFunction): void {
+  if (!req.user) {
+    return next(new AppError("Authentication required", 401, "UNAUTHORIZED"));
+  }
+  if (!req.user.onboardingCompleted) {
+    return next(new AppError("Please complete onboarding before using this feature.", 403, "ONBOARDING_INCOMPLETE"));
+  }
+  next();
+}
+
 export async function optionalAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
   try {
     let token: string | undefined;
