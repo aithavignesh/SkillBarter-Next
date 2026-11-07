@@ -62,8 +62,15 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
   }, [id]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    // These IDs were static screens in the legacy app, not exchange records.
+    // Route them to the real exchange workspace instead of querying MongoDB
+    // with a non-ObjectId slug.
+    if (["active-exchange", "exchange-history", "exchange-rating", "schedule", "calendar"].includes(id)) {
+      router.replace("/exchanges");
+      return;
+    }
+    void fetchData();
+  }, [fetchData, id, router]);
 
   const handleUpdateStatus = async (status: any, reason?: string) => {
     setActionError(null);
