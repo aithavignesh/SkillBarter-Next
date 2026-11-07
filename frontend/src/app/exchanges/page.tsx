@@ -10,6 +10,7 @@ import { ArrowLeftRight, Clock, CheckCircle2, AlertCircle, ArrowRight } from "lu
 
 export default function ExchangesListPage() {
   const { user } = useAuth();
+  const userId = user?.id;
   const [exchanges, setExchanges] = useState<ExchangeDto[]>([]);
   const [filter, setFilter] = useState<string>("ALL");
   const [loading, setLoading] = useState(true);
@@ -31,7 +32,7 @@ export default function ExchangesListPage() {
   };
 
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       setExchanges([]);
       setLoading(false);
       setLoadError(false);
@@ -43,7 +44,7 @@ export default function ExchangesListPage() {
     return () => {
       requestIdRef.current += 1;
     };
-  }, [user?.id]);
+  }, [userId]);
 
   const filtered = exchanges.filter((e) => {
     if (filter === "ALL") return true;
