@@ -1,0 +1,68 @@
+import React, { useEffect, useState } from 'react';
+import { api } from '../services/api';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Link } from 'react-router-dom';
+import { AppPageShell } from '../components/ui/AppPageShell';
+import { Compass, Users, Wrench, Repeat, ShieldCheck, TrendingUp, Sparkles, ArrowRight, MessageSquare, Heart, CalendarDays } from 'lucide-react';
+
+export const CommunityPage: React.FC = () => {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [postLoading, setPostLoading] = useState(true);
+  useEffect(() => {
+    Promise.all([api.getNearbyUsers(100), api.getFeed(), api.getExchanges()])
+      .then(([members, feed, exchanges]) => {
+        const offeredSkills = new Set<string>();
+        members.forEach((member: any) => (member.skills_offered || []).forEach((skill: string) => offeredSkills.add(String(skill).toLowerCase())));
+        const completed = exchanges.filter((exchange: any) => exchange.status === 'COMPLETED').length;
+        const trustScores = members.map((member: any) => Number(member.trust_score)).filter((score: number) => Number.isFinite(score) && score > 0);
+        setStats({
+          members_nearby: members.length,
+          skills_available: offeredSkills.size,
+          exchanges_completed: completed,
+          average_trust_score: trustScores.length ? trustScores.reduce((sum, score) => sum + score, 0) / trustScores.length : null,
+        });
+        setPosts(feed);
+      })
+      .catch(console.error)
+      .finally(() => {
+        setLoading(false);
+        setPostLoading(false);
+      });
+  }, []);
+  const metrics = [
+    ['Learners Nearby', stats?.members_nearby ?? stats?.posts ?? 0, Users],
+    ['Skills Being Shared', stats?.skills_available ?? 0, Wrench],
+    ['Learning Exchanges', stats?.exchanges_completed ?? stats?.exchanges ?? 0, Repeat],
+    ['Average Trust', stats?.average_trust_score ? Number(stats.average_trust_score).toFixed(1) : '—', ShieldCheck],
+  ] as const;
+  return <AppPageShell eyebrow="Student community" title="Learn together. Share what you know." description="A live view of peer learning activity, useful skills and exchanges across the SkillBarter network." icon={<Compass className="h-3.5 w-3.5" />} actions={<Link to="/connections"><Button size="sm">View learning network</Button></Link>}>
+    <div className="grid grid-cols-2 gap-px border border-[#e1e4e8] bg-[#e1e4e8] md:grid-cols-4">
+      {metrics.map(([label, value, Icon]) => <div key={label} className="bg-white p-5"><div className="flex items-center justify-between"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</span><Icon className="h-4 w-4 text-[#d31d24]" /></div><p className="mt-3 text-2xl font-extrabold text-[#17233b]">{loading ? '—' : value}</p></div>)}
+    </div>
+    <div className="mt-5 grid gap-px border border-[#e1e4e8] bg-[#e1e4e8] md:grid-cols-3">
+      <section className="bg-white p-6"><TrendingUp className="h-5 w-5 text-[#d31d24]" /><h2 className="mt-3 font-bold text-[#17233b]">Find learning partners</h2><p className="mt-1 text-sm leading-6 text-slate-500">Find peers who can teach what you want to learn and discover students who can learn from you.</p><Link to="/discover"><Button className="mt-4" size="sm" icon={<ArrowRight className="h-3.5 w-3.5" />}>Discover</Button></Link></section>
+      <section className="bg-white p-6"><Sparkles className="h-5 w-5 text-[#d31d24]" /><h2 className="mt-3 font-bold text-[#17233b]">Run a learning session</h2><p className="mt-1 text-sm leading-6 text-slate-500">Host a focused peer-learning session around a skill you can teach. Keep it practical, short and useful for students.</p><Link to="/workshops/create-workshop"><Button className="mt-4" size="sm">Create learning session</Button></Link></section>
+      <section className="bg-white p-6"><Users className="h-5 w-5 text-[#d31d24]" /><h2 className="mt-3 font-bold text-[#17233b]">Build your learning network</h2><p className="mt-1 text-sm leading-6 text-slate-500">Meet peers around shared skills, projects and career goals.</p><Link to="/connections"><Button className="mt-4" size="sm">Open Learning Network</Button></Link></section>
+    </div>
+    <div className="mt-5 grid items-start gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.9fr)]">
+      <Card className="overflow-hidden p-0">
+        <div className="flex items-center justify-between border-b border-[#e1e4e8] bg-[#f7f8f7] px-5 py-4">
+          <div><div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d31d24]">Peer learning feed</div><h2 className="mt-1 text-sm font-bold text-[#17233b]">What learners are sharing</h2></div>
+          <Link to="/feed"><Button size="sm" variant="outline">Open feed</Button></Link>
+        </div>
+        {postLoading ? <div className="p-8 text-center text-xs text-slate-400">Loading community activity…</div> : posts.length ? <div>{posts.slice(0,5).map((p:any)=><article key={p.id} className="border-b border-[#edf0f2] p-4 transition-colors duration-200 motion-reduce:transition-none last:border-0 hover:border-[#e4c6c7] hover:bg-[#fcfaf9] sm:p-5"><div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#d31d24]">{p.post_type === 'WORKSHOP' ? <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true"/> : <MessageSquare className="h-3.5 w-3.5 shrink-0" aria-hidden="true"/>}{p.post_type === 'WORKSHOP' ? 'LEARNING SESSION' : 'PEER UPDATE'}</div><h3 className="mt-2 break-words text-sm font-bold leading-snug text-[#17233b]">{p.title || 'Peer learning update'}</h3>{p.content && <p className="mt-2 break-words whitespace-pre-wrap text-xs leading-5 text-slate-500">{p.content}</p>}<div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] text-slate-400"><span className="inline-flex items-center gap-1"><Heart className="h-3 w-3 shrink-0" aria-hidden="true"/> {p.likes_count || 0}</span>{p.created_at && <span>{new Date(p.created_at).toLocaleDateString()}</span>}</div></article>)}</div> : <div className="p-8 text-center text-xs text-slate-400">No learning activity yet.</div>}
+      </Card>
+      <Card className="self-start p-4 sm:p-5">
+        <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 shrink-0 text-[#d31d24]" aria-hidden="true"/><h2 className="text-sm font-bold text-[#17233b]">Learning actions</h2></div>
+        <div className="mt-5 space-y-2.5">
+          <Link to="/discover" className="group flex min-h-12 w-full items-center justify-between gap-3 border border-[#e1e4e8] bg-white px-4 py-3 text-xs font-semibold leading-5 text-[#17233b] transition-colors duration-200 motion-reduce:transition-none hover:border-[#d9bfc0] hover:bg-[#fcfaf9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d31d24]"><span className="min-w-0 break-words">Discover learning partners</span><ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#d31d24] transition-transform duration-200 motion-reduce:transition-none group-hover:translate-x-0.5" aria-hidden="true"/></Link>
+          <Link to="/matches" className="group flex min-h-12 w-full items-center justify-between gap-3 border border-[#e1e4e8] bg-white px-4 py-3 text-xs font-semibold leading-5 text-[#17233b] transition-colors duration-200 motion-reduce:transition-none hover:border-[#d9bfc0] hover:bg-[#fcfaf9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d31d24]"><span className="min-w-0 break-words">Find learning matches</span><ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#d31d24] transition-transform duration-200 motion-reduce:transition-none group-hover:translate-x-0.5" aria-hidden="true"/></Link>
+          <Link to="/workshops" className="group flex min-h-12 w-full items-center justify-between gap-3 border border-[#e1e4e8] bg-white px-4 py-3 text-xs font-semibold leading-5 text-[#17233b] transition-colors duration-200 motion-reduce:transition-none hover:border-[#d9bfc0] hover:bg-[#fcfaf9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d31d24]"><span className="min-w-0 break-words">Browse learning sessions</span><ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#d31d24] transition-transform duration-200 motion-reduce:transition-none group-hover:translate-x-0.5" aria-hidden="true"/></Link>
+        </div>
+      </Card>
+    </div>
+  </AppPageShell>;
+};

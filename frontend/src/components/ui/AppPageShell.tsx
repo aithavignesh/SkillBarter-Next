@@ -1,26 +1,64 @@
-import type { ReactNode } from "react";
-import { ChevronRight } from "lucide-react";
+import React from 'react';
+import { ChevronRight, Search } from 'lucide-react';
 
-type AppPageShellProps = { title: string; eyebrow?: string; description?: string; icon?: ReactNode; actions?: ReactNode; children: ReactNode };
+type AppPageShellProps = {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  icon?: React.ReactNode;
+  actions?: React.ReactNode;
+  search?: { value: string; onChange: (value: string) => void; placeholder?: string };
+  children: React.ReactNode;
+};
 
-export function AppPageShell({ title, eyebrow, description, icon, actions, children }: AppPageShellProps) {
-  return (
-    <main className="sb-page-shell">
-      <div className="sb-page-shell__inner">
-        <div className="sb-page-shell__breadcrumb" aria-label="Breadcrumb">
-          <span>Workspace</span><ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
-          <span className="sb-page-shell__breadcrumb-current">{title}</span>
-        </div>
-        <header className="sb-page-heading">
-          <div className="min-w-0">
-            {eyebrow && <div className="sb-page-heading__eyebrow">{icon}<span>{eyebrow}</span></div>}
-            <h1 className="sb-page-heading__title">{title}</h1>
-            {description && <p className="sb-page-heading__description">{description}</p>}
-          </div>
-          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
-        </header>
-        <div className="pt-6">{children}</div>
+export const AppPageShell: React.FC<AppPageShellProps> = ({
+  eyebrow,
+  title,
+  description,
+  icon,
+  actions,
+  search,
+  children,
+}) => (
+  <main className="min-w-0 min-h-[calc(100vh-1px)] bg-[#f7f7f5] px-4 py-5 pb-24 sm:px-6 sm:pb-24 lg:px-8 lg:pb-5 xl:px-10">
+    <div className="mx-auto w-full min-w-0 max-w-[1320px]">
+      <div className="mb-5 flex items-center gap-1 text-[11px] font-semibold text-slate-400">
+        <span>Workspace</span>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <span className="text-slate-600">{title}</span>
       </div>
-    </main>
-  );
-}
+
+      <section className="border-b border-[#e1e4e8] pb-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div className="min-w-0">
+            {eyebrow && (
+              <div className="mb-1.5 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#d31d24]">
+                {icon}
+                <span>{eyebrow}</span>
+              </div>
+            )}
+            <h1 className="break-words text-2xl font-extrabold tracking-[-0.02em] text-[#17233b] sm:text-3xl">{title}</h1>
+            {description && <p className="mt-1.5 max-w-3xl break-words text-sm leading-6 text-[#697386]">{description}</p>}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {search && (
+              <label className="relative block min-w-0 w-full sm:w-[280px]">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={search.value}
+                  onChange={(e) => search.onChange(e.target.value)}
+                  placeholder={search.placeholder || 'Search'}
+                  className="h-10 w-full min-w-0 border border-[#d9dde2] bg-white pl-9 pr-3 text-xs text-[#17233b] outline-none transition focus:border-[#d31d24]"
+                />
+              </label>
+            )}
+            {actions}
+          </div>
+        </div>
+      </section>
+
+      <div className="pt-6">{children}</div>
+    </div>
+  </main>
+);

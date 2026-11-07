@@ -1,107 +1,151 @@
-"use client";
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { AuthUser, LoginInput, RegisterInput } from "@skillbarter/shared";
-import { api } from "../services/api";
+// UI preview deployment trigger: keep auth behavior unchanged.
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '../services/api';
+import { clearPhoneSession, getCurrentPhoneUser, hasPersistedPhoneSession, requestPhoneOtp, verifyPhoneOtp } from '../services/phoneAuth';
+import { requestEmailOtp, verifyEmailOtp } from '../services/emailOtp';
+import { User } from '../types';
 
 interface AuthContextType {
-  user: AuthUser | null;
+  currentUser: User | null;
   loading: boolean;
-  error: string | null;
-  login: (input: LoginInput) => Promise<void>;
-  requestPhoneOtp: (phone: string) => Promise<{ challengeId: string; phone: string }>;
-  verifyPhoneOtp: (phone: string, otp: string, challengeId: string) => Promise<void>;
+  login: (email: string, pass: string) => Promise<void>;
+  requestPhoneOtp: (phone: string) => Promise<string>;
+  verifyPhoneOtp: (phone: string, otp: string) => Promise<void>;
   requestEmailOtp: (email: string) => Promise<void>;
   verifyEmailOtp: (email: string, otp: string) => Promise<void>;
-  register: (input: RegisterInput) => Promise<string | undefined>;
+  register: (payload: any) => Promise<void>;
   logout: () => Promise<void>;
+  demoSwitchUser: (userId: number) => Promise<void>;
   refreshUser: () => Promise<void>;
-  setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
   const refreshUser = async () => {
+    const hasToken = Boolean(localStorage.getItem('skillbarter_token'));
+    const hasPhoneSession = hasPersistedPhoneSession();
+
+    // Anonymous visitors should not enter the auth-provider lookup path.
+    // Without a persisted session there is nothing to restore, and calling
+    // getCurrentUser() can cause the SDK to probe /auth/refresh and return
+    // repeated 401s on the public landing page.
+    if (!hasToken && !hasPhoneSession) {
+      setCurrentUser(null);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await api.auth.me();
-      setUser(res.user);
+      const user = await api.getMe();
+      setCurrentUser(user);
     } catch {
-      setUser(null);
-      if (typeof window !== "undefined") localStorage.removeItem("skillbarter_token");
+      try {
+        if (!hasPhoneSession) throw new Error('No persisted phone session');
+        const phoneUser = await getCurrentPhoneUser();
+        if (phoneUser) {
+          setCurrentUser(phoneUser as User);
+          return;
+        }
+      } catch {
+        // No active phone session.
+      }
+      setCurrentUser(null);
+      api.clearToken();
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { void refreshUser(); }, []);
+  useEffect(() => { refreshUser(); }, []);
 
-  const login = async (input: LoginInput) => {
-    setError(null);
+  const login = async (email: string, pass: string) => {
+    setLoading(true);
     try {
-      const res = await api.auth.login(input);
-      if (typeof window !== "undefined") localStorage.setItem("skillbarter_token", res.accessToken);
-      setUser(res.user);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to log in";
-      setError(msg);
-      throw err;
+      clearPhoneSession();
+      await api.login(email, pass);
+      await refreshUser();
+    } finally {
+      setLoading(false);
     }
   };
 
-  const establishOtpSession = (result: { user: AuthUser; accessToken: string }) => {
-    if (typeof window !== "undefined") localStorage.setItem("skillbarter_token", result.accessToken);
-    setUser(result.user);
-  };
-
-  const requestPhoneOtp = async (phone: string) => api.auth.requestPhoneOtp(phone);
-  const verifyPhoneOtp = async (phone: string, otp: string, challengeId: string) => {
-    setError(null);
-    const result = await api.auth.verifyPhoneOtp(phone, otp, challengeId);
-    establishOtpSession(result);
-  };
-  const requestEmailOtp = async (email: string) => { setError(null); await api.auth.requestEmailOtp(email); };
-  const verifyEmailOtp = async (email: string, otp: string) => {
-    setError(null);
-    const result = await api.auth.verifyEmailOtp(email, otp);
-    establishOtpSession(result);
-  };
-
-  const register = async (input: RegisterInput): Promise<string | undefined> => {
-    setError(null);
+  const handleRequestPhoneOtp = async (phone: string) => {
+    setLoading(true);
     try {
-      const res = await api.auth.register(input);
-      if (typeof window !== "undefined") localStorage.removeItem("skillbarter_token");
-      setUser(null);
-      return res.verificationToken;
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Registration failed";
-      setError(msg);
-      throw err;
+      return await requestPhoneOtp(phone);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleVerifyPhoneOtp = async (phone: string, otp: string) => {
+    setLoading(true);
+    try {
+      const user = await verifyPhoneOtp(phone, otp);
+      setCurrentUser(user as User);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (payload: any) => {
+    setLoading(true);
+    try {
+      clearPhoneSession();
+      await api.register(payload);
+      await refreshUser();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRequestEmailOtp = async (email: string) => {
+    setLoading(true);
+    try { await requestEmailOtp(email); } finally { setLoading(false); }
+  };
+
+  const handleVerifyEmailOtp = async (email: string, otp: string) => {
+    setLoading(true);
+    try {
+      clearPhoneSession();
+      const user = await verifyEmailOtp(email, otp);
+      if (!user) throw new Error('Email OTP verified, but the SkillBarter profile could not be loaded.');
+      setCurrentUser(user as User);
+    } finally { setLoading(false); }
   };
 
   const logout = async () => {
-    try { await api.auth.logout(); } catch { /* ignore network errors */ }
-    finally {
-      if (typeof window !== "undefined") localStorage.removeItem("skillbarter_token");
-      setUser(null);
+    try {
+      await api.logout();
+    } finally {
+      clearPhoneSession();
+      setCurrentUser(null);
+    }
+  };
+
+  const demoSwitchUser = async (userId: number) => {
+    setLoading(true);
+    try {
+      await api.demoSwitch(userId);
+      await refreshUser();
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, requestPhoneOtp, verifyPhoneOtp, requestEmailOtp, verifyEmailOtp, register, logout, refreshUser, setUser }}>
+    <AuthContext.Provider value={{ currentUser, loading, login, requestPhoneOtp: handleRequestPhoneOtp, verifyPhoneOtp: handleVerifyPhoneOtp, requestEmailOtp: handleRequestEmailOtp, verifyEmailOtp: handleVerifyEmailOtp, register, logout, demoSwitchUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
-}
+};
