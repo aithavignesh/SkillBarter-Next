@@ -53,7 +53,7 @@ describe("Community post likes", () => {
     expect(duplicateLike.likedByMe).toBe(true);
 
     const listed = await communityService.listPosts(1, 20, member._id.toString());
-    expect(listed.posts[0].likedByMe).toBe(true);
+    expect(listed.posts[0]?.likedByMe).toBe(true);
 
     const unlike = await communityService.unlikePost(post._id.toString(), member._id.toString());
     expect(unlike.likesCount).toBe(0);
