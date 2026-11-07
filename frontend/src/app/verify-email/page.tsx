@@ -10,8 +10,11 @@ function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [token, setToken] = useState("");
+  const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [resending, setResending] = useState(false);
   const [message, setMessage] = useState("");
+  const [notice, setNotice] = useState("");
 
   const handleVerify = async (tok: string) => {
     setStatus("loading");
@@ -31,7 +34,9 @@ function VerifyEmailContent() {
     // Do not consume a verification token on page load: email security scanners
     // may prefetch links. Require an explicit user click to verify the account.
     const queryToken = searchParams.get("token");
+    const queryEmail = searchParams.get("email");
     if (queryToken) setToken(queryToken);
+    if (queryEmail) setEmail(queryEmail);
   }, [searchParams]);
 
   return (
@@ -64,6 +69,44 @@ function VerifyEmailContent() {
                 {status === "loading" ? "Verifying..." : "Verify Account"}
               </button>
             </form>
+            <div className="border-t border-slate-200 pt-5 text-left">
+              <h3 className="text-sm font-semibold text-slate-900">Didn't receive the email?</h3>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setNotice("");
+                  setResending(true);
+                  try {
+                    await api.auth.resendVerification(email.trim());
+                    setNotice("If this address has an unverified account, a new verification email has been sent.");
+                  } catch (err: unknown) {
+                    setNotice(err instanceof Error ? err.message : "Unable to resend the verification email. Please try again later.");
+                  } finally {
+                    setResending(false);
+                  }
+                }}
+                className="mt-3 space-y-3"
+              >
+                <label htmlFor="verification-email" className="block text-xs font-semibold uppercase tracking-wide text-slate-700">Email address</label>
+                <input
+                  id="verification-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
+                />
+                <button
+                  type="submit"
+                  disabled={resending || !email.trim()}
+                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d31d24] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {resending ? "Sending..." : "Resend verification email"}
+                </button>
+              </form>
+              {notice && <p role="status" aria-live="polite" className="mt-3 text-sm text-slate-600">{notice}</p>}
+            </div>
           </div>
         )}
       </div>
