@@ -43,7 +43,7 @@ export const envSchema = envBaseSchema.superRefine((value, context) => {
 
   // Email verification and password recovery are required production capabilities.
   // EMAIL_DISABLED is only a development/test convenience and must never bypass this gate.
-  for (const key of ["RESEND_API_KEY", "EMAIL_FROM"] as const) {
+  for (const key of ["RESEND_API_KEY", "EMAIL_FROM", "TWOFACTOR_API_KEY"] as const) {
     if (!process.env[key]?.trim()) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
