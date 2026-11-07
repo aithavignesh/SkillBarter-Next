@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
 import { AppPageShell } from "../../components/ui/AppPageShell";
@@ -40,7 +40,7 @@ export default function DiscoverPage() {
   const [proposalError, setProposalError] = useState<string | null>(null);
   const [proposalSuccess, setProposalSuccess] = useState<string | null>(null);
 
-  const fetchMatches = async () => {
+  const fetchMatches = useCallback(async () => {
     const requestId = ++matchesRequestId.current;
     setLoading(true);
     setLoadError(null);
@@ -55,7 +55,7 @@ export default function DiscoverPage() {
     } finally {
       if (requestId === matchesRequestId.current) setLoading(false);
     }
-  };
+  }, [category, search, format]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -66,7 +66,7 @@ export default function DiscoverPage() {
       // Invalidate an in-flight request as soon as the filters or user change.
       matchesRequestId.current += 1;
     };
-  }, [category, format, search, user]);
+  }, [category, format, search, user, fetchMatches]);
 
   useEffect(() => {
     if (!user) {
