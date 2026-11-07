@@ -591,7 +591,7 @@ export class ExchangesService {
     userId: string,
     input: UpdateSessionStatusInput
   ): Promise<ExchangeSessionDto> {
-    const session = await ExchangeSession.findById(sessionId);
+    let session = await ExchangeSession.findById(sessionId);
     if (!session) {
       throw new AppError("Session not found", 404, "NOT_FOUND");
     }
