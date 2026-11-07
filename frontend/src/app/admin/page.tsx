@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
@@ -37,7 +37,7 @@ function AdminDashboardContent() {
   }, [searchParams]);
   const [loading, setLoading] = useState(true);
 
-  const fetchAdminData = async () => {
+  const fetchAdminData = useCallback(async () => {
     try {
       // Load each admin section independently so one failed endpoint does not
       // leave every dashboard table empty.
@@ -65,7 +65,7 @@ function AdminDashboardContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [usersPage, userSearch, userRoleFilter, reportsPage, reportStatusFilter, auditPage, auditActionFilter, auditFromDate, auditToDate]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -75,7 +75,7 @@ function AdminDashboardContent() {
       }
       fetchAdminData();
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, fetchAdminData]);
 
 
   const changeUsersPage = async (nextPage: number) => {
