@@ -374,6 +374,10 @@ export const api = {
         body: JSON.stringify(input),
       }),
     listPosts: (page = 1) => fetchApi<CommunityPostDto[]>(`/community/posts?page=${page}`),
+    likePost: (id: string) =>
+      fetchApi<{ post: CommunityPostDto }>(`/community/posts/${id}/like`, { method: "POST" }),
+    unlikePost: (id: string) =>
+      fetchApi<{ post: CommunityPostDto }>(`/community/posts/${id}/like`, { method: "DELETE" }),
     deletePost: (id: string) =>
       fetchApi<{ message: string }>(`/community/posts/${id}`, { method: "DELETE" }),
   },
