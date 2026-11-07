@@ -42,6 +42,7 @@ Configure these in the hosting provider's secret/environment settings. Never com
 | `ADMIN_BOOTSTRAP_SECRET` | Yes | Separate one-time administrator bootstrap secret (32+ characters); never reuse a JWT secret | Set as a secret |
 | `RESEND_API_KEY` | Yes | Resend API key stored as a secret | Set as a secret |
 | `EMAIL_FROM` | Yes | Sender identity on a domain verified in Resend | `SkillBarter <noreply@yourdomain.com>` |
+| `TWOFACTOR_API_KEY` | Yes | 2Factor API key for SMS OTP; the current implementation supports Indian `+91` numbers | Set as a secret |
 | `ACCESS_TOKEN_TTL` | No | Access-token lifetime | `15m` |
 | `REFRESH_TOKEN_TTL` | No | Refresh-token lifetime | `7d` |
 
@@ -57,7 +58,14 @@ Production startup now fails fast if the MongoDB URI, both JWT secrets, or Resen
 
 The API sends verification emails with a 24-hour link and password-reset emails with a one-hour link. Provider keys are never exposed to the frontend. In non-production environments, tokens remain available to the existing development/test flows.
 
-## 6. Production Hardening Checklist
+## 6. SMS OTP Setup (2Factor)
+1. Create and activate a 2Factor account with SMS OTP enabled for Indian `+91` mobile numbers.
+2. Store the API key as `TWOFACTOR_API_KEY` in the Render staging backend's secret environment variables.
+3. Deploy the backend and request a phone OTP using a dedicated test number that the team controls.
+4. Confirm the SMS actually arrives on the handset, then verify it through the `/api/v1/auth/phone/verify-otp` endpoint. An HTTP success response from the request endpoint alone is not proof of delivery.
+5. If the provider rejects the request or delivery is delayed, check the provider dashboard and backend logs without exposing the API key or recipient details.
+
+## 7. Production Hardening Checklist
 1. **HTTPS & Cookie Security**: In production, auth cookies are `Secure=true`, `SameSite=strict`, and `HttpOnly=true`.
 2. **CORS Restrictions**: Express restricts allowed CORS origins to `FRONTEND_URL` with credentials enabled.
 3. **Sensitive Logs**: Request logging strips password, token, authorization, and cookie values.
