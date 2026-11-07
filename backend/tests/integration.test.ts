@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app } from "../src/app";
 import { env } from "../src/config/env";
+import { User } from "../src/models/User";
 
 describe("SkillBarter Two-User Complete Exchange Lifecycle", () => {
   let userAToken: string;
@@ -31,9 +32,21 @@ describe("SkillBarter Two-User Complete Exchange Lifecycle", () => {
     userAId = resA.body.data.user.id;
 
     // Registration creates an active account and authenticated session immediately.
-    expect(resA.body.data.user.isEmailVerified).toBe(true);
+    expect(resA.body.data.user.isEmailVerified).toBe(false);
     expect(resA.body.data.accessToken).toBeDefined();
     userAToken = resA.body.data.accessToken;
+
+    const ownProfile = await request(app)
+      .get("/api/v1/auth/me")
+      .set("Authorization", `Bearer ${userAToken}`);
+    expect(ownProfile.status).toBe(200);
+    expect(ownProfile.body.data.user.isEmailVerified).toBe(false);
+
+    const gatedFeature = await request(app)
+      .get("/api/v1/skills/user")
+      .set("Authorization", `Bearer ${userAToken}`);
+    expect(gatedFeature.status).toBe(403);
+    expect(gatedFeature.body.error.code).toBe("EMAIL_NOT_VERIFIED");
 
     // User B
     const resB = await request(app)
@@ -49,7 +62,7 @@ describe("SkillBarter Two-User Complete Exchange Lifecycle", () => {
     userBId = resB.body.data.user.id;
 
     // User B also receives an authenticated session without email verification.
-    expect(resB.body.data.user.isEmailVerified).toBe(true);
+    expect(resB.body.data.user.isEmailVerified).toBe(false);
     expect(resB.body.data.accessToken).toBeDefined();
     userBToken = resB.body.data.accessToken;
   });
@@ -134,6 +147,34 @@ describe("SkillBarter Two-User Complete Exchange Lifecycle", () => {
 
     expect(onboardB.status).toBe(200);
     expect(onboardB.body.data.user.onboardingCompleted).toBe(true);
+  });
+
+  it("3a. verifies both accounts after allowing unverified onboarding", async () => {
+    const [userA, userB] = await Promise.all([
+      User.findById(userAId),
+      User.findById(userBId),
+    ]);
+    expect(userA?.isEmailVerified).toBe(false);
+    expect(userB?.isEmailVerified).toBe(false);
+    expect(userA?.verificationToken).toBeTruthy();
+    expect(userB?.verificationToken).toBeTruthy();
+
+    const verifyA = await request(app)
+      .post("/api/v1/auth/verify-email")
+      .send({ token: userA!.verificationToken });
+    const verifyB = await request(app)
+      .post("/api/v1/auth/verify-email")
+      .send({ token: userB!.verificationToken });
+
+    expect(verifyA.status).toBe(200);
+    expect(verifyA.body.data.user.isEmailVerified).toBe(true);
+    expect(verifyB.status).toBe(200);
+    expect(verifyB.body.data.user.isEmailVerified).toBe(true);
+
+    const protectedSkills = await request(app)
+      .get("/api/v1/skills/user")
+      .set("Authorization", `Bearer ${userAToken}`);
+    expect(protectedSkills.status).toBe(200);
   });
 
   it("4. User A discovers User B with perfect reciprocal matching", async () => {

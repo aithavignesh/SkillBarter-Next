@@ -18,7 +18,7 @@ import {
   generateSecureToken,
   verifyRefreshToken,
 } from "../../utils/security";
-import { sendLoginOtpEmail, sendPasswordResetEmail, sendVerificationEmail } from "../../utils/email";
+import { isEmailConfigured, sendLoginOtpEmail, sendPasswordResetEmail, sendVerificationEmail } from "../../utils/email";
 import { env } from "../../config/env";
 import { AppError } from "../../middleware/errorHandler";
 
@@ -43,6 +43,19 @@ export function formatAuthUser(user: IUser): AuthUser {
 
 const AUTH_RESEND_COOLDOWN_MS = 60_000;
 
+function requireEmailDeliveryConfiguration(): void {
+  if (
+    !isEmailConfigured() ||
+    (env.NODE_ENV !== "production" && env.EMAIL_DISABLED === "true")
+  ) {
+    throw new AppError(
+      "Email delivery is not configured on this server. Please try again later.",
+      503,
+      "EMAIL_NOT_CONFIGURED"
+    );
+  }
+}
+
 async function enforceResendCooldown(channel: "email" | "phone", destination: string): Promise<void> {
   const key = createHash("sha256").update(channel + ":" + destination.trim().toLowerCase()).digest("hex");
   try {
@@ -65,7 +78,7 @@ async function releaseResendCooldown(channel: "email" | "phone", destination: st
 }
 
 export class AuthService {
-  async register(input: RegisterInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
+  async register(input: RegisterInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string; verificationEmailSent: boolean }> {
     let normalizedPhone = input.phone.replace(/[\s()-]/g, "");
     if (/^\d{10}$/.test(normalizedPhone)) normalizedPhone = "+91" + normalizedPhone;
     else if (/^91\d{10}$/.test(normalizedPhone)) normalizedPhone = "+" + normalizedPhone;
@@ -78,13 +91,16 @@ export class AuthService {
     }
 
     const passwordHash = await hashPassword(input.password);
+    const verificationToken = generateSecureToken();
     const user = await User.create({
       email: input.email.toLowerCase().trim(),
       phone: normalizedPhone,
       passwordHash,
       displayName: input.displayName.trim(),
       role: "user",
-      isEmailVerified: true,
+      isEmailVerified: false,
+      verificationToken,
+      verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
     await AnalyticsEvent.create({
@@ -94,7 +110,22 @@ export class AuthService {
       timestamp: new Date(),
     });
 
-    return this.createSession(user);
+    let verificationEmailSent = false;
+    try {
+      verificationEmailSent = await sendVerificationEmail(
+        user.email,
+        user.displayName,
+        verificationToken
+      );
+    } catch (error) {
+      // Keep the unverified account so the user can complete onboarding and
+      // retry delivery through the resend-verification endpoint.
+      console.error("[auth] Registration verification email failed.", {
+        reason: error instanceof Error ? error.message.slice(0, 160) : "unknown",
+      });
+    }
+
+    return { ...this.createSession(user), verificationEmailSent };
   }
 
   async login(input: LoginInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
@@ -194,6 +225,7 @@ export class AuthService {
   }
 
   async resendVerificationEmail(emailInput: string): Promise<void> {
+    requireEmailDeliveryConfiguration();
     const email = emailInput.trim().toLowerCase();
     const user = await User.findOne({ email });
     // Do not reveal whether an address is registered or already verified.
@@ -206,17 +238,22 @@ export class AuthService {
     await user.save();
 
     try {
-      await sendVerificationEmail(user.email, user.displayName, verificationToken);
+      const sent = await sendVerificationEmail(user.email, user.displayName, verificationToken);
+      if (!sent) {
+        throw new AppError("Email delivery is not configured on this server. Please try again later.", 503, "EMAIL_NOT_CONFIGURED");
+      }
     } catch (error) {
+      await releaseResendCooldown("email", email);
+      if (error instanceof AppError) throw error;
       console.error("[auth] Verification email resend failed.", {
         reason: error instanceof Error ? error.message.slice(0, 160) : "unknown",
       });
-      await releaseResendCooldown("email", email);
       throw new AppError("The verification email provider is unavailable. Please try again later.", 503, "EMAIL_DELIVERY_FAILED");
     }
   }
 
   async requestEmailOtp(emailInput: string): Promise<void> {
+    requireEmailDeliveryConfiguration();
     const email = emailInput.trim().toLowerCase();
     const user = await User.findOne({ email });
     if (!user || user.isSuspended) return;
@@ -226,10 +263,14 @@ export class AuthService {
     const codeHash = createHash("sha256").update(code).digest("hex");
     await OtpChallenge.create({ email, codeHash, expiresAt: new Date(Date.now() + 5 * 60 * 1000), attempts: 0 });
     try {
-      await sendLoginOtpEmail(email, user.displayName, code);
-    } catch {
+      const sent = await sendLoginOtpEmail(email, user.displayName, code);
+      if (!sent) {
+        throw new AppError("Email delivery is not configured on this server. Please try again later.", 503, "EMAIL_NOT_CONFIGURED");
+      }
+    } catch (error) {
       await OtpChallenge.deleteMany({ email, codeHash });
       await releaseResendCooldown("email", email);
+      if (error instanceof AppError) throw error;
       throw new AppError("Unable to send email OTP right now. Please try again later.", 503, "EMAIL_DELIVERY_FAILED");
     }
   }

@@ -4,9 +4,20 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
+import type { AuthUser } from "@skillbarter/shared";
 import { AlertCircle, CheckCircle2, KeyRound, LogIn, Mail, Phone } from "lucide-react";
 
 type Mode = "phone" | "emailOtp" | "password";
+
+function getPostLoginPath(user: AuthUser): string {
+  if (!user.isEmailVerified) {
+    return user.onboardingCompleted
+      ? `/verify-email?email=${encodeURIComponent(user.email)}`
+      : "/onboarding";
+  }
+  if (!user.onboardingCompleted) return "/onboarding";
+  return user.role === "owner" || user.role === "admin" ? "/admin" : "/dashboard";
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -65,8 +76,8 @@ export default function LoginPage() {
     e.preventDefault();
     void run(async () => {
       if (!challengeId) throw new Error("Request a new OTP first.");
-      await verifyPhoneOtp(phone.trim(), phoneOtp.trim(), challengeId);
-      router.push("/dashboard");
+      const signedInUser = await verifyPhoneOtp(phone.trim(), phoneOtp.trim(), challengeId);
+      router.push(getPostLoginPath(signedInUser));
     });
   };
 
@@ -81,8 +92,8 @@ export default function LoginPage() {
         return;
       }
       if (!/^\d{6}$/.test(emailOtp.trim())) throw new Error("Enter the complete 6-digit email OTP.");
-      await verifyEmailOtp(email.trim(), emailOtp.trim());
-      router.push("/dashboard");
+      const signedInUser = await verifyEmailOtp(email.trim(), emailOtp.trim());
+      router.push(getPostLoginPath(signedInUser));
     });
   };
 
@@ -90,7 +101,7 @@ export default function LoginPage() {
     e.preventDefault();
     void run(async () => {
       const signedInUser = await login({ email: email.trim(), password });
-      router.push(signedInUser.role === "owner" || signedInUser.role === "admin" ? "/admin" : "/dashboard");
+      router.push(getPostLoginPath(signedInUser));
     });
   };
 

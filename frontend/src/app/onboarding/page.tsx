@@ -102,7 +102,7 @@ export default function OnboardingPage() {
         wantedSkills: validWanted,
       });
       setUser(res.user);
-      router.push("/dashboard");
+      router.push(res.user.isEmailVerified ? "/dashboard" : `/verify-email?email=${encodeURIComponent(res.user.email)}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to save onboarding profile");
     } finally {

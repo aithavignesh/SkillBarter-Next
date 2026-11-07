@@ -10,9 +10,9 @@ interface AuthContextType {
   error: string | null;
   login: (input: LoginInput) => Promise<AuthUser>;
   requestPhoneOtp: (phone: string) => Promise<{ challengeId: string; phone: string }>;
-  verifyPhoneOtp: (phone: string, otp: string, challengeId: string) => Promise<void>;
+  verifyPhoneOtp: (phone: string, otp: string, challengeId: string) => Promise<AuthUser>;
   requestEmailOtp: (email: string) => Promise<void>;
-  verifyEmailOtp: (email: string, otp: string) => Promise<void>;
+  verifyEmailOtp: (email: string, otp: string) => Promise<AuthUser>;
   register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -60,16 +60,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const requestPhoneOtp = async (phone: string) => api.auth.requestPhoneOtp(phone);
-  const verifyPhoneOtp = async (phone: string, otp: string, challengeId: string) => {
+  const verifyPhoneOtp = async (phone: string, otp: string, challengeId: string): Promise<AuthUser> => {
     setError(null);
     const result = await api.auth.verifyPhoneOtp(phone, otp, challengeId);
     establishOtpSession(result);
+    return result.user;
   };
   const requestEmailOtp = async (email: string) => { setError(null); await api.auth.requestEmailOtp(email); };
-  const verifyEmailOtp = async (email: string, otp: string) => {
+  const verifyEmailOtp = async (email: string, otp: string): Promise<AuthUser> => {
     setError(null);
     const result = await api.auth.verifyEmailOtp(email, otp);
     establishOtpSession(result);
+    return result.user;
   };
 
   const register = async (input: RegisterInput): Promise<void> => {
