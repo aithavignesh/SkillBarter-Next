@@ -73,7 +73,7 @@ export default function MatchesPage() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, user?.isEmailVerified]);
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading) void loadMatches();
