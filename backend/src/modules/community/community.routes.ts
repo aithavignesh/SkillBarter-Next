@@ -13,4 +13,6 @@ communityRouter.get("/connections", authenticate, (req, res, next) => communityC
 // Community Posts
 communityRouter.post("/posts", authenticate, (req, res, next) => communityController.createPost(req, res, next));
 communityRouter.get("/posts", optionalAuth, (req, res, next) => communityController.listPosts(req, res, next));
+communityRouter.post("/posts/:id/like", authenticate, (req, res, next) => communityController.likePost(req, res, next));
+communityRouter.delete("/posts/:id/like", authenticate, (req, res, next) => communityController.unlikePost(req, res, next));
 communityRouter.delete("/posts/:id", authenticate, (req, res, next) => communityController.deletePost(req, res, next));

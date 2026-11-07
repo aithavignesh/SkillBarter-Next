@@ -182,12 +182,13 @@ export class CommunityService {
       content: post.content,
       tags: post.tags,
       likesCount: post.likesCount,
+      likedByMe: false,
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),
     };
   }
 
-  async listPosts(page = 1, limit = 20): Promise<{ posts: CommunityPostDto[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  async listPosts(page = 1, limit = 20, viewerId?: string): Promise<{ posts: CommunityPostDto[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
     const normalizedPage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
     const normalizedLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 20;
     const skip = (normalizedPage - 1) * normalizedLimit;
@@ -201,21 +202,7 @@ export class CommunityService {
       CommunityPost.countDocuments(),
     ]);
 
-    const formatted: CommunityPostDto[] = posts.map((p) => {
-      const author = p.authorId as unknown as { displayName?: string; avatarUrl?: string };
-      return {
-        id: p._id.toString(),
-        authorId: p.authorId._id ? p.authorId._id.toString() : p.authorId.toString(),
-        authorName: author?.displayName,
-        authorAvatar: author?.avatarUrl,
-        title: p.title,
-        content: p.content,
-        tags: p.tags,
-        likesCount: p.likesCount,
-        createdAt: p.createdAt.toISOString(),
-        updatedAt: p.updatedAt.toISOString(),
-      };
-    });
+    const formatted: CommunityPostDto[] = posts.map((post) => this.formatPost(post, viewerId));
 
     return {
       posts: formatted,
@@ -226,6 +213,80 @@ export class CommunityService {
         totalPages: Math.ceil(total / normalizedLimit),
       },
     };
+  }
+
+  private formatPost(post: ICommunityPost, viewerId?: string): CommunityPostDto {
+    const author = post.authorId as unknown as {
+      _id?: mongoose.Types.ObjectId;
+      displayName?: string;
+      avatarUrl?: string;
+    };
+    const likedBy = post.likedBy ?? [];
+
+    return {
+      id: post._id.toString(),
+      authorId: author?._id ? author._id.toString() : post.authorId.toString(),
+      authorName: author?.displayName,
+      authorAvatar: author?.avatarUrl,
+      title: post.title,
+      content: post.content,
+      tags: post.tags,
+      likesCount: post.likesCount,
+      likedByMe: viewerId ? likedBy.some((id) => id.toString() === viewerId) : false,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),
+    };
+  }
+
+  private async assertPostInteractionAllowed(postId: string, userId: string): Promise<void> {
+    if (!mongoose.Types.ObjectId.isValid(postId) || !mongoose.Types.ObjectId.isValid(userId)) {
+      throw new AppError("Invalid post or member ID", 400, "INVALID_ID");
+    }
+
+    const post = await CommunityPost.findById(postId).select("authorId");
+    if (!post) {
+      throw new AppError("Post not found", 404, "NOT_FOUND");
+    }
+
+    if (post.authorId.toString() === userId) return;
+
+    const isBlocked = await Block.findOne({
+      $or: [
+        { blockerId: post.authorId, blockedUserId: userId },
+        { blockerId: userId, blockedUserId: post.authorId },
+      ],
+    });
+    if (isBlocked) {
+      throw new AppError("Cannot interact with this member's post", 403, "BLOCKED");
+    }
+  }
+
+  async likePost(postId: string, userId: string): Promise<CommunityPostDto> {
+    await this.assertPostInteractionAllowed(postId, userId);
+    const actorId = new mongoose.Types.ObjectId(userId);
+    const updated = await CommunityPost.findOneAndUpdate(
+      { _id: postId, likedBy: { $ne: actorId } },
+      { $addToSet: { likedBy: actorId }, $inc: { likesCount: 1 } },
+      { new: true, runValidators: true },
+    ).populate("authorId", "displayName avatarUrl");
+
+    const post = updated ?? await CommunityPost.findById(postId).populate("authorId", "displayName avatarUrl");
+    if (!post) throw new AppError("Post not found", 404, "NOT_FOUND");
+    return this.formatPost(post, userId);
+  }
+
+  async unlikePost(postId: string, userId: string): Promise<CommunityPostDto> {
+    await this.assertPostInteractionAllowed(postId, userId);
+    const actorId = new mongoose.Types.ObjectId(userId);
+    const updated = await CommunityPost.findOneAndUpdate(
+      { _id: postId, likedBy: actorId },
+      { $pull: { likedBy: actorId }, $inc: { likesCount: -1 } },
+      { new: true, runValidators: true },
+    ).populate("authorId", "displayName avatarUrl");
+
+    const post = updated ?? await CommunityPost.findById(postId).populate("authorId", "displayName avatarUrl");
+    if (!post) throw new AppError("Post not found", 404, "NOT_FOUND");
+    return this.formatPost(post, userId);
   }
 
   async deletePost(postId: string, userId: string, isAdmin = false): Promise<void> {

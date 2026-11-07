@@ -35,6 +35,7 @@ export interface CommunityPostDto {
   content: string;
   tags: string[];
   likesCount: number;
+  likedByMe: boolean;
   createdAt: string;
   updatedAt: string;
 }
