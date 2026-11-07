@@ -6,6 +6,7 @@ export interface ICommunityPost extends Document {
   content: string;
   tags: string[];
   likesCount: number;
+  likedBy?: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +18,7 @@ const communityPostSchema = new Schema<ICommunityPost>(
     content: { type: String, required: true, trim: true },
     tags: [{ type: String, trim: true }],
     likesCount: { type: Number, default: 0, min: 0 },
+    likedBy: { type: [{ type: Schema.Types.ObjectId, ref: "User" }], default: [] },
   },
   { timestamps: true }
 );
