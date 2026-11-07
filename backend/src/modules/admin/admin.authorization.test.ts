@@ -50,11 +50,19 @@ describe("Admin authorization boundaries", () => {
       role: "user",
       isEmailVerified: false,
     });
+    const otherAdmin = await User.create({
+      email: "authorization-other-admin-" + suffix + "@example.com",
+      passwordHash: "test-hash",
+      displayName: "Second Administrator",
+      role: "admin",
+      isEmailVerified: true,
+    });
     createdUserIds.push(
       admin._id.toString(),
       owner._id.toString(),
       target._id.toString(),
       unverifiedTarget._id.toString(),
+      otherAdmin._id.toString(),
     );
 
     const adminToken = signAccessToken({
@@ -103,6 +111,32 @@ describe("Admin authorization boundaries", () => {
     expect(deniedAdminSuspension.status).toBe(403);
     expect(deniedAdminSuspension.body.error.code).toBe("OWNER_REQUIRED");
 
+    const deniedOtherAdminSuspension = await request(app)
+      .patch("/api/v1/admin/users/" + otherAdmin._id.toString())
+      .set("Authorization", "Bearer " + adminToken)
+      .send({ isSuspended: true, suspensionReason: "Unauthorized administrator suspension" });
+    expect(deniedOtherAdminSuspension.status).toBe(403);
+    expect(deniedOtherAdminSuspension.body.error.code).toBe("OWNER_REQUIRED");
+
+    const adminReport = await Report.create({
+      reporterId: target._id,
+      targetType: "user",
+      targetId: otherAdmin._id.toString(),
+      reason: "Impersonation",
+      description: "This report is a fixture for administrator protection testing.",
+      status: "PENDING",
+    });
+    const deniedReportAdminSuspension = await request(app)
+      .patch("/api/v1/admin/reports/" + adminReport._id.toString())
+      .set("Authorization", "Bearer " + adminToken)
+      .send({
+        status: "RESOLVED",
+        actionTaken: "account_suspended",
+        moderationNotes: "Unauthorized administrator suspension attempt",
+      });
+    expect(deniedReportAdminSuspension.status).toBe(403);
+    expect(deniedReportAdminSuspension.body.error.code).toBe("OWNER_REQUIRED");
+
     const ownerReport = await Report.create({
       reporterId: target._id,
       targetType: "user",
@@ -123,7 +157,7 @@ describe("Admin authorization boundaries", () => {
     expect(deniedReportSuspension.body.error.code).toBe("OWNER_PROTECTED");
 
     const ownerSuspendsAdmin = await request(app)
-      .patch("/api/v1/admin/users/" + admin._id.toString())
+      .patch("/api/v1/admin/users/" + otherAdmin._id.toString())
       .set("Authorization", "Bearer " + ownerToken)
       .send({ isSuspended: true, suspensionReason: "Owner-authorized test" });
     expect(ownerSuspendsAdmin.status).toBe(200);
