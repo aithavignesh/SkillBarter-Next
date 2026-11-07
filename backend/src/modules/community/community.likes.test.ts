@@ -64,6 +64,62 @@ describe("Community post likes", () => {
     expect(duplicateUnlike.likedByMe).toBe(false);
   });
 
+  it("hides posts from members blocked in either direction while keeping the viewer's own posts", async () => {
+    const suffix = Date.now() + "-" + Math.random().toString(36).slice(2);
+    const viewer = await User.create({
+      email: "post-visibility-viewer-" + suffix + "@example.com",
+      passwordHash: "test-hash",
+      displayName: "Feed Viewer",
+      isEmailVerified: true,
+    });
+    const blockedByViewer = await User.create({
+      email: "post-visibility-outgoing-" + suffix + "@example.com",
+      passwordHash: "test-hash",
+      displayName: "Member Blocked by Viewer",
+      isEmailVerified: true,
+    });
+    const blocker = await User.create({
+      email: "post-visibility-incoming-" + suffix + "@example.com",
+      passwordHash: "test-hash",
+      displayName: "Member Blocking Viewer",
+      isEmailVerified: true,
+    });
+    userIds.push(viewer._id.toString(), blockedByViewer._id.toString(), blocker._id.toString());
+
+    const viewerPost = await CommunityPost.create({
+      authorId: viewer._id,
+      title: "Viewer's own post",
+      content: "The viewer should continue to see their own post.",
+      tags: ["own"],
+    });
+    const outgoingBlockedPost = await CommunityPost.create({
+      authorId: blockedByViewer._id,
+      title: "Post by member blocked by viewer",
+      content: "This post should be hidden from the viewer.",
+      tags: ["blocked"],
+    });
+    const incomingBlockedPost = await CommunityPost.create({
+      authorId: blocker._id,
+      title: "Post by member who blocked viewer",
+      content: "This post should also be hidden from the viewer.",
+      tags: ["blocked"],
+    });
+    postIds.push(
+      viewerPost._id.toString(),
+      outgoingBlockedPost._id.toString(),
+      incomingBlockedPost._id.toString(),
+    );
+    await Block.create({ blockerId: viewer._id, blockedUserId: blockedByViewer._id });
+    await Block.create({ blockerId: blocker._id, blockedUserId: viewer._id });
+
+    const result = await communityService.listPosts(1, 20, viewer._id.toString());
+    const visibleIds = result.posts.map((post) => post.id);
+    expect(visibleIds).toContain(viewerPost._id.toString());
+    expect(visibleIds).not.toContain(outgoingBlockedPost._id.toString());
+    expect(visibleIds).not.toContain(incomingBlockedPost._id.toString());
+    expect(result.meta.total).toBe(result.posts.length);
+  });
+
   it("prevents members from liking a post when either party has blocked the other", async () => {
     const suffix = Date.now() + "-" + Math.random().toString(36).slice(2);
     const author = await User.create({

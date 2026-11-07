@@ -193,13 +193,29 @@ export class CommunityService {
     const normalizedLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 20;
     const skip = (normalizedPage - 1) * normalizedLimit;
 
+    // A block is mutual for feed visibility: hide posts from members either
+    // blocked by the viewer or blocking the viewer.
+    const blockRelations = viewerId
+      ? await Block.find({
+          $or: [{ blockerId: viewerId }, { blockedUserId: viewerId }],
+        }).select("blockerId blockedUserId")
+      : [];
+    const hiddenAuthorIds = blockRelations.map((relation) =>
+      relation.blockerId.toString() === viewerId
+        ? relation.blockedUserId
+        : relation.blockerId,
+    );
+    const postFilter = hiddenAuthorIds.length
+      ? { authorId: { $nin: hiddenAuthorIds } }
+      : {};
+
     const [posts, total] = await Promise.all([
-      CommunityPost.find()
+      CommunityPost.find(postFilter)
         .populate("authorId", "displayName avatarUrl")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(normalizedLimit),
-      CommunityPost.countDocuments(),
+      CommunityPost.countDocuments(postFilter),
     ]);
 
     const formatted: CommunityPostDto[] = posts.map((post) => this.formatPost(post, viewerId));
