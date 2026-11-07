@@ -115,7 +115,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   if (error || !profile) {
     return (
       <div className="p-12 text-center">
-        <p className="text-rose-600 font-semibold">{error || "User not found"}</p>
+        <p className="text-rose-700 font-semibold">{error || "User not found"}</p>
         <Link href="/discover" className="mt-4 inline-block text-xs font-bold text-[#b71920]">
           ← Back to Discover
         </Link>
