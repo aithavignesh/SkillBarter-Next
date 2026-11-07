@@ -19,7 +19,7 @@ const sectionTargets: Record<string, string> = {
 
 const screenTargets: Record<string, string> = {
   dashboard: "/dashboard",
-  "edit-profile": "/settings",
+  "edit-profile": "/profile/edit",
   "public-profile": "/discover",
   skills: "/skills",
   "add-skill": "/skills",
