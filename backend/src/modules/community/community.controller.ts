@@ -76,8 +76,28 @@ export class CommunityController {
       const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
 
-      const result = await communityService.listPosts(page, limit);
+      const result = await communityService.listPosts(page, limit, req.user?._id.toString());
       sendSuccess(res, result.posts, result.meta);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async likePost(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
+      const post = await communityService.likePost(req.params.id as string, req.user._id.toString());
+      sendSuccess(res, { post });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async unlikePost(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
+      const post = await communityService.unlikePost(req.params.id as string, req.user._id.toString());
+      sendSuccess(res, { post });
     } catch (error) {
       next(error);
     }
