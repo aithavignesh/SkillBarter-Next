@@ -74,12 +74,7 @@ export function Navbar() {
         { href: "/messages", label: "Messages", icon: MessageSquare },
         { href: "/community", label: "Community", icon: Users },
         ...(["admin", "owner"].includes(user.role)
-          ? [
-              { href: "/admin?section=overview", label: "Admin Overview", icon: ShieldCheck },
-              { href: "/admin?section=users", label: "People", icon: Users },
-              { href: "/admin?section=reports", label: "Reports", icon: AlertTriangle },
-              { href: "/admin?section=audit", label: "Audit Trail", icon: History },
-            ]
+          ? [{ href: "/admin", label: "Admin", icon: ShieldCheck }]
           : []),
       ]
     : [

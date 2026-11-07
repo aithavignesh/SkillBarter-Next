@@ -316,7 +316,7 @@ function MessagesContent() {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
               <MessageSquare className="h-10 w-10 mb-2 text-slate-300" />
-              <p className="text-sm">Select a conversation to start messaging</p>
+              <p className="text-sm text-slate-600">Select a conversation to start messaging</p>
             </div>
           )}
         </div>

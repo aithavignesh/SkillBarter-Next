@@ -85,10 +85,11 @@ export default function ProfileEditPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+            <label htmlFor="profile-display-name" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
               Display Name
             </label>
             <input
+              id="profile-display-name"
               type="text"
               required
               value={displayName}
@@ -98,10 +99,11 @@ export default function ProfileEditPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+            <label htmlFor="profile-bio" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
               Bio
             </label>
             <textarea
+              id="profile-bio"
               rows={4}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
@@ -112,10 +114,11 @@ export default function ProfileEditPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+              <label htmlFor="profile-location" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                 Location
               </label>
               <input
+                id="profile-location"
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -124,10 +127,11 @@ export default function ProfileEditPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+              <label htmlFor="profile-session-format" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                 Session Format
               </label>
               <select
+                id="profile-session-format"
                 value={preferredSessionFormat}
                 onChange={(e) => setPreferredSessionFormat(e.target.value as any)}
                 className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
@@ -141,10 +145,11 @@ export default function ProfileEditPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+            <label htmlFor="profile-availability" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
               Availability
             </label>
             <input
+              id="profile-availability"
               type="text"
               value={availability}
               onChange={(e) => setAvailability(e.target.value)}

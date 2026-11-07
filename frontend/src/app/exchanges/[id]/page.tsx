@@ -158,7 +158,7 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
   if (error || !exchange) {
     return (
       <div className="p-12 text-center">
-        <p className="text-rose-600 font-semibold">{error || "Exchange not found"}</p>
+        <p className="text-rose-700 font-semibold">{error || "Exchange not found"}</p>
         <Link href="/exchanges" className="mt-4 inline-block text-xs font-bold text-indigo-600">
           ← Back to Exchanges
         </Link>
