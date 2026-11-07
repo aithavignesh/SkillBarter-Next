@@ -103,11 +103,21 @@ export class AdminService {
     if (!targetUser) {
       throw new AppError("User not found", 404, "NOT_FOUND");
     }
+    const actor = await User.findById(adminId).select("role");
+    if (!actor || !["admin", "owner"].includes(actor.role)) {
+      throw new AppError("Administrative privileges required", 403, "FORBIDDEN");
+    }
 
     const changes: Record<string, unknown> = {};
 
-    if ((targetUser.role as string) === "owner" && input.role !== undefined) {
-      throw new AppError("The platform owner role cannot be changed through user management", 403, "OWNER_PROTECTED");
+    if (targetUser.role === "owner" && (input.role !== undefined || input.isSuspended !== undefined)) {
+      throw new AppError("The platform owner account is protected from user-management changes", 403, "OWNER_PROTECTED");
+    }
+    if (input.role !== undefined && actor.role !== "owner") {
+      throw new AppError("Only the platform owner can grant or revoke administrator access", 403, "OWNER_REQUIRED");
+    }
+    if (targetUser.role === "admin" && input.isSuspended !== undefined && actor.role !== "owner") {
+      throw new AppError("Only the platform owner can suspend or restore an administrator account", 403, "OWNER_REQUIRED");
     }
 
     if (input.role !== undefined && input.role !== targetUser.role) {
@@ -209,18 +219,30 @@ export class AdminService {
     if (!report) {
       throw new AppError("Report not found", 404, "NOT_FOUND");
     }
+    const actor = await User.findById(adminId).select("role");
+    if (!actor || !["admin", "owner"].includes(actor.role)) {
+      throw new AppError("Administrative privileges required", 403, "FORBIDDEN");
+    }
+
+    if (input.actionTaken === "account_suspended" && report.targetType === "user") {
+      const targetUser = await User.findById(report.targetId);
+      if (targetUser?.role === "owner") {
+        throw new AppError("The platform owner account cannot be suspended through report moderation", 403, "OWNER_PROTECTED");
+      }
+      if (targetUser?.role === "admin" && actor.role !== "owner") {
+        throw new AppError("Only the platform owner can suspend or restore an administrator account", 403, "OWNER_REQUIRED");
+      }
+      if (targetUser) {
+        targetUser.isSuspended = true;
+        targetUser.suspensionReason = `Suspended following report review: ${input.moderationNotes || report.reason}`;
+        await targetUser.save();
+      }
+    }
 
     report.status = input.status;
     report.resolvedById = new mongoose.Types.ObjectId(adminId);
     if (input.moderationNotes) {
       report.moderationNotes = input.moderationNotes;
-    }
-
-    if (input.actionTaken === "account_suspended" && report.targetType === "user") {
-      await User.findByIdAndUpdate(report.targetId, {
-        isSuspended: true,
-        suspensionReason: `Suspended following report review: ${input.moderationNotes || report.reason}`,
-      });
     }
 
     await report.save();
