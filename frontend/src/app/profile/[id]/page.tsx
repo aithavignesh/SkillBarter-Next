@@ -44,6 +44,21 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   };
 
   useEffect(() => {
+    // Preserve legacy React Router profile subroutes instead of treating their
+    // slugs as MongoDB user IDs.
+    if (id === "edit-profile") {
+      router.replace("/profile/edit");
+      return;
+    }
+    if (id === "skills" || id === "add-skill") {
+      router.replace("/skills");
+      return;
+    }
+    if (id === "public-profile") {
+      if (user?.id) router.replace(`/profile/${user.id}`);
+      return;
+    }
+
     let active = true;
     setLoading(true);
     setError(null);
@@ -79,7 +94,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, router, user?.id]);
 
   const isOwner = user?.id === id;
 

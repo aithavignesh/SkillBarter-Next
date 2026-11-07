@@ -30,6 +30,11 @@ export default function LegacyConversationRedirect() {
       );
       return;
     }
+    // The legacy "chat-details" route was a workspace, not a member ID.
+    if (partnerId === "chat-details") {
+      router.replace("/messages");
+      return;
+    }
     if (!partnerId || partnerId === user.id) {
       router.replace("/messages");
       return;
