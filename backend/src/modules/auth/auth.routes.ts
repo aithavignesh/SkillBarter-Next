@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { authController } from "./auth.controller";
-import { authenticate } from "../../middleware/auth";
+import { authenticate, authenticateForOnboarding } from "../../middleware/auth";
 
 export const authRouter = Router();
 
@@ -82,7 +82,7 @@ authRouter.post(
 );
 authRouter.post("/email/verify-otp", authLimiter, (req, res, next) => authController.verifyEmailOtp(req, res, next));
 authRouter.post("/logout", (req, res, next) => authController.logout(req, res, next));
-authRouter.get("/me", authenticate, (req, res, next) => authController.getMe(req, res, next));
+authRouter.get("/me", authenticateForOnboarding, (req, res, next) => authController.getMe(req, res, next));
 authRouter.get("/verify-email/link", (req, res) => authController.verifyEmailLink(req, res));
 authRouter.post("/verify-email", authLimiter, (req, res, next) => authController.verifyEmail(req, res, next));
 authRouter.post("/forgot-password", authLimiter, (req, res, next) => authController.forgotPassword(req, res, next));
