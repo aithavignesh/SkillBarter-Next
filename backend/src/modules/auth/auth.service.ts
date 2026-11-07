@@ -65,7 +65,7 @@ async function releaseResendCooldown(channel: "email" | "phone", destination: st
 }
 
 export class AuthService {
-  async register(input: RegisterInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
+  async register(input: RegisterInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string; verificationEmailSent: boolean }> {
     let normalizedPhone = input.phone.replace(/[\s()-]/g, "");
     if (/^\d{10}$/.test(normalizedPhone)) normalizedPhone = "+91" + normalizedPhone;
     else if (/^91\d{10}$/.test(normalizedPhone)) normalizedPhone = "+" + normalizedPhone;
@@ -78,13 +78,16 @@ export class AuthService {
     }
 
     const passwordHash = await hashPassword(input.password);
+    const verificationToken = generateSecureToken();
     const user = await User.create({
       email: input.email.toLowerCase().trim(),
       phone: normalizedPhone,
       passwordHash,
       displayName: input.displayName.trim(),
       role: "user",
-      isEmailVerified: true,
+      isEmailVerified: false,
+      verificationToken,
+      verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
     await AnalyticsEvent.create({
@@ -94,7 +97,22 @@ export class AuthService {
       timestamp: new Date(),
     });
 
-    return this.createSession(user);
+    let verificationEmailSent = false;
+    try {
+      verificationEmailSent = await sendVerificationEmail(
+        user.email,
+        user.displayName,
+        verificationToken
+      );
+    } catch (error) {
+      // Keep the unverified account so the user can complete onboarding and
+      // retry delivery through the resend-verification endpoint.
+      console.error("[auth] Registration verification email failed.", {
+        reason: error instanceof Error ? error.message.slice(0, 160) : "unknown",
+      });
+    }
+
+    return { ...this.createSession(user), verificationEmailSent };
   }
 
   async login(input: LoginInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
