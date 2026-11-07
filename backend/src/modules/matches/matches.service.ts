@@ -65,6 +65,7 @@ export class MatchesService {
       _id: { $nin: excludedUserIds },
       isProfilePublic: true,
       isSuspended: false,
+      isEmailVerified: true,
       onboardingCompleted: true,
     };
 
