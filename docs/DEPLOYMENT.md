@@ -9,7 +9,9 @@ SkillBarter-Next is designed for cloud or containerized deployment:
 
 ## 2. Backend Deployment with Render
 
-A repository Blueprint is provided at `render.yaml`. In Render, create a new Blueprint instance and select this repository's `development` branch for a non-production validation deployment. The manifest builds the shared package and Express backend, starts the API workspace, and checks `/api/v1/ready`.
+A repository Blueprint is provided at `render.yaml`. It defines the staging service `skillbarter-next-api-staging`, pinned to this repository's `development` branch with `autoDeployTrigger: checksPass`, so it deploys only after linked GitHub checks pass. It must not track the production `main` branch or reuse the legacy production service. The manifest builds the shared package and Express backend, starts the API workspace, and checks `/api/v1/ready`.
+
+The staging `MONGODB_URI` must point only to the `skillbarter-dev` Atlas cluster and `skillbarter` database. Never use the legacy production database URI. After each deploy, compare `/api/v1/health` and `/api/v1/ready` `commit` and `branch` fields with the exact verified GitHub `development` SHA.
 
 Before the service can become ready, set the prompted environment values in Render:
 - `FRONTEND_URL`: the exact frontend origin (no trailing path).
