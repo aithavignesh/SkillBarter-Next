@@ -71,11 +71,20 @@ describe("Public profile privacy boundaries", () => {
       isEmailVerified: true,
       isProfilePublic: true,
     });
-    createdUserIds.push(member._id.toString());
+    const visitor = await User.create({
+      email: "profile-visibility-visitor-" + suffix + "@example.com",
+      passwordHash: "test-hash",
+      displayName: "Visibility Preference Visitor",
+      isEmailVerified: true,
+    });
+    createdUserIds.push(member._id.toString(), visitor._id.toString());
 
     const updated = await usersService.updateProfile(member._id.toString(), { isProfilePublic: false });
     expect(updated.isProfilePublic).toBe(false);
     expect(formatAuthUser(updated).isProfilePublic).toBe(false);
+    await expect(
+      usersService.getPublicProfile(member._id.toString(), visitor._id.toString()),
+    ).rejects.toMatchObject({ statusCode: 403, code: "PROFILE_PRIVATE" });
   });
 
 });
