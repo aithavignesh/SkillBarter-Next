@@ -9,7 +9,7 @@ SkillBarter-Next is designed for cloud or containerized deployment:
 
 ## 2. Backend Deployment with Render
 
-A repository Blueprint is provided at `render.yaml`. The staging API service is explicitly pinned to this repository's `development` branch and uses `autoDeployTrigger: checksPass`, so it deploys only after the linked GitHub checks pass. It must not track the production `main` branch. The manifest builds the shared package and Express backend, starts the API workspace, and checks `/api/v1/ready`.
+A repository Blueprint is provided at `render.yaml`. It defines the staging service `skillbarter-next-api-staging` (the origin used by the Vercel `development` preview), explicitly pinned to this repository's `development` branch with `autoDeployTrigger: checksPass`, so it deploys only after the linked GitHub checks pass. It must not track the production `main` branch or reuse the legacy production service. The manifest builds the shared package and Express backend, starts the API workspace, and checks `/api/v1/ready`.
 
 After each staging deploy, compare the API's `/api/v1/health` and `/api/v1/ready` `commit` and `branch` fields with the exact GitHub `development` SHA. Do not treat a successful health check without a matching commit as proof that the latest code is deployed.
 
