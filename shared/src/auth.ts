@@ -57,6 +57,7 @@ export interface AuthUser {
   role: "user" | "admin" | "owner";
   isEmailVerified: boolean;
   onboardingCompleted: boolean;
+  isProfilePublic?: boolean;
   avatarUrl?: string;
   bio?: string;
   location?: string;
