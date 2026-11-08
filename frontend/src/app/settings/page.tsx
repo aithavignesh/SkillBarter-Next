@@ -1,18 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { AppPageShell } from "../../components/ui/AppPageShell";
 import { api } from "../../services/api";
 import { ShieldCheck, Lock, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isProfilePublic, setIsProfilePublic] = useState(user?.isProfilePublic ?? true);
+  const [privacySaving, setPrivacySaving] = useState(false);
+  const [privacyError, setPrivacyError] = useState<string | null>(null);
+  const [privacySuccess, setPrivacySuccess] = useState(false);
+
+  useEffect(() => {
+    if (user) setIsProfilePublic(user.isProfilePublic ?? true);
+  }, [user]);
+
+  const handlePrivacySave = async () => {
+    setPrivacySaving(true);
+    setPrivacyError(null);
+    setPrivacySuccess(false);
+    try {
+      const result = await api.users.updateProfile({ isProfilePublic });
+      setUser(result.user);
+      setPrivacySuccess(true);
+    } catch (err: unknown) {
+      setPrivacyError(err instanceof Error ? err.message : "Unable to update profile visibility.");
+    } finally {
+      setPrivacySaving(false);
+    }
+  };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +88,39 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Profile visibility controls */}
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-5 shadow-sm" aria-labelledby="profile-visibility-heading">
+        <div>
+          <h2 id="profile-visibility-heading" className="text-base font-bold text-slate-900">Profile visibility</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">Choose whether your profile can appear in member discovery and be opened by other members. Your email address and phone number are never shown on public profiles.</p>
+        </div>
+        {privacyError && <p className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700" role="alert">{privacyError}</p>}
+        {privacySuccess && <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700" role="status">Profile visibility saved.</p>}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <label htmlFor="profile-visibility" className="flex items-start gap-3 text-sm text-slate-700">
+            <input
+              id="profile-visibility"
+              type="checkbox"
+              checked={isProfilePublic}
+              onChange={(event) => setIsProfilePublic(event.target.checked)}
+              className="mt-0.5 h-5 w-5 rounded border-slate-300 text-red-600 focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+            />
+            <span>
+              <span className="block font-semibold text-slate-900">Show my profile in discovery</span>
+              <span className="mt-1 block text-sm text-slate-500">{isProfilePublic ? "Other members can discover and open your profile." : "Your profile is hidden from member discovery and other members cannot open it."}</span>
+            </span>
+          </label>
+          <button
+            type="button"
+            onClick={handlePrivacySave}
+            disabled={privacySaving || !user}
+            className="min-h-11 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
+          >
+            {privacySaving ? "Saving..." : "Save visibility"}
+          </button>
+        </div>
+      </section>
 
       {/* Change Password Card */}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-6 shadow-sm">

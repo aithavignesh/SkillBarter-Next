@@ -30,6 +30,7 @@ export function formatAuthUser(user: IUser): AuthUser {
     role: user.role,
     isEmailVerified: user.isEmailVerified,
     onboardingCompleted: user.onboardingCompleted,
+    isProfilePublic: user.isProfilePublic,
     avatarUrl: user.avatarUrl,
     bio: user.bio,
     location: user.location,

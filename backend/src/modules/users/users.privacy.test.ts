@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { User } from "../../models/User";
 import { Block } from "../../models/Block";
 import { usersService } from "./users.service";
+import { formatAuthUser } from "../auth/auth.service";
 
 describe("Public profile privacy boundaries", () => {
   const createdUserIds: string[] = [];
@@ -61,4 +62,29 @@ describe("Public profile privacy boundaries", () => {
       usersService.getPublicProfile(blocker._id.toString(), blocked._id.toString()),
     ).rejects.toMatchObject({ statusCode: 404, code: "NOT_FOUND" });
   });
+  it("persists profile visibility and exposes it in the authenticated user contract", async () => {
+    const suffix = Date.now() + "-" + Math.random().toString(36).slice(2);
+    const member = await User.create({
+      email: "profile-visibility-" + suffix + "@example.com",
+      passwordHash: "test-hash",
+      displayName: "Visibility Preference Member",
+      isEmailVerified: true,
+      isProfilePublic: true,
+    });
+    const visitor = await User.create({
+      email: "profile-visibility-visitor-" + suffix + "@example.com",
+      passwordHash: "test-hash",
+      displayName: "Visibility Preference Visitor",
+      isEmailVerified: true,
+    });
+    createdUserIds.push(member._id.toString(), visitor._id.toString());
+
+    const updated = await usersService.updateProfile(member._id.toString(), { isProfilePublic: false });
+    expect(updated.isProfilePublic).toBe(false);
+    expect(formatAuthUser(updated).isProfilePublic).toBe(false);
+    await expect(
+      usersService.getPublicProfile(member._id.toString(), visitor._id.toString()),
+    ).rejects.toMatchObject({ statusCode: 403, code: "PROFILE_PRIVATE" });
+  });
+
 });
