@@ -73,5 +73,5 @@ a { color: inherit; text-decoration: none; transition: color 160ms ease, backgro
 .text-slate-400 { color: #556277; }
 .text-emerald-600 { color: #047857; }
 .bg-emerald-600 { background-color: #047857; }
-.hover\\:bg-emerald-500:hover { background-color: #065f46; }
+.hover\:bg-emerald-500:hover { background-color: #065f46; }
 .text-rose-600 { color: #be123c; }

@@ -24,19 +24,23 @@ function MessagesContent() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const conversationsRequestId = useRef(0);
   const messagesRequestId = useRef(0);
+  const currentUserId = user?.id;
+  const currentUserEmail = user?.email ?? "";
+  const currentUserIsEmailVerified = user?.isEmailVerified ?? false;
+  const currentUserOnboardingCompleted = user?.onboardingCompleted ?? false;
 
   const fetchConversations = useCallback(async () => {
     const requestId = ++conversationsRequestId.current;
     try {
       if (authLoading) return;
-      if (!user) {
+      if (!currentUserId) {
         router.replace("/login");
         return;
       }
-      if (!user.isEmailVerified) {
+      if (!currentUserIsEmailVerified) {
         router.replace(
-          user.onboardingCompleted
-            ? `/verify-email?email=${encodeURIComponent(user.email)}`
+          currentUserOnboardingCompleted
+            ? `/verify-email?email=${encodeURIComponent(currentUserEmail)}`
             : "/onboarding"
         );
         return;
@@ -75,7 +79,7 @@ function MessagesContent() {
     } finally {
       if (requestId === conversationsRequestId.current) setLoading(false);
     }
-  }, [authLoading, router, searchParams, user?.email, user?.id, user?.isEmailVerified, user?.onboardingCompleted]);
+  }, [authLoading, currentUserEmail, currentUserId, currentUserIsEmailVerified, currentUserOnboardingCompleted, router, searchParams]);
 
   useEffect(() => {
     if (!authLoading) void fetchConversations();

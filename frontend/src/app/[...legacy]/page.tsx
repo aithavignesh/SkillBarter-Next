@@ -20,7 +20,7 @@ const sectionTargets: Record<string, string> = {
 const screenTargets: Record<string, string> = {
   dashboard: "/dashboard",
   "edit-profile": "/profile/edit",
-  "public-profile": "/discover",
+  "public-profile": "/profile",
   skills: "/skills",
   "add-skill": "/skills",
   "learning-goals": "/skills",
@@ -48,7 +48,7 @@ const screenTargets: Record<string, string> = {
   "group-details": "/community",
   workshops: "/workshops/workshops",
   "create-workshop": "/workshops/create-workshop",
-  "workshop-details": "/workshops/workshops",
+  "workshop-details": "/workshops/workshop-details",
   "my-workshops": "/workshops/my-workshops",
   credits: "/monetization",
   premium: "/monetization",
