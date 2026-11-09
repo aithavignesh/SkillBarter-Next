@@ -201,6 +201,16 @@ for (const viewport of viewports) {
       if (pageState.textLength === 0) {
         failures.push({ route: routePath, viewport: viewport.name, type: "empty-page", detail: "No visible page text" });
       }
+      if (routePath === "/exchanges/calendar" || routePath === "/screens/calendar" || routePath === "/screens/schedule") {
+        const calendarHeading = await page.getByRole("heading", { name: "Exchange Calendar" }).count();
+        const previousMonthControl = await page.getByRole("button", { name: "Previous month" }).count();
+        if (calendarHeading !== 1 || previousMonthControl !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "calendar-page", detail: "Expected a dedicated calendar heading and month navigation controls" });
+        }
+        if (routePath.startsWith("/screens/") && !page.url().endsWith("/exchanges/calendar")) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "legacy-calendar-destination", detail: "Legacy schedule route did not resolve to the functional exchange calendar" });
+        }
+      }
       if (pageState.horizontalOverflow) {
         failures.push({ route: routePath, viewport: viewport.name, type: "responsive-overflow", detail: "Document exceeds viewport width" });
       }
