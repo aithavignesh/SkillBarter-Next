@@ -46,7 +46,7 @@ jobs:
           done
           cat /tmp/skillbarter-next-frontend.log
           exit 1
-      - name: Audit routes at mobile and desktop viewports
+      - name: Audit routes at mobile, tablet, and desktop viewports
         run: node frontend/tests/a11y-smoke.mjs
         env:
           BASE_URL: http://127.0.0.1:3000
