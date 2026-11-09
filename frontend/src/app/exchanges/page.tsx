@@ -6,7 +6,7 @@ import { api } from "../../services/api";
 import { AppPageShell } from "../../components/ui/AppPageShell";
 import { useAuth } from "../../context/AuthContext";
 import { ExchangeDto } from "@skillbarter/shared";
-import { ArrowLeftRight, Clock, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
+import { ArrowLeftRight, Clock, CheckCircle2, AlertCircle, ArrowRight, CalendarDays } from "lucide-react";
 
 export default function ExchangesListPage() {
   const { user } = useAuth();
@@ -61,7 +61,16 @@ export default function ExchangesListPage() {
       title="Your Skill Exchanges"
       description="Track active requests, scheduled lessons, and completed exchange milestones."
       icon={<ArrowLeftRight className="h-3.5 w-3.5" />}
-      actions={<Link href="/discover" className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs"><ArrowLeftRight className="h-4 w-4" /> Start New Exchange</Link>}
+      actions={
+        <div className="flex flex-wrap gap-2">
+          <Link href="/exchanges/calendar" className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">
+            <CalendarDays className="h-4 w-4" aria-hidden="true" /> Calendar
+          </Link>
+          <Link href="/discover" className="sb-button-primary inline-flex min-h-11 items-center gap-1.5 px-4 py-2.5 text-xs">
+            <ArrowLeftRight className="h-4 w-4" /> Start New Exchange
+          </Link>
+        </div>
+      }
     >
       <div className="space-y-6">
       {/* Filter Tabs */}
