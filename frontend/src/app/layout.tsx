@@ -16,7 +16,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="h-full bg-slate-50 text-slate-900 antialiased">
-      <body className="flex min-h-full flex-col pb-16 font-sans md:pb-0">
+      <body className="flex min-h-full flex-col pb-16 font-sans lg:pb-0">
         <AuthProvider>
           <Navbar />
           <div className="flex-1"><RouteGuard>{children}</RouteGuard></div>
