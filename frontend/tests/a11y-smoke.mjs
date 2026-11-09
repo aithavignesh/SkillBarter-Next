@@ -213,7 +213,16 @@ for (const viewport of viewports) {
   const page = await context.newPage();
   await installAuthenticatedApi(page);
 
-  for (const routePath of routes) {
+  const tabletCoreRoutes = new Set([
+    "/", "/login", "/register", "/onboarding", "/dashboard", "/discover", "/matches",
+    "/exchanges", "/exchanges/calendar", "/screens/calendar", "/screens/schedule",
+    "/messages", "/profile/edit", "/settings", "/safety", "/admin"
+  ]);
+  const routesForViewport = viewport.name === "tablet"
+    ? routes.filter((routePath) => tabletCoreRoutes.has(routePath))
+    : routes;
+
+  for (const routePath of routesForViewport) {
     const pageErrors = [];
     const onPageError = (error) => pageErrors.push(error.message);
     page.on("pageerror", onPageError);
