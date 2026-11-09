@@ -23,7 +23,7 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="Mobile quick navigation"
-      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-slate-200 bg-white/95 px-2 py-1.5 shadow-lg backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-slate-200 bg-white/95 px-2 py-1.5 shadow-lg backdrop-blur-md lg:hidden"
     >
       {items.map((item) => {
         const Icon = item.icon;
