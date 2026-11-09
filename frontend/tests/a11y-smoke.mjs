@@ -60,6 +60,7 @@ const routes = [
 ];
 const viewports = [
   { name: "mobile", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
   { name: "desktop", width: 1440, height: 900 }
 ];
 const failures = [];
@@ -102,6 +103,39 @@ function success(data, meta) {
   };
 }
 
+const testExchangeId = "507f1f77bcf86cd799439013";
+const testSessionStart = new Date();
+testSessionStart.setHours(12, 0, 0, 0);
+const testSessionEnd = new Date(testSessionStart.getTime() + 60 * 60 * 1000);
+const testExchange = {
+  id: testExchangeId,
+  requesterId: "507f1f77bcf86cd799439011",
+  requesterName: "A11y Test Member",
+  recipientId: "507f1f77bcf86cd799439014",
+  recipientName: "A11y Test Partner",
+  offeredSkillId: "507f1f77bcf86cd799439016",
+  offeredSkillName: "TypeScript",
+  wantedSkillId: "507f1f77bcf86cd799439017",
+  wantedSkillName: "Python",
+  status: "ACCEPTED",
+  proposalDescription: "A browser-test exchange for calendar rendering.",
+  completionStatus: { requesterConfirmed: false, recipientConfirmed: false },
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z"
+};
+const testSession = {
+  id: "507f1f77bcf86cd799439015",
+  exchangeId: testExchangeId,
+  proposedById: "507f1f77bcf86cd799439011",
+  title: "Browser test session",
+  startTime: testSessionStart.toISOString(),
+  endTime: testSessionEnd.toISOString(),
+  status: "CONFIRMED",
+  notes: "A session fixture used only by the browser smoke test.",
+  meetingLink: "https://example.com/meeting",
+  createdAt: "2026-01-01T00:00:00.000Z"
+};
+
 async function installAuthenticatedApi(page) {
   await page.route("**/api/v1/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
@@ -134,8 +168,12 @@ async function installAuthenticatedApi(page) {
       await route.fulfill(success({ reviews: [] }));
       return;
     }
+    if (path.endsWith("/exchanges/" + testExchangeId + "/sessions")) {
+      await route.fulfill(success({ sessions: [testSession] }));
+      return;
+    }
     if (path.endsWith("/exchanges")) {
-      await route.fulfill(success({ exchanges: [] }));
+      await route.fulfill(success({ exchanges: [testExchange] }));
       return;
     }
     if (path.endsWith("/notifications/unread-count")) {
@@ -163,10 +201,7 @@ async function installAuthenticatedApi(page) {
       await route.fulfill(success([], { page: 1, limit: 20, total: 0, totalPages: 0 }));
       return;
     }
-    if (path.endsWith("/exchanges/507f1f77bcf86cd799439011/sessions")) {
-      await route.fulfill(success({ sessions: [] }));
-      return;
-    }
+    
     await route.fulfill(success([]));
   });
 }
@@ -206,6 +241,19 @@ for (const viewport of viewports) {
         const previousMonthControl = await page.getByRole("button", { name: "Previous month" }).count();
         if (calendarHeading !== 1 || previousMonthControl !== 1) {
           failures.push({ route: routePath, viewport: viewport.name, type: "calendar-page", detail: "Expected a dedicated calendar heading and month navigation controls" });
+        } else {
+          const sessionCard = await page.getByRole("heading", { name: "Browser test session" }).count();
+          if (sessionCard !== 1) {
+            failures.push({ route: routePath, viewport: viewport.name, type: "calendar-data", detail: "Calendar did not render the session returned by the exchange API" });
+          }
+          const monthHeading = page.locator("#calendar-month-title");
+          const beforeMonth = (await monthHeading.textContent())?.trim();
+          await page.getByRole("button", { name: "Next month" }).click();
+          const afterMonth = (await monthHeading.textContent())?.trim();
+          if (!beforeMonth || !afterMonth || beforeMonth === afterMonth) {
+            failures.push({ route: routePath, viewport: viewport.name, type: "calendar-interaction", detail: "Next month control did not change the visible month" });
+          }
+          await page.getByRole("button", { name: "Previous month" }).click();
         }
         if (routePath.startsWith("/screens/") && !page.url().endsWith("/exchanges/calendar")) {
           failures.push({ route: routePath, viewport: viewport.name, type: "legacy-calendar-destination", detail: "Legacy schedule route did not resolve to the functional exchange calendar" });
