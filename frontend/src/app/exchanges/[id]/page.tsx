@@ -65,8 +65,12 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
     // These IDs were static screens in the legacy app, not exchange records.
     // Route them to the real exchange workspace instead of querying MongoDB
     // with a non-ObjectId slug.
-    if (["active-exchange", "exchange-history", "exchange-rating", "schedule", "calendar"].includes(id)) {
+    if (["active-exchange", "exchange-history", "exchange-rating"].includes(id)) {
       router.replace("/exchanges");
+      return;
+    }
+    if (["schedule", "calendar"].includes(id)) {
+      router.replace("/exchanges/calendar");
       return;
     }
     void fetchData();
