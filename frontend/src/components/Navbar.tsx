@@ -114,7 +114,7 @@ export function Navbar() {
             </span>
           </Link>
 
-          <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
+          <nav aria-label="Main navigation" className="hidden items-center gap-1 lg:flex">
             {navLinks.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
@@ -135,7 +135,7 @@ export function Navbar() {
           </nav>
         </div>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           {user ? (
             <>
               <Link
@@ -191,7 +191,7 @@ export function Navbar() {
           )}
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
           {user && (
             <Link
               href="/notifications"
@@ -223,7 +223,7 @@ export function Navbar() {
         <nav
           id="skillbarter-mobile-menu"
           aria-label="Mobile navigation"
-          className="space-y-1 border-t border-slate-200 bg-white px-4 pb-4 pt-2 md:hidden"
+          className="space-y-1 border-t border-slate-200 bg-white px-4 pb-4 pt-2 lg:hidden"
         >
           {navLinks.map((item) => (
             <Link
