@@ -113,7 +113,7 @@ export function ProductNavigation() {
   useEscapeToClose(open, close, triggerRef);
 
   return (
-    <div className="relative hidden md:block">
+    <div className="relative hidden lg:block">
       <button
         ref={triggerRef}
         type="button"
