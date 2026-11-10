@@ -10,7 +10,8 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "seed:skills": "tsx src/scripts/seedSkills.ts"
+    "seed:skills": "tsx src/scripts/seedSkills.ts",
+    "postbuild": "node scripts/write-build-info.cjs"
   },
   "dependencies": {
     "@skillbarter/shared": "0.1.0",
