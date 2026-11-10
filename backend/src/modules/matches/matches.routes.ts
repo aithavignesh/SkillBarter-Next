@@ -6,3 +6,5 @@ export const matchesRouter = Router();
 
 matchesRouter.get("/recommendations", authenticate, requireOnboardingCompleted, (req, res, next) => matchesController.discover(req, res, next));
 matchesRouter.get("/discover", authenticate, requireOnboardingCompleted, (req, res, next) => matchesController.discover(req, res, next));
+
+matchesRouter.get("/:userId", authenticate, requireOnboardingCompleted, (req, res, next) => matchesController.details(req, res, next));
