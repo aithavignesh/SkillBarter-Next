@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { matchesService } from "./matches.service";
 import { sendSuccess } from "../../utils/response";
-import { AppError } from "../../utils/AppError";
+import { AppError } from "../../middleware/errorHandler";
 
 export class MatchesController {
   async details(req: Request, res: Response, next: NextFunction): Promise<void> {
