@@ -5,7 +5,7 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/
 const routes = [
   "/", "/about", "/login", "/register", "/signup", "/forgot-password",
   "/reset-password?token=invalid", "/verify-email", "/onboarding", "/dashboard",
-  "/discover", "/matches", "/matches/507f1f77bcf86cd799439033", "/matches/507f1f77bcf86cd799439033", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges?status=ACTIVE", "/exchanges?status=COMPLETED", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/507f1f77bcf86cd799439013", "/exchanges/active-exchange",
+  "/discover", "/matches", "/matches/507f1f77bcf86cd799439033", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges?status=ACTIVE", "/exchanges?status=COMPLETED", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/507f1f77bcf86cd799439013", "/exchanges/active-exchange",
   "/exchanges/exchange-history", "/exchanges/exchange-rating", "/exchanges/schedule", "/exchanges/calendar",
   "/messages", "/messages/507f1f77bcf86cd799439011", "/messages/chat-details", "/notifications",
   "/profile", "/profile/edit", "/profile/507f1f77bcf86cd799439011", "/profile/edit-profile",
@@ -25,7 +25,6 @@ const routes = [
   "/screens/recommended",
   "/screens/ai-matching",
   "/screens/match-details",
-  "/screens/match-details/507f1f77bcf86cd799439033",
   "/screens/match-details/507f1f77bcf86cd799439033",
   "/screens/send-request",
   "/screens/incoming-requests",
