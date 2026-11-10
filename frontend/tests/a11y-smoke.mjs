@@ -9,7 +9,7 @@ const routes = [
   "/exchanges/exchange-history", "/exchanges/exchange-rating", "/exchanges/schedule", "/exchanges/calendar",
   "/messages", "/messages/507f1f77bcf86cd799439011", "/messages/chat-details", "/notifications",
   "/profile", "/profile/edit", "/profile/507f1f77bcf86cd799439011", "/profile/edit-profile",
-  "/profile/public-profile", "/profile/skills", "/profile/add-skill", "/skills", "/community",
+  "/profile/public-profile", "/profile/skills", "/profile/add-skill", "/skills", "/community", "/community/posts/507f1f77bcf86cd799439029",
   "/connections", "/feed", "/monetization", "/settings", "/safety", "/trust",
   "/admin", "/feedback", "/invite", "/support/faq", "/support/support",
   "/screens",
@@ -45,6 +45,7 @@ const routes = [
   "/screens/chat-details",
   "/screens/create-post",
   "/screens/post-details",
+  "/screens/post-details/507f1f77bcf86cd799439029",
   "/screens/groups",
   "/screens/group-details",
   "/screens/workshops",
@@ -190,6 +191,19 @@ const completedExchange = {
   createdAt: "2026-10-20T10:00:00.000Z",
   updatedAt: "2026-10-21T10:00:00.000Z"
 };
+const testPost = {
+  id: "507f1f77bcf86cd799439029",
+  authorId: "507f1f77bcf86cd799439011",
+  authorName: "A11y Test Member",
+  authorAvatar: null,
+  title: "A11y Test Post",
+  content: "A community post fixture used to verify the dedicated post detail page.",
+  tags: ["testing", "skills"],
+  likesCount: 2,
+  likedByMe: false,
+  createdAt: "2026-11-01T10:00:00.000Z",
+  updatedAt: "2026-11-01T10:00:00.000Z"
+};
 const testExchanges = [testExchange, incomingExchange, sentExchange, completedExchange];
 
 async function installAuthenticatedApi(page) {
@@ -198,6 +212,10 @@ async function installAuthenticatedApi(page) {
 
     if (path.endsWith("/auth/me")) {
       await route.fulfill(success({ user: member() }));
+      return;
+    }
+    if (path === "/api/v1/community/posts/" + testPost.id) {
+      await route.fulfill(success({ post: testPost }));
       return;
     }
     if (path === "/api/v1/exchanges/" + testExchangeId) {
@@ -284,7 +302,7 @@ for (const viewport of viewports) {
   const tabletCoreRoutes = new Set([
     "/", "/login", "/register", "/onboarding", "/dashboard", "/discover", "/matches",
     "/exchanges", "/exchanges/507f1f77bcf86cd799439013", "/screens/exchange-rating/507f1f77bcf86cd799439025", "/exchanges/calendar", "/screens/calendar", "/screens/schedule",
-    "/messages", "/profile/edit", "/settings", "/safety", "/admin"
+    "/messages", "/community/posts/507f1f77bcf86cd799439029", "/screens/post-details/507f1f77bcf86cd799439029", "/profile/edit", "/settings", "/safety", "/admin"
   ]);
   const routesForViewport = viewport.name === "tablet"
     ? routes.filter((routePath) => tabletCoreRoutes.has(routePath))
@@ -343,7 +361,8 @@ for (const viewport of viewports) {
         "/screens/exchange-rating/507f1f77bcf86cd799439025": "/exchanges/507f1f77bcf86cd799439025?review=1",
         "/screens/public-profile/507f1f77bcf86cd799439014": "/profile/507f1f77bcf86cd799439014",
         "/screens/chat-details/507f1f77bcf86cd799439015": "/messages/507f1f77bcf86cd799439015",
-        "/screens/workshop-details/507f1f77bcf86cd799439016": "/workshops/workshop-details?post=507f1f77bcf86cd799439016"
+        "/screens/workshop-details/507f1f77bcf86cd799439016": "/workshops/workshop-details?post=507f1f77bcf86cd799439016",
+        "/screens/post-details/507f1f77bcf86cd799439029": "/community/posts/507f1f77bcf86cd799439029"
       };
       const expectedLegacyDestination = legacyIdDestinations[routePath];
       if (expectedLegacyDestination && !page.url().includes(expectedLegacyDestination)) {
@@ -356,6 +375,15 @@ for (const viewport of viewports) {
         const reviewHeading = await reviewDialog.getByRole("heading", { name: "Review Completed Exchange Partner" }).count();
         if (await reviewDialog.count() !== 1 || reviewHeading !== 1) {
           failures.push({ route: routePath, viewport: viewport.name, type: "exchange-rating-deep-link", detail: "Completed exchange rating deep link did not open the review dialog" });
+        }
+      }
+
+      if (routePath === "/community/posts/507f1f77bcf86cd799439029" || routePath === "/screens/post-details/507f1f77bcf86cd799439029") {
+        const postHeading = await page.getByRole("heading", { name: "A11y Test Post" }).count();
+        const authorLink = await page.getByRole("link", { name: "A11y Test Member" }).count();
+        const likeButton = await page.getByRole("button", { name: "Like this post" }).count();
+        if (postHeading !== 1 || authorLink !== 1 || likeButton !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "community-post-detail", detail: "Post detail content or like action was not rendered" });
         }
       }
 
