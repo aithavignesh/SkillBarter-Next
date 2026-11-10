@@ -23,6 +23,7 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
   const router = useRouter();
   const { user } = useAuth();
+  const [shouldOpenReview, setShouldOpenReview] = useState(false);
 
   const [exchange, setExchange] = useState<ExchangeDto | null>(null);
   const [sessions, setSessions] = useState<ExchangeSessionDto[]>([]);
@@ -60,6 +61,16 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
       setLoading(false);
     }
   }, [id]);
+
+  useEffect(() => {
+    setShouldOpenReview(new URLSearchParams(window.location.search).get("review") === "1");
+  }, []);
+
+  useEffect(() => {
+    if (shouldOpenReview && exchange?.status === "COMPLETED") {
+      setShowReviewModal(true);
+    }
+  }, [shouldOpenReview, exchange?.status]);
 
   useEffect(() => {
     // These IDs were static screens in the legacy app, not exchange records.
@@ -329,7 +340,7 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
             <button
               type="button"
               onClick={() => setShowReviewModal(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-semibold text-white hover:bg-amber-600 shadow-sm"
+              className="flex items-center gap-1.5 rounded-xl bg-amber-700 px-5 py-2.5 text-xs font-semibold text-white hover:bg-amber-800 shadow-sm"
             >
               <Star className="h-4 w-4" /> Leave Review & Rating
             </button>
@@ -508,8 +519,13 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
       {/* Leave Review Modal */}
       {showReviewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4">
-            <h3 className="text-xl font-bold text-slate-900">Review {otherUserName}</h3>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="review-title"
+            className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4"
+          >
+            <h3 id="review-title" className="text-xl font-bold text-slate-900">Review {otherUserName}</h3>
             {reviewSuccess ? (
               <div className="p-6 text-center space-y-2">
                 <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-600" />
@@ -517,19 +533,22 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
               </div>
             ) : (
               <form onSubmit={handleSubmitReview} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <fieldset>
+                  <legend className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                     Rating (1 to 5 Stars)
-                  </label>
+                  </legend>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
                         type="button"
+                        aria-label={`${star} star${star === 1 ? "" : "s"}`}
+                        aria-pressed={star === reviewRating}
                         onClick={() => setReviewRating(star)}
                         className="p-1"
                       >
                         <Star
+                          aria-hidden="true"
                           className={`h-6 w-6 ${
                             star <= reviewRating
                               ? "fill-amber-400 text-amber-400"
@@ -539,13 +558,14 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
                       </button>
                     ))}
                   </div>
-                </div>
+                </fieldset>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                  <label htmlFor="review-comment" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                     Written Feedback
                   </label>
                   <textarea
+                    id="review-comment"
                     rows={4}
                     required
                     value={reviewComment}
@@ -566,7 +586,7 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
                   <button
                     type="submit"
                     disabled={submittingReview}
-                    className="rounded-xl bg-amber-500 px-5 py-2 text-xs font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
+                    className="rounded-xl bg-amber-700 px-5 py-2 text-xs font-semibold text-white hover:bg-amber-800 disabled:opacity-50"
                   >
                     {submittingReview ? "Submitting..." : "Submit Review"}
                   </button>
