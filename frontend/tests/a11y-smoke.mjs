@@ -32,7 +32,7 @@ const routes = [
   "/screens/request-details/507f1f77bcf86cd799439013",
   "/screens/active-exchange",
   "/screens/active-exchange/507f1f77bcf86cd799439013",
-  "/screens/exchange-rating/507f1f77bcf86cd799439013",
+  "/screens/exchange-rating/507f1f77bcf86cd799439025",
   "/screens/public-profile/507f1f77bcf86cd799439014",
   "/screens/chat-details/507f1f77bcf86cd799439015",
   "/screens/workshop-details/507f1f77bcf86cd799439016",
@@ -204,6 +204,10 @@ async function installAuthenticatedApi(page) {
       await route.fulfill(success({ exchange: testExchange }));
       return;
     }
+    if (path === "/api/v1/exchanges/" + completedExchange.id) {
+      await route.fulfill(success({ exchange: completedExchange }));
+      return;
+    }
     if (/\/users\/[a-f0-9]{24}$/.test(path) || /\/exchanges\/[a-f0-9]{24}$/.test(path)) {
       await route.fulfill(failure(404, "NOT_FOUND", "The requested record was not found"));
       return;
@@ -230,6 +234,10 @@ async function installAuthenticatedApi(page) {
     }
     if (path.endsWith("/exchanges/" + testExchangeId + "/sessions")) {
       await route.fulfill(success({ sessions: [testSession] }));
+      return;
+    }
+    if (path.endsWith("/exchanges/" + completedExchange.id + "/sessions")) {
+      await route.fulfill(success({ sessions: [] }));
       return;
     }
     if (path.endsWith("/exchanges")) {
@@ -275,7 +283,7 @@ for (const viewport of viewports) {
 
   const tabletCoreRoutes = new Set([
     "/", "/login", "/register", "/onboarding", "/dashboard", "/discover", "/matches",
-    "/exchanges", "/exchanges/507f1f77bcf86cd799439013", "/exchanges/calendar", "/screens/calendar", "/screens/schedule",
+    "/exchanges", "/exchanges/507f1f77bcf86cd799439013", "/screens/exchange-rating/507f1f77bcf86cd799439025", "/exchanges/calendar", "/screens/calendar", "/screens/schedule",
     "/messages", "/profile/edit", "/settings", "/safety", "/admin"
   ]);
   const routesForViewport = viewport.name === "tablet"
@@ -332,7 +340,7 @@ for (const viewport of viewports) {
       const legacyIdDestinations = {
         "/screens/request-details/507f1f77bcf86cd799439013": "/exchanges/507f1f77bcf86cd799439013",
         "/screens/active-exchange/507f1f77bcf86cd799439013": "/exchanges/507f1f77bcf86cd799439013",
-        "/screens/exchange-rating/507f1f77bcf86cd799439013": "/exchanges/507f1f77bcf86cd799439013",
+        "/screens/exchange-rating/507f1f77bcf86cd799439025": "/exchanges/507f1f77bcf86cd799439025?review=1",
         "/screens/public-profile/507f1f77bcf86cd799439014": "/profile/507f1f77bcf86cd799439014",
         "/screens/chat-details/507f1f77bcf86cd799439015": "/messages/507f1f77bcf86cd799439015",
         "/screens/workshop-details/507f1f77bcf86cd799439016": "/workshops/workshop-details?post=507f1f77bcf86cd799439016"
@@ -340,6 +348,15 @@ for (const viewport of viewports) {
       const expectedLegacyDestination = legacyIdDestinations[routePath];
       if (expectedLegacyDestination && !page.url().includes(expectedLegacyDestination)) {
         failures.push({ route: routePath, viewport: viewport.name, type: "legacy-resource-id", detail: "Legacy deep link did not preserve its resource ID: " + page.url() });
+      }
+
+      if (routePath === "/screens/exchange-rating/507f1f77bcf86cd799439025") {
+        await page.getByRole("dialog").waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        const reviewDialog = page.getByRole("dialog");
+        const reviewHeading = await reviewDialog.getByRole("heading", { name: "Review Completed Exchange Partner" }).count();
+        if (await reviewDialog.count() !== 1 || reviewHeading !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "exchange-rating-deep-link", detail: "Completed exchange rating deep link did not open the review dialog" });
+        }
       }
 
       if (routePath === "/screens/workshop-details" && !page.url().endsWith("/workshops/workshops")) {
