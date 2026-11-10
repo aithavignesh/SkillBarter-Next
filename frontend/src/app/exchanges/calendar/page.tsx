@@ -246,7 +246,6 @@ export default function ExchangeCalendarPage() {
                     key={key}
                     type="button"
                     aria-pressed={isSelected}
-                    aria-labelledby={"calendar-day-" + key + " calendar-count-" + key + " calendar-date-" + key}
                     onClick={() => setSelectedDate(date)}
                     className={[
                       "flex min-h-16 min-w-0 flex-col items-start rounded-lg border p-1.5 text-left transition-colors sm:min-h-24 sm:p-2",
