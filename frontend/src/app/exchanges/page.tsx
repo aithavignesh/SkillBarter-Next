@@ -42,6 +42,7 @@ export default function ExchangesListPage() {
         setFilter("PENDING");
       } else {
         setDirection("ALL");
+        setFilter("ALL");
       }
     };
 
