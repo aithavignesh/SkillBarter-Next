@@ -5,7 +5,7 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/
 const routes = [
   "/", "/about", "/login", "/register", "/signup", "/forgot-password",
   "/reset-password?token=invalid", "/verify-email", "/onboarding", "/dashboard",
-  "/discover", "/matches", "/exchanges", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/active-exchange",
+  "/discover", "/matches", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/active-exchange",
   "/exchanges/exchange-history", "/exchanges/exchange-rating", "/exchanges/schedule", "/exchanges/calendar",
   "/messages", "/messages/507f1f77bcf86cd799439011", "/messages/chat-details", "/notifications",
   "/profile", "/profile/edit", "/profile/507f1f77bcf86cd799439011", "/profile/edit-profile",
@@ -136,6 +136,40 @@ const testSession = {
   createdAt: "2026-01-01T00:00:00.000Z"
 };
 
+const incomingExchange = {
+  id: "507f1f77bcf86cd799439018",
+  requesterId: "507f1f77bcf86cd799439019",
+  requesterName: "Incoming Requester",
+  recipientId: "507f1f77bcf86cd799439011",
+  recipientName: "A11y Test Member",
+  offeredSkillId: "507f1f77bcf86cd799439021",
+  offeredSkillName: "JavaScript",
+  wantedSkillId: "507f1f77bcf86cd799439022",
+  wantedSkillName: "React",
+  status: "PENDING",
+  proposalDescription: "An incoming request fixture for inbox filtering.",
+  completionStatus: { requesterConfirmed: false, recipientConfirmed: false },
+  createdAt: "2026-11-01T10:00:00.000Z",
+  updatedAt: "2026-11-01T10:00:00.000Z"
+};
+const sentExchange = {
+  id: "507f1f77bcf86cd799439020",
+  requesterId: "507f1f77bcf86cd799439011",
+  requesterName: "A11y Test Member",
+  recipientId: "507f1f77bcf86cd799439021",
+  recipientName: "Sent Request Recipient",
+  offeredSkillId: "507f1f77bcf86cd799439023",
+  offeredSkillName: "Python",
+  wantedSkillId: "507f1f77bcf86cd799439024",
+  wantedSkillName: "Data Science",
+  status: "PENDING",
+  proposalDescription: "A sent request fixture for inbox filtering.",
+  completionStatus: { requesterConfirmed: false, recipientConfirmed: false },
+  createdAt: "2026-11-02T10:00:00.000Z",
+  updatedAt: "2026-11-02T10:00:00.000Z"
+};
+const testExchanges = [testExchange, incomingExchange, sentExchange];
+
 async function installAuthenticatedApi(page) {
   await page.route("**/api/v1/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
@@ -173,7 +207,7 @@ async function installAuthenticatedApi(page) {
       return;
     }
     if (path.endsWith("/exchanges")) {
-      await route.fulfill(success({ exchanges: [testExchange] }));
+      await route.fulfill(success({ exchanges: testExchanges }));
       return;
     }
     if (path.endsWith("/notifications/unread-count")) {
@@ -268,12 +302,59 @@ for (const viewport of viewports) {
           failures.push({ route: routePath, viewport: viewport.name, type: "legacy-calendar-destination", detail: "Legacy schedule route did not resolve to the functional exchange calendar" });
         }
       }
+      if (routePath === "/exchanges") {
+        await page.getByRole("button", { name: /Incoming requests/ }).click();
+        await page.getByRole("heading", { name: "With Incoming Requester" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        const incomingVisible = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
+        const sentHidden = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
+        if (incomingVisible !== 1 || sentHidden !== 0 || !page.url().includes("view=incoming")) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "incoming-request-filter", detail: "Incoming view did not isolate requests addressed to the signed-in member" });
+        }
+
+        await page.getByRole("button", { name: /Sent requests/ }).click();
+        await page.getByRole("heading", { name: "With Sent Request Recipient" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        const sentVisible = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
+        const incomingHidden = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
+        if (sentVisible !== 1 || incomingHidden !== 0 || !page.url().includes("view=sent")) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "sent-request-filter", detail: "Sent view did not isolate requests created by the signed-in member" });
+        }
+
+        await page.getByRole("button", { name: "All exchanges" }).click();
+        const allRequestsVisible =
+          await page.getByRole("heading", { name: "With Incoming Requester" }).count() === 1 &&
+          await page.getByRole("heading", { name: "With Sent Request Recipient" }).count() === 1;
+        if (!allRequestsVisible) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "all-exchanges-filter", detail: "All exchanges view did not restore both request directions" });
+        }
+      }
+
+      if (routePath === "/screens/incoming-requests" || routePath === "/exchanges?view=incoming") {
+        const incomingVisible = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
+        const sentHidden = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
+        if (incomingVisible !== 1 || sentHidden !== 0 || !page.url().includes("view=incoming")) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "incoming-route", detail: "Incoming request deep link did not open its filtered inbox" });
+        }
+      }
+
+      if (routePath === "/screens/sent-requests" || routePath === "/exchanges?view=sent") {
+        const sentVisible = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
+        const incomingHidden = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
+        if (sentVisible !== 1 || incomingHidden !== 0 || !page.url().includes("view=sent")) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "sent-route", detail: "Sent request deep link did not open its filtered inbox" });
+        }
+      }
+
       if (pageState.horizontalOverflow) {
         failures.push({ route: routePath, viewport: viewport.name, type: "responsive-overflow", detail: "Document exceeds viewport width" });
       }
       if (pageErrors.length) {
         failures.push({ route: routePath, viewport: viewport.name, type: "runtime", detail: pageErrors.slice(0, 3) });
       }
+
+      await page.addStyleTag({
+        content: "*, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; }"
+      });
+      await page.waitForTimeout(200);
 
       const audit = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
