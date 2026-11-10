@@ -13,9 +13,34 @@ export default function ExchangesListPage() {
   const userId = user?.id;
   const [exchanges, setExchanges] = useState<ExchangeDto[]>([]);
   const [filter, setFilter] = useState<string>("ALL");
+  const [direction, setDirection] = useState<"ALL" | "INCOMING" | "SENT">("ALL");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    const syncDirectionFromUrl = () => {
+      const view = new URLSearchParams(window.location.search).get("view");
+      if (view === "incoming" || view === "sent") {
+        setDirection(view === "incoming" ? "INCOMING" : "SENT");
+        setFilter("PENDING");
+      } else {
+        setDirection("ALL");
+        setFilter("ALL");
+      }
+    };
+
+    syncDirectionFromUrl();
+    window.addEventListener("popstate", syncDirectionFromUrl);
+    return () => window.removeEventListener("popstate", syncDirectionFromUrl);
+  }, []);
+
+  function selectDirection(next: "ALL" | "INCOMING" | "SENT") {
+    setDirection(next);
+    setFilter(next === "ALL" ? "ALL" : "PENDING");
+    const query = next === "ALL" ? "" : "?view=" + next.toLowerCase();
+    window.history.replaceState(window.history.state, "", "/exchanges" + query);
+  }
 
   const loadExchanges = async () => {
     const requestId = ++requestIdRef.current;
@@ -46,7 +71,12 @@ export default function ExchangesListPage() {
     };
   }, [userId]);
 
-  const filtered = exchanges.filter((e) => {
+  const directionFiltered = exchanges.filter((exchange) => {
+    if (direction === "INCOMING") return exchange.recipientId === userId;
+    if (direction === "SENT") return exchange.requesterId === userId;
+    return true;
+  });
+  const filtered = directionFiltered.filter((e) => {
     if (filter === "ALL") return true;
     if (filter === "PENDING") return e.status === "PENDING";
     if (filter === "ACTIVE") return ["ACCEPTED", "SCHEDULED", "IN_PROGRESS"].includes(e.status);
@@ -54,12 +84,14 @@ export default function ExchangesListPage() {
     if (filter === "CANCELLED") return ["CANCELLED", "REJECTED", "DISPUTED"].includes(e.status);
     return true;
   });
+  const incomingCount = exchanges.filter((exchange) => exchange.recipientId === userId && exchange.status === "PENDING").length;
+  const sentCount = exchanges.filter((exchange) => exchange.requesterId === userId && exchange.status === "PENDING").length;
 
   return (
     <AppPageShell
       eyebrow="Lifecycle Management"
       title="Your Skill Exchanges"
-      description="Track active requests, scheduled lessons, and completed exchange milestones."
+      description={direction === "INCOMING" ? "Review pending skill exchange requests sent to you." : direction === "SENT" ? "Track the skill exchange requests you have sent to other members." : "Track incoming and sent requests, scheduled lessons, and completed exchange milestones."}
       icon={<ArrowLeftRight className="h-3.5 w-3.5" />}
       actions={
         <div className="flex flex-wrap gap-2">
@@ -73,6 +105,31 @@ export default function ExchangesListPage() {
       }
     >
       <div className="space-y-6">
+      <section aria-label="Exchange request direction" className="space-y-2">
+        <h2 className="text-xs font-bold uppercase tracking-wide text-slate-500">Request inbox</h2>
+        <div className="flex flex-wrap gap-2">
+          {([
+            { value: "ALL", label: "All exchanges" },
+            { value: "INCOMING", label: "Incoming requests (" + incomingCount + ")" },
+            { value: "SENT", label: "Sent requests (" + sentCount + ")" },
+          ] as const).map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              aria-pressed={direction === tab.value}
+              onClick={() => selectDirection(tab.value)}
+              className={`min-h-10 rounded-xl px-4 py-2 text-xs font-semibold transition-colors ${
+                direction === tab.value
+                  ? "bg-red-700 text-white"
+                  : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* Filter Tabs */}
       <div className="flex gap-2 border-b border-slate-200 pb-2 overflow-x-auto text-xs font-semibold">
         {["ALL", "PENDING", "ACTIVE", "COMPLETED", "CANCELLED"].map((tab) => (
