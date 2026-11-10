@@ -183,6 +183,7 @@ export default function CommunityPostDetailPage() {
                 onClick={handleToggleLike}
                 disabled={busy || !canUseCommunityActions}
                 aria-pressed={post.likedByMe}
+                aria-describedby={actionGateHref ? "community-action-gate" : undefined}
                 aria-label={post.likedByMe ? "Unlike this post" : "Like this post"}
                 className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-800 hover:border-rose-300 hover:text-rose-800 disabled:opacity-50"
               >
