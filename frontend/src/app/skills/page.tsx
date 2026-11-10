@@ -38,6 +38,32 @@ export default function SkillsPage() {
     fetchSkills();
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("action") === "add") {
+      setSkillType(params.get("type") === "wanted" ? "wanted" : "offered");
+      setShowAddModal(true);
+    }
+  }, []);
+
+  const closeAddModal = () => {
+    setShowAddModal(false);
+    const params = new URLSearchParams(window.location.search);
+    params.delete("action");
+    params.delete("type");
+    const query = params.toString();
+    window.history.replaceState(window.history.state, "", "/skills" + (query ? "?" + query : ""));
+  };
+
+  useEffect(() => {
+    if (!showAddModal) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !saving) closeAddModal();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showAddModal, saving]);
+
   const handleAddSkill = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -52,7 +78,7 @@ export default function SkillsPage() {
         yearsExperience,
         description,
       });
-      setShowAddModal(false);
+      closeAddModal();
       setName("");
       setDescription("");
       await fetchSkills();
@@ -84,7 +110,7 @@ export default function SkillsPage() {
           <span className="text-xs font-bold uppercase tracking-wider text-red-600">
             Skills Inventory
           </span>
-          <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Manage Your Skills</h1>
+          <h2 className="mt-1 text-3xl font-extrabold text-slate-900">Manage Your Skills</h2>
           <p className="mt-1 text-sm text-slate-500">
             Configure the skills you offer to teach and the skills you are looking to learn.
           </p>
@@ -154,7 +180,7 @@ export default function SkillsPage() {
                       type="button"
                       onClick={() => handleRemoveSkill(s.id)}
                       className="text-slate-400 hover:text-rose-600 p-1"
-                      title="Remove skill"
+                      title="Remove skill" aria-label={`Remove ${s.name}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -215,18 +241,18 @@ export default function SkillsPage() {
       {/* Add Skill Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-5">
+          <div role="dialog" aria-modal="true" aria-labelledby="add-skill-modal-title" tabIndex={-1} className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-5">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-red-600">
                 {skillType === "offered" ? "Offer New Skill" : "New Learning Goal"}
               </span>
-              <h3 className="mt-1 text-2xl font-bold text-slate-900">
+              <h3 id="add-skill-modal-title" className="mt-1 text-2xl font-bold text-slate-900">
                 {skillType === "offered" ? "Add Skill You Teach" : "Add Skill You Want"}
               </h3>
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-4 text-xs text-rose-700 border border-rose-200">
+              <div role="alert" className="flex items-center gap-2 rounded-xl bg-rose-50 p-4 text-xs text-rose-700 border border-rose-200">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <p>{error}</p>
               </div>
@@ -234,10 +260,12 @@ export default function SkillsPage() {
 
             <form onSubmit={handleAddSkill} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="skill-name" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Skill Name
                 </label>
                 <input
+                  id="skill-name"
+                  autoFocus
                   type="text"
                   required
                   value={name}
@@ -248,10 +276,11 @@ export default function SkillsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="skill-category" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Category
                 </label>
                 <select
+                  id="skill-category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white"
@@ -264,10 +293,11 @@ export default function SkillsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                  <label htmlFor="skill-proficiency" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                     Proficiency
                   </label>
                   <select
+                    id="skill-proficiency"
                     value={proficiency}
                     onChange={(e) => setProficiency(e.target.value as any)}
                     className="w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white"
@@ -280,10 +310,11 @@ export default function SkillsPage() {
                 </div>
                 {skillType === "offered" && (
                   <div>
-                    <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                    <label htmlFor="skill-years-experience" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                       Years Exp.
                     </label>
                     <input
+                      id="skill-years-experience"
                       type="number"
                       min="0"
                       max="50"
@@ -296,10 +327,11 @@ export default function SkillsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="skill-description" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Description / Focus Areas
                 </label>
                 <textarea
+                  id="skill-description"
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -311,7 +343,7 @@ export default function SkillsPage() {
               <div className="pt-2 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
+                  onClick={closeAddModal}
                   className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                 >
                   Cancel
