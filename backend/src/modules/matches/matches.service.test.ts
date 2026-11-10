@@ -76,12 +76,11 @@ describe("MatchesService candidate visibility", () => {
     expect(match.reciprocalMatch).toBe(true);
     expect(match.theyTeachYouLearn.map((skill) => skill.name)).toContain("Python");
     expect(match.youTeachTheyLearn.map((skill) => skill.name)).toContain("React");
-    expect(userFind).toHaveBeenCalledWith(expect.objectContaining({
-      _id: expect.objectContaining({
-        $eq: targetUserId,
-        $nin: expect.arrayContaining([currentUserId]),
-      }),
-    }));
+    const candidateQuery = userFind.mock.calls[0]?.[0] as {
+      _id: { $eq: mongoose.Types.ObjectId; $nin: mongoose.Types.ObjectId[] };
+    };
+    expect(candidateQuery._id.$eq.toString()).toBe(targetUserId.toString());
+    expect(candidateQuery._id.$nin.map((id) => id.toString())).toContain(currentUserId.toString());
     expect(userSkillFind).toHaveBeenCalledTimes(3);
   });
 
