@@ -280,28 +280,31 @@ for (const viewport of viewports) {
       }
       if (routePath === "/exchanges") {
         await page.getByRole("button", { name: /Incoming requests/ }).click();
+        const incomingTabPressed = await page.getByRole("button", { name: /Incoming requests/ }).getAttribute("aria-pressed");
         await page.waitForURL(/view=incoming/, { timeout: 5000 }).catch(() => {});
         await page.getByRole("heading", { name: "With Incoming Requester" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         const incomingVisible = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
         const sentHidden = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
-        if (incomingVisible !== 1 || sentHidden !== 0 || !page.url().includes("view=incoming")) {
+        if (incomingVisible !== 1 || sentHidden !== 0 || incomingTabPressed !== "true" || !page.url().includes("view=incoming")) {
           failures.push({ route: routePath, viewport: viewport.name, type: "incoming-request-filter", detail: "Incoming view did not isolate requests addressed to the signed-in member" });
         }
 
         await page.getByRole("button", { name: /Sent requests/ }).click();
+        const sentTabPressed = await page.getByRole("button", { name: /Sent requests/ }).getAttribute("aria-pressed");
         await page.waitForURL(/view=sent/, { timeout: 5000 }).catch(() => {});
         await page.getByRole("heading", { name: "With Sent Request Recipient" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         const sentVisible = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
         const incomingHidden = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
-        if (sentVisible !== 1 || incomingHidden !== 0 || !page.url().includes("view=sent")) {
+        if (sentVisible !== 1 || incomingHidden !== 0 || sentTabPressed !== "true" || !page.url().includes("view=sent")) {
           failures.push({ route: routePath, viewport: viewport.name, type: "sent-request-filter", detail: "Sent view did not isolate requests created by the signed-in member" });
         }
 
         await page.getByRole("button", { name: "All exchanges" }).click();
+        const allTabPressed = await page.getByRole("button", { name: "All exchanges" }).getAttribute("aria-pressed");
         const allRequestsVisible =
           await page.getByRole("heading", { name: "With Incoming Requester" }).count() === 1 &&
           await page.getByRole("heading", { name: "With Sent Request Recipient" }).count() === 1;
-        if (!allRequestsVisible) {
+        if (!allRequestsVisible || allTabPressed !== "true") {
           failures.push({ route: routePath, viewport: viewport.name, type: "all-exchanges-filter", detail: "All exchanges view did not restore both request directions" });
         }
       }
