@@ -27,6 +27,7 @@ describe("MatchesService candidate visibility", () => {
     };
     const myOfferedSkill = {
       _id: new mongoose.Types.ObjectId(),
+      skillId: new mongoose.Types.ObjectId(),
       userId: currentUserId,
       type: "offered",
       skillName: "React",
@@ -35,6 +36,7 @@ describe("MatchesService candidate visibility", () => {
     };
     const myWantedSkill = {
       _id: new mongoose.Types.ObjectId(),
+      skillId: new mongoose.Types.ObjectId(),
       userId: currentUserId,
       type: "wanted",
       skillName: "Python",
@@ -43,6 +45,7 @@ describe("MatchesService candidate visibility", () => {
     };
     const candidateOfferedSkill = {
       _id: new mongoose.Types.ObjectId(),
+      skillId: new mongoose.Types.ObjectId(),
       userId: targetUserId,
       type: "offered",
       skillName: "Python",
@@ -51,6 +54,7 @@ describe("MatchesService candidate visibility", () => {
     };
     const candidateWantedSkill = {
       _id: new mongoose.Types.ObjectId(),
+      skillId: new mongoose.Types.ObjectId(),
       userId: targetUserId,
       type: "wanted",
       skillName: "React",
