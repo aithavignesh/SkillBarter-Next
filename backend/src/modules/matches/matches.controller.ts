@@ -3,6 +3,19 @@ import { matchesService } from "./matches.service";
 import { sendSuccess } from "../../utils/response";
 
 export class MatchesController {
+  async details(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const currentUserId = req.user?._id.toString();
+      if (!currentUserId) {
+        throw new Error("Authentication required");
+      }
+      const match = await matchesService.getMatchDetails(currentUserId, req.params.userId as string);
+      sendSuccess(res, { match });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async discover(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const currentUserId = req.user?._id.toString();
