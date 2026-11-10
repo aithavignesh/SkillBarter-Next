@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { AlertCircle, ArrowLeft, Heart, MessageSquare, Tag, Trash2 } from "lucide-react";
-import { CommunityPostDto } from "@skillbarter/shared";
+import type { CommunityPostDto } from "@skillbarter/shared";
 import { AppPageShell } from "../../../../components/ui/AppPageShell";
 import { useAuth } from "../../../../context/AuthContext";
 import { api } from "../../../../services/api";
