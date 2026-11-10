@@ -43,8 +43,21 @@ export default function CommunityPostDetailPage() {
     };
   }, [postId]);
 
+  const canUseCommunityActions = Boolean(user?.isEmailVerified && user?.onboardingCompleted);
+  const actionGateHref = !user
+    ? "/login"
+    : !user.onboardingCompleted
+      ? "/onboarding"
+      : !user.isEmailVerified
+        ? `/verify-email?email=${encodeURIComponent(user.email)}`
+        : null;
+  const actionGateLabel = !user
+    ? "Sign in to interact with this post"
+    : !user.onboardingCompleted
+      ? "Complete onboarding to interact with this post"
+      : "Verify your email to interact with this post";
   const canDelete = Boolean(
-    user && post && (user.id === post.authorId || user.role === "admin"),
+    canUseCommunityActions && user && post && (user.id === post.authorId || user.role === "admin"),
   );
 
   const handleToggleLike = async () => {
@@ -168,7 +181,7 @@ export default function CommunityPostDetailPage() {
               <button
                 type="button"
                 onClick={handleToggleLike}
-                disabled={busy}
+                disabled={busy || !canUseCommunityActions}
                 aria-pressed={post.likedByMe}
                 aria-label={post.likedByMe ? "Unlike this post" : "Like this post"}
                 className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-800 hover:border-rose-300 hover:text-rose-800 disabled:opacity-50"
@@ -177,9 +190,16 @@ export default function CommunityPostDetailPage() {
                 {post.likedByMe ? "Liked" : "Like"}
                 <span className="tabular-nums text-slate-600">{post.likesCount}</span>
               </button>
-              <Link href="/community" className="text-sm font-semibold text-red-700 underline underline-offset-4">
-                View more community posts
-              </Link>
+              <div className="flex flex-col items-start gap-1">
+                <Link href="/community" className="text-sm font-semibold text-red-700 underline underline-offset-4">
+                  View more community posts
+                </Link>
+                {actionGateHref && (
+                  <Link id="community-action-gate" href={actionGateHref} className="text-xs font-medium text-slate-600 underline underline-offset-4">
+                    {actionGateLabel}
+                  </Link>
+                )}
+              </div>
             </footer>
           </article>
         )}
