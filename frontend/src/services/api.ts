@@ -1,5 +1,4 @@
 import {
-import type { MatchResultDto } from "../types/matches";
   RegisterInput,
   LoginInput,
   OnboardingInput,
@@ -33,6 +32,7 @@ import type { MatchResultDto } from "../types/matches";
   PlatformStatsDto,
   AnalyticsSummaryDto,
 } from "@skillbarter/shared";
+import type { MatchResultDto } from "../types/matches";
 
 const API_BASE_URL =
   typeof window !== "undefined"
