@@ -83,6 +83,15 @@ export class CommunityController {
     }
   }
 
+  async getPostById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const post = await communityService.getPostById(req.params.id as string, req.user?._id.toString());
+      sendSuccess(res, { post });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async likePost(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
