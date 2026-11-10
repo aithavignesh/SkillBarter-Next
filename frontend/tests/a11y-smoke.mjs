@@ -5,7 +5,7 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/
 const routes = [
   "/", "/about", "/login", "/register", "/signup", "/forgot-password",
   "/reset-password?token=invalid", "/verify-email", "/onboarding", "/dashboard",
-  "/discover", "/matches", "/matches/507f1f77bcf86cd799439033", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges?status=ACTIVE", "/exchanges?status=COMPLETED", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/507f1f77bcf86cd799439013", "/exchanges/active-exchange",
+  "/discover", "/matches", "/matches/507f1f77bcf86cd799439033", "/matches/507f1f77bcf86cd799439033", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges?status=ACTIVE", "/exchanges?status=COMPLETED", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/507f1f77bcf86cd799439013", "/exchanges/active-exchange",
   "/exchanges/exchange-history", "/exchanges/exchange-rating", "/exchanges/schedule", "/exchanges/calendar",
   "/messages", "/messages/507f1f77bcf86cd799439011", "/messages/chat-details", "/notifications",
   "/profile", "/profile/edit", "/profile/507f1f77bcf86cd799439011", "/profile/edit-profile",
@@ -25,6 +25,7 @@ const routes = [
   "/screens/recommended",
   "/screens/ai-matching",
   "/screens/match-details",
+  "/screens/match-details/507f1f77bcf86cd799439033",
   "/screens/match-details/507f1f77bcf86cd799439033",
   "/screens/send-request",
   "/screens/incoming-requests",
@@ -227,6 +228,28 @@ const testMatch = {
     { skillId: "507f1f77bcf86cd799439042", name: "React", proficiency: "Intermediate" }
   ]
 };
+const testMatch = {
+  user: {
+    id: "507f1f77bcf86cd799439033",
+    displayName: "Match Detail Member",
+    bio: "Happy to exchange practical skills.",
+    avatarUrl: "",
+    location: "Hyderabad",
+    preferredSessionFormat: "video",
+    availability: "Weekends",
+    reputationScore: 4.6,
+    completedExchangesCount: 2
+  },
+  compatibilityScore: 92,
+  explanation: "Your React experience complements this member's Python teaching skills.",
+  reciprocalMatch: true,
+  theyTeachYouLearn: [
+    { skillId: "507f1f77bcf86cd799439041", name: "Python", proficiency: "Advanced" }
+  ],
+  youTeachTheyLearn: [
+    { skillId: "507f1f77bcf86cd799439042", name: "React", proficiency: "Intermediate" }
+  ]
+};
 const testExchanges = [testExchange, incomingExchange, sentExchange, completedExchange];
 
 async function installAuthenticatedApi(page) {
@@ -239,6 +262,14 @@ async function installAuthenticatedApi(page) {
     }
     if (path === "/api/v1/community/posts/" + testPost.id) {
       await route.fulfill(success({ post: testPost }));
+      return;
+    }
+    if (path === "/api/v1/matches/" + testMatch.user.id) {
+      await route.fulfill(success({ match: testMatch }));
+      return;
+    }
+    if (path === "/api/v1/matches/recommendations") {
+      await route.fulfill(success([testMatch]));
       return;
     }
     if (path === "/api/v1/matches/" + testMatch.user.id) {
@@ -394,6 +425,7 @@ for (const viewport of viewports) {
         "/screens/chat-details/507f1f77bcf86cd799439015": "/messages/507f1f77bcf86cd799439015",
         "/screens/workshop-details/507f1f77bcf86cd799439016": "/workshops/workshop-details?post=507f1f77bcf86cd799439016",
         "/screens/post-details/507f1f77bcf86cd799439029": "/community/posts/507f1f77bcf86cd799439029",
+        "/screens/match-details/507f1f77bcf86cd799439033": "/matches/507f1f77bcf86cd799439033",
         "/screens/match-details/507f1f77bcf86cd799439033": "/matches/507f1f77bcf86cd799439033"
       };
       const expectedLegacyDestination = legacyIdDestinations[routePath];
@@ -407,6 +439,27 @@ for (const viewport of viewports) {
         const reviewHeading = await reviewDialog.getByRole("heading", { name: "Review Completed Exchange Partner" }).count();
         if (await reviewDialog.count() !== 1 || reviewHeading !== 1) {
           failures.push({ route: routePath, viewport: viewport.name, type: "exchange-rating-deep-link", detail: "Completed exchange rating deep link did not open the review dialog" });
+        }
+      }
+
+      if (routePath === "/matches") {
+        const detailsLinkCount = await page.getByRole("link", { name: "Match details" }).count();
+        if (detailsLinkCount !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "match-list-detail-link", detail: "Match list did not expose the member detail link" });
+        }
+      }
+      if (routePath === "/matches/507f1f77bcf86cd799439033" || routePath === "/screens/match-details/507f1f77bcf86cd799439033") {
+        const memberHeading = await page.getByRole("heading", { name: "Match Detail Member" }).count();
+        const score = await page.getByText("92%", { exact: true }).count();
+        const teachHeading = await page.getByRole("heading", { name: "They can teach you" }).count();
+        if (memberHeading !== 1 || score !== 1 || teachHeading !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "match-details-content", detail: "Match profile, compatibility score, or skill details were not rendered" });
+        }
+        await page.getByRole("button", { name: "Propose exchange" }).click();
+        const offeredSkill = await page.getByLabel("Skill you will teach").count();
+        const wantedSkill = await page.getByLabel("Skill you want to learn").count();
+        if (offeredSkill !== 1 || wantedSkill !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "match-proposal-form", detail: "Match proposal form did not expose both skill selections" });
         }
       }
 
