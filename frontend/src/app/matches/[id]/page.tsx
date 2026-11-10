@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -35,31 +35,41 @@ export default function MatchDetailsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [proposalError, setProposalError] = useState<string | null>(null);
 
-  const loadMatch = useCallback(async () => {
-    if (!user?.id || !user.onboardingCompleted || !user.isEmailVerified) {
-      setMatch(null);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await api.matches.getDetails(memberId);
-      setMatch(result.match);
-      setOfferedSkillId(result.match.youTeachTheyLearn[0]?.skillId ?? "");
-      setWantedSkillId(result.match.theyTeachYouLearn[0]?.skillId ?? "");
-      setProposalDescription(`Hi ${result.match.user.displayName}, I would love to exchange skills with you.`);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Unable to load this match.");
-    } finally {
-      setLoading(false);
-    }
-  }, [memberId, user?.id, user?.onboardingCompleted, user?.isEmailVerified]);
-
   useEffect(() => {
-    if (!authLoading) void loadMatch();
-  }, [authLoading, loadMatch]);
+    if (authLoading) return;
+    let active = true;
+
+    async function loadMatch() {
+      if (!user?.id || !user.onboardingCompleted || !user.isEmailVerified) {
+        if (active) {
+          setMatch(null);
+          setLoading(false);
+        }
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await api.matches.getDetails(memberId);
+        if (active) {
+          setMatch(result.match);
+          setOfferedSkillId(result.match.youTeachTheyLearn[0]?.skillId ?? "");
+          setWantedSkillId(result.match.theyTeachYouLearn[0]?.skillId ?? "");
+          setProposalDescription(`Hi ${result.match.user.displayName}, I would love to exchange skills with you.`);
+        }
+      } catch (err: unknown) {
+        if (active) setError(err instanceof Error ? err.message : "Unable to load this match.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void loadMatch();
+    return () => {
+      active = false;
+    };
+  }, [authLoading, memberId, user?.id, user?.onboardingCompleted, user?.isEmailVerified]);
 
   const canPropose = Boolean(
     match && match.youTeachTheyLearn.length > 0 && match.theyTeachYouLearn.length > 0,
