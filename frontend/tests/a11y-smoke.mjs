@@ -178,6 +178,10 @@ async function installAuthenticatedApi(page) {
       await route.fulfill(success({ user: member() }));
       return;
     }
+    if (path === "/api/v1/exchanges/" + testExchangeId) {
+      await route.fulfill(success({ exchange: testExchange }));
+      return;
+    }
     if (/\/users\/[a-f0-9]{24}$/.test(path) || /\/exchanges\/[a-f0-9]{24}$/.test(path)) {
       await route.fulfill(failure(404, "NOT_FOUND", "The requested record was not found"));
       return;
@@ -200,10 +204,6 @@ async function installAuthenticatedApi(page) {
     }
     if (path.includes("/reviews/user/")) {
       await route.fulfill(success({ reviews: [] }));
-      return;
-    }
-    if (path === "/api/v1/exchanges/" + testExchangeId) {
-      await route.fulfill(success({ exchange: testExchange }));
       return;
     }
     if (path.endsWith("/exchanges/" + testExchangeId + "/sessions")) {
