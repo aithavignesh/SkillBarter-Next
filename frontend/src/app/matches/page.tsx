@@ -35,7 +35,7 @@ export default function MatchesPage() {
   const proposalSubmitLock = useRef(false);
 
   const loadMatches = useCallback(async () => {
-    if (!user?.id || !user.isEmailVerified) {
+    if (!user?.id || !user.onboardingCompleted || !user.isEmailVerified) {
       setMatches([]);
       setLoading(false);
       return;
@@ -131,17 +131,24 @@ export default function MatchesPage() {
             Sign in
           </Link>
         </section>
+      ) : !user.onboardingCompleted ? (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6 sm:p-8" role="status">
+          <h2 className="font-bold text-amber-950">Complete onboarding to unlock personalized matching</h2>
+          <p className="mt-2 text-sm leading-6 text-amber-900">
+            Finish your member profile before viewing personalized matches or sending exchange requests.
+          </p>
+          <Link href="/onboarding" className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-amber-900 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-900 focus-visible:ring-offset-2">
+            Complete onboarding
+          </Link>
+        </section>
       ) : !user.isEmailVerified ? (
         <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6 sm:p-8" role="status">
           <h2 className="font-bold text-amber-950">Verify your email to unlock personalized matching</h2>
           <p className="mt-2 text-sm leading-6 text-amber-900">
-            You can finish setting up your profile first. Matching and exchange requests become available after email verification.
+            Your profile is set up. Verify your email to view personalized matches and send exchange requests.
           </p>
-          <Link
-            href={user.onboardingCompleted ? `/verify-email?email=${encodeURIComponent(user.email)}` : "/onboarding"}
-            className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-amber-900 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-900 focus-visible:ring-offset-2"
-          >
-            {user.onboardingCompleted ? "Verify email" : "Complete onboarding"}
+          <Link href={`/verify-email?email=${encodeURIComponent(user.email)}`} className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-amber-900 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-900 focus-visible:ring-offset-2">
+            Verify email
           </Link>
         </section>
       ) : loading ? (
