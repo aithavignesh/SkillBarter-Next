@@ -246,7 +246,7 @@ export default function ExchangeCalendarPage() {
                     key={key}
                     type="button"
                     aria-pressed={isSelected}
-                    aria-label={date.getDate() + " " + dayEntries.length + (dayEntries.length === 1 ? " session" : " sessions") + " — " + formatDate(date)}
+                    aria-labelledby={"calendar-day-" + key + " calendar-count-" + key + " calendar-date-" + key}
                     onClick={() => setSelectedDate(date)}
                     className={[
                       "flex min-h-16 min-w-0 flex-col items-start rounded-lg border p-1.5 text-left transition-colors sm:min-h-24 sm:p-2",
@@ -256,14 +256,20 @@ export default function ExchangeCalendarPage() {
                     <span className={[
                       "inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
                       isToday ? "bg-slate-900 text-white" : "text-slate-700",
-                    ].join(" ")}>
+                    ].join(" ")} id={"calendar-day-" + key}>
                       {date.getDate()}
                     </span>
-                    {dayEntries.length > 0 && (
-                      <span className="mt-1 max-w-full truncate text-[10px] font-semibold text-red-700 sm:text-xs">
-                        {dayEntries.length} {dayEntries.length === 1 ? "session" : "sessions"}
-                      </span>
-                    )}
+                    <span
+                      id={"calendar-count-" + key}
+                      className={dayEntries.length > 0
+                        ? "mt-1 max-w-full truncate text-[10px] font-semibold text-red-700 sm:text-xs"
+                        : "sr-only"}
+                    >
+                      {dayEntries.length} {dayEntries.length === 1 ? "session" : "sessions"}
+                    </span>
+                    <span id={"calendar-date-" + key} className="sr-only">
+                      {formatDate(date)}
+                    </span>
                     {dayEntries.length > 0 && (
                       <span aria-hidden="true" className="mt-1 h-1.5 w-1.5 rounded-full bg-red-600" />
                     )}
