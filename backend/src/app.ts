@@ -3,6 +3,8 @@ import express from "express";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { apiHealthSchema, apiReadySchema } from "@skillbarter/shared";
 import { env } from "./config/env";
 import { isDatabaseConnected } from "./config/database";
@@ -52,11 +54,24 @@ app.use(
   })
 );
 
-// Render provides these non-secret deployment identifiers at runtime. Exposing
-// them on health probes lets staging checks compare the live API to GitHub SHA.
+// Render's RENDER_GIT_COMMIT can lag behind a newly promoted instance.
+// The postbuild script writes the checked-out Git SHA into dist/build-info.json,
+// which is bundled with the deployed server and is the primary source of truth.
+const readBuildMetadata = (): { commit?: string | null; branch?: string | null } => {
+  try {
+    return JSON.parse(readFileSync(join(__dirname, "build-info.json"), "utf8")) as {
+      commit?: string | null;
+      branch?: string | null;
+    };
+  } catch {
+    return {};
+  }
+};
+
+const buildMetadata = readBuildMetadata();
 const getDeploymentMetadata = () => ({
-  commit: process.env.RENDER_GIT_COMMIT || null,
-  branch: process.env.RENDER_GIT_BRANCH || null,
+  commit: buildMetadata.commit || process.env.RENDER_GIT_COMMIT || null,
+  branch: buildMetadata.branch || process.env.RENDER_GIT_BRANCH || null,
 });
 
 // Health check handler
