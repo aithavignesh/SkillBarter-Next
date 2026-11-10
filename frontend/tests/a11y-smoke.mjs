@@ -5,7 +5,7 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/
 const routes = [
   "/", "/about", "/login", "/register", "/signup", "/forgot-password",
   "/reset-password?token=invalid", "/verify-email", "/onboarding", "/dashboard",
-  "/discover", "/matches", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/507f1f77bcf86cd799439013", "/exchanges/active-exchange",
+  "/discover", "/matches", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges?status=ACTIVE", "/exchanges?status=COMPLETED", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/507f1f77bcf86cd799439013", "/exchanges/active-exchange",
   "/exchanges/exchange-history", "/exchanges/exchange-rating", "/exchanges/schedule", "/exchanges/calendar",
   "/messages", "/messages/507f1f77bcf86cd799439011", "/messages/chat-details", "/notifications",
   "/profile", "/profile/edit", "/profile/507f1f77bcf86cd799439011", "/profile/edit-profile",
@@ -29,7 +29,13 @@ const routes = [
   "/screens/incoming-requests",
   "/screens/sent-requests",
   "/screens/request-details",
+  "/screens/request-details/507f1f77bcf86cd799439013",
   "/screens/active-exchange",
+  "/screens/active-exchange/507f1f77bcf86cd799439013",
+  "/screens/exchange-rating/507f1f77bcf86cd799439013",
+  "/screens/public-profile/507f1f77bcf86cd799439014",
+  "/screens/chat-details/507f1f77bcf86cd799439015",
+  "/screens/workshop-details/507f1f77bcf86cd799439016",
   "/screens/exchange-history",
   "/screens/exchange-rating",
   "/screens/schedule",
@@ -168,7 +174,23 @@ const sentExchange = {
   createdAt: "2026-11-02T10:00:00.000Z",
   updatedAt: "2026-11-02T10:00:00.000Z"
 };
-const testExchanges = [testExchange, incomingExchange, sentExchange];
+const completedExchange = {
+  id: "507f1f77bcf86cd799439025",
+  requesterId: "507f1f77bcf86cd799439011",
+  requesterName: "A11y Test Member",
+  recipientId: "507f1f77bcf86cd799439026",
+  recipientName: "Completed Exchange Partner",
+  offeredSkillId: "507f1f77bcf86cd799439027",
+  offeredSkillName: "Python",
+  wantedSkillId: "507f1f77bcf86cd799439028",
+  wantedSkillName: "Data Science",
+  status: "COMPLETED",
+  proposalDescription: "A completed exchange fixture for history filtering.",
+  completionStatus: { requesterConfirmed: true, recipientConfirmed: true },
+  createdAt: "2026-10-20T10:00:00.000Z",
+  updatedAt: "2026-10-21T10:00:00.000Z"
+};
+const testExchanges = [testExchange, incomingExchange, sentExchange, completedExchange];
 
 async function installAuthenticatedApi(page) {
   await page.route("**/api/v1/**", async (route) => {
@@ -289,6 +311,39 @@ for (const viewport of viewports) {
         if (detailHeading !== 1 || conversationHref !== "/messages?partner=507f1f77bcf86cd799439014") {
           failures.push({ route: routePath, viewport: viewport.name, type: "exchange-conversation-link", detail: "Exchange details must open a conversation with the other participant" });
         }
+      }
+
+      if (routePath === "/exchanges?status=ACTIVE" || routePath === "/screens/active-exchange") {
+        const activeVisible = await page.getByRole("heading", { name: "With A11y Test Partner" }).count();
+        const completedHidden = await page.getByRole("heading", { name: "With Completed Exchange Partner" }).count();
+        if (activeVisible !== 1 || completedHidden !== 0 || !page.url().includes("status=ACTIVE")) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "active-exchange-view", detail: "Active exchange deep link did not isolate accepted/scheduled exchanges" });
+        }
+      }
+
+      if (routePath === "/exchanges?status=COMPLETED" || routePath === "/screens/exchange-history" || routePath === "/screens/exchange-rating") {
+        const completedVisible = await page.getByRole("heading", { name: "With Completed Exchange Partner" }).count();
+        const activeHidden = await page.getByRole("heading", { name: "With A11y Test Partner" }).count();
+        if (completedVisible !== 1 || activeHidden !== 0 || !page.url().includes("status=COMPLETED")) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "completed-exchange-view", detail: "History/rating deep link did not isolate completed exchanges" });
+        }
+      }
+
+      const legacyIdDestinations = {
+        "/screens/request-details/507f1f77bcf86cd799439013": "/exchanges/507f1f77bcf86cd799439013",
+        "/screens/active-exchange/507f1f77bcf86cd799439013": "/exchanges/507f1f77bcf86cd799439013",
+        "/screens/exchange-rating/507f1f77bcf86cd799439013": "/exchanges/507f1f77bcf86cd799439013",
+        "/screens/public-profile/507f1f77bcf86cd799439014": "/profile/507f1f77bcf86cd799439014",
+        "/screens/chat-details/507f1f77bcf86cd799439015": "/messages/507f1f77bcf86cd799439015",
+        "/screens/workshop-details/507f1f77bcf86cd799439016": "/workshops/workshop-details?post=507f1f77bcf86cd799439016"
+      };
+      const expectedLegacyDestination = legacyIdDestinations[routePath];
+      if (expectedLegacyDestination && !page.url().includes(expectedLegacyDestination)) {
+        failures.push({ route: routePath, viewport: viewport.name, type: "legacy-resource-id", detail: "Legacy deep link did not preserve its resource ID: " + page.url() });
+      }
+
+      if (routePath === "/screens/workshop-details" && !page.url().endsWith("/workshops/workshops")) {
+        failures.push({ route: routePath, viewport: viewport.name, type: "workshop-list-fallback", detail: "Workshop details without an ID should return to the workshop list" });
       }
 
       if (routePath === "/exchanges/calendar" || routePath === "/screens/calendar" || routePath === "/screens/schedule") {
