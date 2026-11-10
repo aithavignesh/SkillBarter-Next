@@ -1,13 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { matchesService } from "./matches.service";
 import { sendSuccess } from "../../utils/response";
+import { AppError } from "../../utils/AppError";
 
 export class MatchesController {
   async details(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const currentUserId = req.user?._id.toString();
       if (!currentUserId) {
-        throw new Error("Authentication required");
+        throw new AppError("Authentication required", 401, "UNAUTHORIZED");
       }
       const match = await matchesService.getMatchDetails(currentUserId, req.params.userId as string);
       sendSuccess(res, { match });
