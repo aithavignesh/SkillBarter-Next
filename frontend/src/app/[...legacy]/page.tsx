@@ -68,6 +68,7 @@ const screenIdTargets: Record<string, (id: string) => string> = {
   "chat-details": (id) => `/messages/${encodeURIComponent(id)}`,
   "workshop-details": (id) => `/workshops/workshop-details?post=${encodeURIComponent(id)}`,
   "post-details": (id) => `/community/posts/${encodeURIComponent(id)}`,
+  "match-details": (id) => `/matches/${encodeURIComponent(id)}`,
 };
 
 export default async function LegacyRoute({ params }: { params: Promise<{ legacy: string[] }> }) {
