@@ -64,7 +64,7 @@ const screenIdTargets: Record<string, (id: string) => string> = {
   "public-profile": (id) => `/profile/${encodeURIComponent(id)}`,
   "request-details": (id) => `/exchanges/${encodeURIComponent(id)}`,
   "active-exchange": (id) => `/exchanges/${encodeURIComponent(id)}`,
-  "exchange-rating": (id) => `/exchanges/${encodeURIComponent(id)}`,
+  "exchange-rating": (id) => `/exchanges/${encodeURIComponent(id)}?review=1`,
   "chat-details": (id) => `/messages/${encodeURIComponent(id)}`,
   "workshop-details": (id) => `/workshops/workshop-details?post=${encodeURIComponent(id)}`,
 };
