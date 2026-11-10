@@ -231,6 +231,35 @@ export class CommunityService {
     };
   }
 
+  async getPostById(postId: string, viewerId?: string): Promise<CommunityPostDto> {
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      throw new AppError("Invalid post ID", 400, "INVALID_ID");
+    }
+
+    const post = await CommunityPost.findById(postId).populate("authorId", "displayName avatarUrl");
+    if (!post) {
+      throw new AppError("Post not found", 404, "NOT_FOUND");
+    }
+
+    const author = post.authorId as unknown as { _id?: mongoose.Types.ObjectId };
+    const authorId = author?._id ? author._id.toString() : post.authorId.toString();
+
+    // Match feed visibility: a block in either direction hides the post.
+    if (viewerId && authorId !== viewerId) {
+      const isBlocked = await Block.findOne({
+        $or: [
+          { blockerId: viewerId, blockedUserId: authorId },
+          { blockerId: authorId, blockedUserId: viewerId },
+        ],
+      });
+      if (isBlocked) {
+        throw new AppError("Post not found", 404, "NOT_FOUND");
+      }
+    }
+
+    return this.formatPost(post, viewerId);
+  }
+
   private formatPost(post: ICommunityPost, viewerId?: string): CommunityPostDto {
     const author = post.authorId as unknown as {
       _id?: mongoose.Types.ObjectId;
