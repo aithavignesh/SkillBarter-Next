@@ -381,7 +381,7 @@ for (const viewport of viewports) {
       if (routePath === "/community/posts/507f1f77bcf86cd799439029" || routePath === "/screens/post-details/507f1f77bcf86cd799439029") {
         const postHeading = await page.getByRole("heading", { name: "A11y Test Post" }).count();
         const authorLink = await page.getByRole("link", { name: "A11y Test Member" }).count();
-        const likeButton = await page.getByRole("button", { name: "Like this post" }).count();
+        const likeButton = await page.getByRole("button", { name: "Like 2" }).count();
         if (postHeading !== 1 || authorLink !== 1 || likeButton !== 1) {
           failures.push({ route: routePath, viewport: viewport.name, type: "community-post-detail", detail: "Post detail content or like action was not rendered" });
         }
