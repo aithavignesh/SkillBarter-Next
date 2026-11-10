@@ -3,7 +3,7 @@ import { User, IUser } from "../../models/User";
 import { UserSkill, IUserSkill } from "../../models/UserSkill";
 import { Block } from "../../models/Block";
 import { AnalyticsEvent } from "../../models/AnalyticsEvent";
-import { AppError } from "../../utils/AppError";
+import { AppError } from "../../middleware/errorHandler";
 
 export interface MatchResult {
   user: {
