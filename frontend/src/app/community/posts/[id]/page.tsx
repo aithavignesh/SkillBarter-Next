@@ -167,7 +167,7 @@ export default function CommunityPostDetailPage() {
             </div>
 
             {post.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4" aria-label="Post tags">
+              <div role="group" className="flex flex-wrap gap-2 border-t border-slate-100 pt-4" aria-label="Post tags">
                 {post.tags.map((tag) => (
                   <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                     <Tag className="h-3 w-3 text-slate-500" aria-hidden="true" />
