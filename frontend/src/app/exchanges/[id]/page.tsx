@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, use } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
 import { api } from "../../../services/api";
 import { ExchangeDto, ExchangeSessionDto } from "@skillbarter/shared";
@@ -22,9 +22,8 @@ import {
 export default function ExchangeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const shouldOpenReview = searchParams.get("review") === "1";
   const { user } = useAuth();
+  const [shouldOpenReview, setShouldOpenReview] = useState(false);
 
   const [exchange, setExchange] = useState<ExchangeDto | null>(null);
   const [sessions, setSessions] = useState<ExchangeSessionDto[]>([]);
@@ -62,6 +61,10 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
       setLoading(false);
     }
   }, [id]);
+
+  useEffect(() => {
+    setShouldOpenReview(new URLSearchParams(window.location.search).get("review") === "1");
+  }, []);
 
   useEffect(() => {
     if (shouldOpenReview && exchange?.status === "COMPLETED") {
