@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AppPageShell } from "../../components/ui/AppPageShell";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
+import type { MatchResultDto } from "../../types/matches";
 import {
   ArrowRight,
   AlertCircle,
@@ -17,30 +18,7 @@ import {
   X,
 } from "lucide-react";
 
-type MatchSkill = {
-  skillId: string;
-  name: string;
-  proficiency: string;
-};
-
-type MatchResult = {
-  user: {
-    id: string;
-    displayName: string;
-    bio: string;
-    avatarUrl: string;
-    location: string;
-    preferredSessionFormat: string;
-    availability: string;
-    reputationScore: number;
-    completedExchangesCount: number;
-  };
-  compatibilityScore: number;
-  explanation: string;
-  reciprocalMatch: boolean;
-  theyTeachYouLearn: MatchSkill[];
-  youTeachTheyLearn: MatchSkill[];
-};
+type MatchResult = MatchResultDto;
 
 export default function MatchesPage() {
   const router = useRouter();
@@ -67,7 +45,7 @@ export default function MatchesPage() {
     setError(null);
     try {
       const result = await api.matches.recommendations();
-      setMatches(result as MatchResult[]);
+      setMatches(result);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unable to load your personalized matches.");
     } finally {
@@ -252,6 +230,9 @@ export default function MatchesPage() {
                 <div className="mt-auto flex flex-wrap gap-2 pt-5">
                   <Link href={`/profile/${match.user.id}`} className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">
                     View profile
+                  </Link>
+                  <Link href={`/matches/${match.user.id}`} className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">
+                    Match details
                   </Link>
                   <button type="button" onClick={() => openProposal(match)} className="inline-flex min-h-10 flex-1 items-center justify-center gap-1 rounded-lg bg-red-700 px-3 py-2 text-xs font-semibold text-white hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">
                     <Repeat className="h-3.5 w-3.5" aria-hidden="true" /> Propose exchange
