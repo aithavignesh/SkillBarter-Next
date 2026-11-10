@@ -254,10 +254,10 @@ export default function MatchDetailsPage() {
                 </div>
                 <div>
                   <label htmlFor="match-proposal-description" className="mb-1 block text-sm font-semibold text-slate-700">Message to {match.user.displayName}</label>
-                  <textarea id="match-proposal-description" rows={4} value={proposalDescription} onChange={(event) => setProposalDescription(event.target.value)} maxLength={1000} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" />
+                  <textarea id="match-proposal-description" required maxLength={1000} rows={4} value={proposalDescription} onChange={(event) => setProposalDescription(event.target.value)} maxLength={1000} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" />
                 </div>
                 <div className="flex justify-end">
-                  <button type="submit" disabled={submitting || !offeredSkillId || !wantedSkillId} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-red-700 px-5 py-2 text-sm font-semibold text-white hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 disabled:opacity-50">
+                  <button type="submit" disabled={submitting || !offeredSkillId || !wantedSkillId || !proposalDescription.trim()} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-red-700 px-5 py-2 text-sm font-semibold text-white hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 disabled:opacity-50">
                     {submitting ? "Sending request…" : "Send exchange request"}
                   </button>
                 </div>
