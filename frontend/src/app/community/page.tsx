@@ -36,6 +36,29 @@ export default function CommunityPage() {
     fetchPosts();
   }, []);
 
+  useEffect(() => {
+    if (user?.id && new URLSearchParams(window.location.search).get("compose") === "1") {
+      setShowModal(true);
+    }
+  }, [user?.id]);
+
+  const closeModal = () => {
+    setShowModal(false);
+    const params = new URLSearchParams(window.location.search);
+    params.delete("compose");
+    const query = params.toString();
+    window.history.replaceState(window.history.state, "", "/community" + (query ? "?" + query : ""));
+  };
+
+  useEffect(() => {
+    if (!showModal) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !creating) closeModal();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showModal, creating]);
+
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreating(true);
@@ -48,7 +71,7 @@ export default function CommunityPage() {
 
     try {
       await api.community.createPost({ title, content, tags });
-      setShowModal(false);
+      closeModal();
       setTitle("");
       setContent("");
       setTagsInput("");
@@ -121,7 +144,7 @@ export default function CommunityPage() {
                       type="button"
                       onClick={() => handleDeletePost(p.id)}
                       className="text-slate-400 hover:text-rose-600 p-1"
-                      title="Delete post"
+                      title="Delete post" aria-label={`Delete post: ${p.title}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -156,11 +179,11 @@ export default function CommunityPage() {
       {/* New Post Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4">
-            <h3 className="text-xl font-bold text-slate-900">Create Community Post</h3>
+          <div role="dialog" aria-modal="true" aria-labelledby="create-post-modal-title" tabIndex={-1} className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4">
+            <h3 id="create-post-modal-title" className="text-xl font-bold text-slate-900">Create Community Post</h3>
 
             {error && (
-              <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-4 text-xs text-rose-700 border border-rose-200">
+              <div role="alert" className="flex items-center gap-2 rounded-xl bg-rose-50 p-4 text-xs text-rose-700 border border-rose-200">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <p>{error}</p>
               </div>
@@ -168,10 +191,12 @@ export default function CommunityPage() {
 
             <form onSubmit={handleCreatePost} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="community-post-title" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Title
                 </label>
                 <input
+                  id="community-post-title"
+                  autoFocus
                   type="text"
                   required
                   value={title}
@@ -182,10 +207,11 @@ export default function CommunityPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="community-post-content" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Content
                 </label>
                 <textarea
+                  id="community-post-content"
                   rows={5}
                   required
                   value={content}
@@ -196,10 +222,11 @@ export default function CommunityPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="community-post-tags" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Tags (comma separated)
                 </label>
                 <input
+                  id="community-post-tags"
                   type="text"
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
@@ -211,7 +238,7 @@ export default function CommunityPage() {
               <div className="pt-2 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={closeModal}
                   className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                 >
                   Cancel
