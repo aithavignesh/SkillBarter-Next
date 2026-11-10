@@ -227,7 +227,7 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
 
           <div className="flex items-center gap-2">
             <Link
-              href="/messages"
+              href={`/messages?partner=${encodeURIComponent(otherUserId)}`}
               className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
             >
               <MessageSquare className="h-4 w-4" /> Open Conversation

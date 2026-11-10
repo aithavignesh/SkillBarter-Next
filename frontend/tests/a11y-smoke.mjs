@@ -5,7 +5,7 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/
 const routes = [
   "/", "/about", "/login", "/register", "/signup", "/forgot-password",
   "/reset-password?token=invalid", "/verify-email", "/onboarding", "/dashboard",
-  "/discover", "/matches", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/active-exchange",
+  "/discover", "/matches", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/507f1f77bcf86cd799439013", "/exchanges/active-exchange",
   "/exchanges/exchange-history", "/exchanges/exchange-rating", "/exchanges/schedule", "/exchanges/calendar",
   "/messages", "/messages/507f1f77bcf86cd799439011", "/messages/chat-details", "/notifications",
   "/profile", "/profile/edit", "/profile/507f1f77bcf86cd799439011", "/profile/edit-profile",
@@ -178,6 +178,10 @@ async function installAuthenticatedApi(page) {
       await route.fulfill(success({ user: member() }));
       return;
     }
+    if (path === "/api/v1/exchanges/" + testExchangeId) {
+      await route.fulfill(success({ exchange: testExchange }));
+      return;
+    }
     if (/\/users\/[a-f0-9]{24}$/.test(path) || /\/exchanges\/[a-f0-9]{24}$/.test(path)) {
       await route.fulfill(failure(404, "NOT_FOUND", "The requested record was not found"));
       return;
@@ -249,7 +253,7 @@ for (const viewport of viewports) {
 
   const tabletCoreRoutes = new Set([
     "/", "/login", "/register", "/onboarding", "/dashboard", "/discover", "/matches",
-    "/exchanges", "/exchanges/calendar", "/screens/calendar", "/screens/schedule",
+    "/exchanges", "/exchanges/507f1f77bcf86cd799439013", "/exchanges/calendar", "/screens/calendar", "/screens/schedule",
     "/messages", "/profile/edit", "/settings", "/safety", "/admin"
   ]);
   const routesForViewport = viewport.name === "tablet"
@@ -279,6 +283,14 @@ for (const viewport of viewports) {
       if (pageState.textLength === 0) {
         failures.push({ route: routePath, viewport: viewport.name, type: "empty-page", detail: "No visible page text" });
       }
+      if (routePath === "/exchanges/507f1f77bcf86cd799439013") {
+        const detailHeading = await page.getByRole("heading", { name: "Exchange with A11y Test Partner" }).count();
+        const conversationHref = await page.getByRole("link", { name: /Open Conversation/ }).getAttribute("href");
+        if (detailHeading !== 1 || conversationHref !== "/messages?partner=507f1f77bcf86cd799439014") {
+          failures.push({ route: routePath, viewport: viewport.name, type: "exchange-conversation-link", detail: "Exchange details must open a conversation with the other participant" });
+        }
+      }
+
       if (routePath === "/exchanges/calendar" || routePath === "/screens/calendar" || routePath === "/screens/schedule") {
         const calendarHeading = await page.getByRole("heading", { name: "Exchange Calendar" }).count();
         const previousMonthControl = await page.getByRole("button", { name: "Previous month" }).count();
