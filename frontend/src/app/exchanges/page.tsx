@@ -19,20 +19,28 @@ export default function ExchangesListPage() {
   const requestIdRef = useRef(0);
 
   useEffect(() => {
-    const syncDirectionFromUrl = () => {
-      const view = new URLSearchParams(window.location.search).get("view");
+    const syncFiltersFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const view = params.get("view");
+      const status = params.get("status")?.toUpperCase();
+      const validStatuses = ["ALL", "PENDING", "ACTIVE", "COMPLETED", "CANCELLED"];
+
       if (view === "incoming" || view === "sent") {
         setDirection(view === "incoming" ? "INCOMING" : "SENT");
-        setFilter("PENDING");
       } else {
         setDirection("ALL");
-        setFilter("ALL");
+      }
+
+      if (status && validStatuses.includes(status)) {
+        setFilter(status);
+      } else {
+        setFilter(view === "incoming" || view === "sent" ? "PENDING" : "ALL");
       }
     };
 
-    syncDirectionFromUrl();
-    window.addEventListener("popstate", syncDirectionFromUrl);
-    return () => window.removeEventListener("popstate", syncDirectionFromUrl);
+    syncFiltersFromUrl();
+    window.addEventListener("popstate", syncFiltersFromUrl);
+    return () => window.removeEventListener("popstate", syncFiltersFromUrl);
   }, []);
 
   function selectDirection(next: "ALL" | "INCOMING" | "SENT") {
@@ -40,6 +48,15 @@ export default function ExchangesListPage() {
     setFilter(next === "ALL" ? "ALL" : "PENDING");
     const query = next === "ALL" ? "" : "?view=" + next.toLowerCase();
     window.history.replaceState(window.history.state, "", "/exchanges" + query);
+  }
+
+  function selectStatus(next: string) {
+    setFilter(next);
+    const params = new URLSearchParams();
+    if (direction !== "ALL") params.set("view", direction.toLowerCase());
+    if (next !== "ALL" || direction !== "ALL") params.set("status", next);
+    const query = params.toString();
+    window.history.replaceState(window.history.state, "", "/exchanges" + (query ? "?" + query : ""));
   }
 
   const loadExchanges = async () => {
@@ -137,7 +154,7 @@ export default function ExchangesListPage() {
             key={tab}
             type="button"
             aria-pressed={filter === tab}
-            onClick={() => setFilter(tab)}
+            onClick={() => selectStatus(tab)}
             className={`rounded-xl px-4 py-2 transition-all ${
               filter === tab
                 ? "bg-slate-900 text-white"

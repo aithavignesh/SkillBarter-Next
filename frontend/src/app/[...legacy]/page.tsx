@@ -34,9 +34,9 @@ const screenTargets: Record<string, string> = {
   "incoming-requests": "/exchanges?view=incoming",
   "sent-requests": "/exchanges?view=sent",
   "request-details": "/exchanges",
-  "active-exchange": "/exchanges",
-  "exchange-history": "/exchanges",
-  "exchange-rating": "/exchanges",
+  "active-exchange": "/exchanges?status=ACTIVE",
+  "exchange-history": "/exchanges?status=COMPLETED",
+  "exchange-rating": "/exchanges?status=COMPLETED",
   schedule: "/exchanges/calendar",
   calendar: "/exchanges/calendar",
   notifications: "/notifications",
@@ -48,7 +48,7 @@ const screenTargets: Record<string, string> = {
   "group-details": "/community",
   workshops: "/workshops/workshops",
   "create-workshop": "/workshops/create-workshop",
-  "workshop-details": "/workshops/workshop-details",
+  "workshop-details": "/workshops/workshops",
   "my-workshops": "/workshops/my-workshops",
   credits: "/monetization",
   premium: "/monetization",
@@ -60,11 +60,25 @@ const screenTargets: Record<string, string> = {
   activity: "/dashboard",
 };
 
+const screenIdTargets: Record<string, (id: string) => string> = {
+  "public-profile": (id) => `/profile/${encodeURIComponent(id)}`,
+  "request-details": (id) => `/exchanges/${encodeURIComponent(id)}`,
+  "active-exchange": (id) => `/exchanges/${encodeURIComponent(id)}`,
+  "exchange-rating": (id) => `/exchanges/${encodeURIComponent(id)}`,
+  "chat-details": (id) => `/messages/${encodeURIComponent(id)}`,
+  "workshop-details": (id) => `/workshops/workshop-details?post=${encodeURIComponent(id)}`,
+};
+
 export default async function LegacyRoute({ params }: { params: Promise<{ legacy: string[] }> }) {
   const { legacy } = await params;
-  const [section, slug] = legacy;
+  const [section, slug, resourceId] = legacy;
 
   if (section === "screens") {
+    if (slug && resourceId) {
+      const buildTarget = screenIdTargets[slug];
+      if (buildTarget) redirect(buildTarget(resourceId));
+    }
+
     const target = slug ? screenTargets[slug] : "/screens";
     if (!target) notFound();
     redirect(target);
