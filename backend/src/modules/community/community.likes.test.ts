@@ -43,6 +43,11 @@ describe("Community post likes", () => {
     });
     postIds.push(post._id.toString());
 
+    const detail = await communityService.getPostById(post._id.toString(), member._id.toString());
+    expect(detail.id).toBe(post._id.toString());
+    expect(detail.authorName).toBe("Post Author");
+    expect(detail.likedByMe).toBe(false);
+
     const firstLike = await communityService.likePost(post._id.toString(), member._id.toString());
     expect(firstLike.likesCount).toBe(1);
     expect(firstLike.likedByMe).toBe(true);
@@ -118,6 +123,23 @@ describe("Community post likes", () => {
     expect(visibleIds).not.toContain(outgoingBlockedPost._id.toString());
     expect(visibleIds).not.toContain(incomingBlockedPost._id.toString());
     expect(result.meta.total).toBe(result.posts.length);
+    await expect(
+      communityService.getPostById(outgoingBlockedPost._id.toString(), viewer._id.toString()),
+    ).rejects.toMatchObject({ statusCode: 404, code: "NOT_FOUND" });
+    await expect(
+      communityService.getPostById(incomingBlockedPost._id.toString(), viewer._id.toString()),
+    ).rejects.toMatchObject({ statusCode: 404, code: "NOT_FOUND" });
+  });
+
+  it("rejects invalid and missing post IDs", async () => {
+    await expect(communityService.getPostById("not-an-object-id")).rejects.toMatchObject({
+      statusCode: 400,
+      code: "INVALID_ID",
+    });
+    await expect(communityService.getPostById("507f1f77bcf86cd799439099")).rejects.toMatchObject({
+      statusCode: 404,
+      code: "NOT_FOUND",
+    });
   });
 
   it("prevents members from liking a post when either party has blocked the other", async () => {
