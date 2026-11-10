@@ -39,6 +39,7 @@ describe("Server-side onboarding authorization", () => {
 
     const responses = await Promise.all([
       request(app).get("/api/v1/matches/recommendations").set("Authorization", authorization),
+      request(app).get("/api/v1/matches/discover").set("Authorization", authorization),
       request(app).get("/api/v1/exchanges").set("Authorization", authorization),
       request(app).get("/api/v1/messages/conversations").set("Authorization", authorization),
       request(app).get("/api/v1/notifications").set("Authorization", authorization),
@@ -121,6 +122,12 @@ describe("Server-side onboarding authorization", () => {
     expect(stillUnverified.status).toBe(403);
     expect(stillUnverified.body.error.code).toBe("EMAIL_NOT_VERIFIED");
 
+    const discoverStillUnverified = await request(app)
+      .get("/api/v1/matches/discover")
+      .set("Authorization", authorization);
+    expect(discoverStillUnverified.status).toBe(403);
+    expect(discoverStillUnverified.body.error.code).toBe("EMAIL_NOT_VERIFIED");
+
     user.isEmailVerified = true;
     await user.save();
 
@@ -128,5 +135,10 @@ describe("Server-side onboarding authorization", () => {
       .get("/api/v1/matches/recommendations")
       .set("Authorization", authorization);
     expect(verified.status).toBe(200);
+
+    const discoverVerified = await request(app)
+      .get("/api/v1/matches/discover")
+      .set("Authorization", authorization);
+    expect(discoverVerified.status).toBe(200);
   });
 });
