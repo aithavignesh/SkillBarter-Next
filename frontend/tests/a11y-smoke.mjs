@@ -280,6 +280,7 @@ for (const viewport of viewports) {
       }
       if (routePath === "/exchanges") {
         await page.getByRole("button", { name: /Incoming requests/ }).click();
+        await page.waitForURL(/view=incoming/, { timeout: 5000 }).catch(() => {});
         await page.getByRole("heading", { name: "With Incoming Requester" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         const incomingVisible = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
         const sentHidden = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
@@ -288,6 +289,7 @@ for (const viewport of viewports) {
         }
 
         await page.getByRole("button", { name: /Sent requests/ }).click();
+        await page.waitForURL(/view=sent/, { timeout: 5000 }).catch(() => {});
         await page.getByRole("heading", { name: "With Sent Request Recipient" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         const sentVisible = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
         const incomingHidden = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
