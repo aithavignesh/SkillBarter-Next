@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "../../services/api";
 import { AppPageShell } from "../../components/ui/AppPageShell";
@@ -10,7 +9,6 @@ import { ExchangeDto } from "@skillbarter/shared";
 import { ArrowLeftRight, AlertCircle, ArrowRight, CalendarDays } from "lucide-react";
 
 export default function ExchangesListPage() {
-  const router = useRouter();
   const { user } = useAuth();
   const userId = user?.id;
   const [exchanges, setExchanges] = useState<ExchangeDto[]>([]);
@@ -55,7 +53,7 @@ export default function ExchangesListPage() {
     setDirection(next);
     setFilter(next === "ALL" ? "ALL" : "PENDING");
     const query = next === "ALL" ? "" : "?view=" + next.toLowerCase();
-    router.replace("/exchanges" + query, { scroll: false });
+    window.history.replaceState(null, "", "/exchanges" + query);
   }
 
   useEffect(() => {
@@ -122,7 +120,7 @@ export default function ExchangesListPage() {
               onClick={() => selectDirection(tab.value)}
               className={`min-h-10 rounded-xl px-4 py-2 text-xs font-semibold transition-colors ${
                 direction === tab.value
-                  ? "bg-red-700 text-white"
+                  ? "bg-red-800 text-white hover:bg-red-900"
                   : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
               }`}
             >
@@ -143,7 +141,7 @@ export default function ExchangesListPage() {
             className={`rounded-xl px-4 py-2 transition-all ${
               filter === tab
                 ? "bg-slate-900 text-white"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
             }`}
           >
             {tab}
