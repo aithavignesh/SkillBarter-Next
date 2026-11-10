@@ -411,18 +411,21 @@ for (const viewport of viewports) {
       }
 
       if (routePath === "/matches") {
+        await page.getByRole("link", { name: "Match details" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         const detailsLinkCount = await page.getByRole("link", { name: "Match details" }).count();
         if (detailsLinkCount !== 1) {
           failures.push({ route: routePath, viewport: viewport.name, type: "match-list-detail-link", detail: "Match list did not expose the member detail link" });
         }
       }
       if (routePath === "/matches/507f1f77bcf86cd799439033" || routePath === "/screens/match-details/507f1f77bcf86cd799439033") {
+        await page.getByRole("heading", { name: "Match Detail Member" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         const memberHeading = await page.getByRole("heading", { name: "Match Detail Member" }).count();
         const score = await page.getByText("92%", { exact: true }).count();
         const teachHeading = await page.getByRole("heading", { name: "They can teach you" }).count();
         if (memberHeading !== 1 || score !== 1 || teachHeading !== 1) {
           failures.push({ route: routePath, viewport: viewport.name, type: "match-details-content", detail: "Match profile, compatibility score, or skill details were not rendered" });
         }
+        await page.getByRole("button", { name: "Propose exchange" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         await page.getByRole("button", { name: "Propose exchange" }).click();
         const offeredSkill = await page.getByLabel("Skill you will teach").count();
         const wantedSkill = await page.getByLabel("Skill you want to learn").count();
