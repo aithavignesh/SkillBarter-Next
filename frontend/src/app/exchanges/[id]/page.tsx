@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, use } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
 import { api } from "../../../services/api";
 import { ExchangeDto, ExchangeSessionDto } from "@skillbarter/shared";
@@ -22,6 +22,8 @@ import {
 export default function ExchangeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const shouldOpenReview = searchParams.get("review") === "1";
   const { user } = useAuth();
 
   const [exchange, setExchange] = useState<ExchangeDto | null>(null);
@@ -60,6 +62,12 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
       setLoading(false);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (shouldOpenReview && exchange?.status === "COMPLETED") {
+      setShowReviewModal(true);
+    }
+  }, [shouldOpenReview, exchange?.status]);
 
   useEffect(() => {
     // These IDs were static screens in the legacy app, not exchange records.
@@ -508,8 +516,13 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
       {/* Leave Review Modal */}
       {showReviewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4">
-            <h3 className="text-xl font-bold text-slate-900">Review {otherUserName}</h3>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="review-title"
+            className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4"
+          >
+            <h3 id="review-title" className="text-xl font-bold text-slate-900">Review {otherUserName}</h3>
             {reviewSuccess ? (
               <div className="p-6 text-center space-y-2">
                 <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-600" />
@@ -517,19 +530,22 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
               </div>
             ) : (
               <form onSubmit={handleSubmitReview} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <fieldset>
+                  <legend className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                     Rating (1 to 5 Stars)
-                  </label>
+                  </legend>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
                         type="button"
+                        aria-label={`${star} star${star === 1 ? "" : "s"}`}
+                        aria-pressed={star === reviewRating}
                         onClick={() => setReviewRating(star)}
                         className="p-1"
                       >
                         <Star
+                          aria-hidden="true"
                           className={`h-6 w-6 ${
                             star <= reviewRating
                               ? "fill-amber-400 text-amber-400"
@@ -539,13 +555,14 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
                       </button>
                     ))}
                   </div>
-                </div>
+                </fieldset>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                  <label htmlFor="review-comment" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                     Written Feedback
                   </label>
                   <textarea
+                    id="review-comment"
                     rows={4}
                     required
                     value={reviewComment}
