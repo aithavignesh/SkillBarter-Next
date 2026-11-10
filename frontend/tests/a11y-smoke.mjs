@@ -5,7 +5,7 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/
 const routes = [
   "/", "/about", "/login", "/register", "/signup", "/forgot-password",
   "/reset-password?token=invalid", "/verify-email", "/onboarding", "/dashboard",
-  "/discover", "/matches", "/exchanges", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/active-exchange",
+  "/discover", "/matches", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/active-exchange",
   "/exchanges/exchange-history", "/exchanges/exchange-rating", "/exchanges/schedule", "/exchanges/calendar",
   "/messages", "/messages/507f1f77bcf86cd799439011", "/messages/chat-details", "/notifications",
   "/profile", "/profile/edit", "/profile/507f1f77bcf86cd799439011", "/profile/edit-profile",
@@ -84,6 +84,41 @@ function member(overrides = {}) {
   };
 }
 
+const testExchanges = [
+  {
+    id: "507f1f77bcf86cd799439012",
+    requesterId: "507f1f77bcf86cd799439013",
+    requesterName: "Incoming Requester",
+    recipientId: "507f1f77bcf86cd799439011",
+    recipientName: "A11y Test Member",
+    offeredSkillId: "507f1f77bcf86cd799439021",
+    offeredSkillName: "JavaScript",
+    wantedSkillId: "507f1f77bcf86cd799439022",
+    wantedSkillName: "React",
+    status: "PENDING",
+    proposalDescription: "I would like to exchange JavaScript for React lessons.",
+    completionStatus: { requesterConfirmed: false, recipientConfirmed: false },
+    createdAt: "2026-11-01T10:00:00.000Z",
+    updatedAt: "2026-11-01T10:00:00.000Z"
+  },
+  {
+    id: "507f1f77bcf86cd799439014",
+    requesterId: "507f1f77bcf86cd799439011",
+    requesterName: "A11y Test Member",
+    recipientId: "507f1f77bcf86cd799439015",
+    recipientName: "Sent Request Recipient",
+    offeredSkillId: "507f1f77bcf86cd799439023",
+    offeredSkillName: "Python",
+    wantedSkillId: "507f1f77bcf86cd799439024",
+    wantedSkillName: "Data Science",
+    status: "PENDING",
+    proposalDescription: "I would like to exchange Python for data science lessons.",
+    completionStatus: { requesterConfirmed: false, recipientConfirmed: false },
+    createdAt: "2026-11-02T10:00:00.000Z",
+    updatedAt: "2026-11-02T10:00:00.000Z"
+  }
+];
+
 function failure(status, code, message) {
   return {
     status,
@@ -135,7 +170,7 @@ async function installAuthenticatedApi(page) {
       return;
     }
     if (path.endsWith("/exchanges")) {
-      await route.fulfill(success({ exchanges: [] }));
+      await route.fulfill(success({ exchanges: testExchanges }));
       return;
     }
     if (path.endsWith("/notifications/unread-count")) {
@@ -200,6 +235,48 @@ for (const viewport of viewports) {
       }
       if (pageState.textLength === 0) {
         failures.push({ route: routePath, viewport: viewport.name, type: "empty-page", detail: "No visible page text" });
+      }
+
+      if (routePath === "/exchanges") {
+        await page.getByRole("button", { name: /Incoming requests/ }).click();
+        await page.getByRole("heading", { name: "With Incoming Requester" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        const incomingVisible = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
+        const sentHidden = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
+        if (incomingVisible !== 1 || sentHidden !== 0 || !page.url().includes("view=incoming")) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "incoming-request-filter", detail: "Incoming view did not isolate requests addressed to the signed-in member" });
+        }
+
+        await page.getByRole("button", { name: /Sent requests/ }).click();
+        await page.getByRole("heading", { name: "With Sent Request Recipient" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        const sentVisible = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
+        const incomingHidden = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
+        if (sentVisible !== 1 || incomingHidden !== 0 || !page.url().includes("view=sent")) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "sent-request-filter", detail: "Sent view did not isolate requests created by the signed-in member" });
+        }
+
+        await page.getByRole("button", { name: "All exchanges" }).click();
+        const allRequestsVisible =
+          await page.getByRole("heading", { name: "With Incoming Requester" }).count() === 1 &&
+          await page.getByRole("heading", { name: "With Sent Request Recipient" }).count() === 1;
+        if (!allRequestsVisible) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "all-exchanges-filter", detail: "All exchanges view did not restore both request directions" });
+        }
+      }
+
+      if (routePath === "/screens/incoming-requests" || routePath === "/exchanges?view=incoming") {
+        const incomingVisible = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
+        const sentHidden = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
+        if (incomingVisible !== 1 || sentHidden !== 0 || !page.url().includes("view=incoming")) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "incoming-route", detail: "Incoming request deep link did not open its filtered inbox" });
+        }
+      }
+
+      if (routePath === "/screens/sent-requests" || routePath === "/exchanges?view=sent") {
+        const sentVisible = await page.getByRole("heading", { name: "With Sent Request Recipient" }).count();
+        const incomingHidden = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
+        if (sentVisible !== 1 || incomingHidden !== 0 || !page.url().includes("view=sent")) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "sent-route", detail: "Sent request deep link did not open its filtered inbox" });
+        }
       }
       if (pageState.horizontalOverflow) {
         failures.push({ route: routePath, viewport: viewport.name, type: "responsive-overflow", detail: "Document exceeds viewport width" });
