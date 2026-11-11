@@ -3,6 +3,7 @@ import { User, IUser } from "../../models/User";
 import { UserSkill, IUserSkill } from "../../models/UserSkill";
 import { Block } from "../../models/Block";
 import { AnalyticsEvent } from "../../models/AnalyticsEvent";
+import { AppError } from "../../middleware/errorHandler";
 
 export interface MatchResult {
   user: {
@@ -32,6 +33,7 @@ export class MatchesService {
       format?: string;
       page?: number;
       limit?: number;
+      userId?: string;
     } = {}
   ): Promise<{ matches: MatchResult[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
     const page = Math.max(1, query.page || 1);
@@ -71,6 +73,13 @@ export class MatchesService {
 
     if (query.format && query.format !== "any") {
       userQuery.preferredSessionFormat = { $in: [query.format, "any"] };
+    }
+
+    if (query.userId) {
+      userQuery._id = {
+        $eq: new mongoose.Types.ObjectId(query.userId),
+        $nin: excludedUserIds,
+      };
     }
 
     const candidateUsers = await User.find(userQuery).limit(100);
@@ -209,6 +218,23 @@ export class MatchesService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async getMatchDetails(currentUserId: string, targetUserId: string): Promise<MatchResult> {
+    if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
+      throw new AppError("Invalid member ID", 400, "INVALID_ID");
+    }
+
+    const result = await this.discoverMatches(currentUserId, {
+      userId: targetUserId,
+      page: 1,
+      limit: 1,
+    });
+    const match = result.matches[0];
+    if (!match) {
+      throw new AppError("Match not found", 404, "NOT_FOUND");
+    }
+    return match;
   }
 }
 

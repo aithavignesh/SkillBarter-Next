@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AppPageShell } from "../../components/ui/AppPageShell";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
+import type { MatchResultDto } from "../../types/matches";
 import {
   ArrowRight,
   AlertCircle,
@@ -17,30 +18,7 @@ import {
   X,
 } from "lucide-react";
 
-type MatchSkill = {
-  skillId: string;
-  name: string;
-  proficiency: string;
-};
-
-type MatchResult = {
-  user: {
-    id: string;
-    displayName: string;
-    bio: string;
-    avatarUrl: string;
-    location: string;
-    preferredSessionFormat: string;
-    availability: string;
-    reputationScore: number;
-    completedExchangesCount: number;
-  };
-  compatibilityScore: number;
-  explanation: string;
-  reciprocalMatch: boolean;
-  theyTeachYouLearn: MatchSkill[];
-  youTeachTheyLearn: MatchSkill[];
-};
+type MatchResult = MatchResultDto;
 
 export default function MatchesPage() {
   const router = useRouter();
@@ -57,7 +35,7 @@ export default function MatchesPage() {
   const proposalSubmitLock = useRef(false);
 
   const loadMatches = useCallback(async () => {
-    if (!user?.id || !user.isEmailVerified) {
+    if (!user?.id || !user.onboardingCompleted || !user.isEmailVerified) {
       setMatches([]);
       setLoading(false);
       return;
@@ -67,7 +45,7 @@ export default function MatchesPage() {
     setError(null);
     try {
       const result = await api.matches.recommendations();
-      setMatches(result as MatchResult[]);
+      setMatches(result);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unable to load your personalized matches.");
     } finally {
@@ -153,17 +131,24 @@ export default function MatchesPage() {
             Sign in
           </Link>
         </section>
+      ) : !user.onboardingCompleted ? (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6 sm:p-8" role="status">
+          <h2 className="font-bold text-amber-950">Complete onboarding to unlock personalized matching</h2>
+          <p className="mt-2 text-sm leading-6 text-amber-900">
+            Finish your member profile before viewing personalized matches or sending exchange requests.
+          </p>
+          <Link href="/onboarding" className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-amber-900 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-900 focus-visible:ring-offset-2">
+            Complete onboarding
+          </Link>
+        </section>
       ) : !user.isEmailVerified ? (
         <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6 sm:p-8" role="status">
           <h2 className="font-bold text-amber-950">Verify your email to unlock personalized matching</h2>
           <p className="mt-2 text-sm leading-6 text-amber-900">
-            You can finish setting up your profile first. Matching and exchange requests become available after email verification.
+            Your profile is set up. Verify your email to view personalized matches and send exchange requests.
           </p>
-          <Link
-            href={user.onboardingCompleted ? `/verify-email?email=${encodeURIComponent(user.email)}` : "/onboarding"}
-            className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-amber-900 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-900 focus-visible:ring-offset-2"
-          >
-            {user.onboardingCompleted ? "Verify email" : "Complete onboarding"}
+          <Link href={`/verify-email?email=${encodeURIComponent(user.email)}`} className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-amber-900 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-900 focus-visible:ring-offset-2">
+            Verify email
           </Link>
         </section>
       ) : loading ? (
@@ -252,6 +237,9 @@ export default function MatchesPage() {
                 <div className="mt-auto flex flex-wrap gap-2 pt-5">
                   <Link href={`/profile/${match.user.id}`} className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">
                     View profile
+                  </Link>
+                  <Link href={`/matches/${match.user.id}`} className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">
+                    Match details
                   </Link>
                   <button type="button" onClick={() => openProposal(match)} className="inline-flex min-h-10 flex-1 items-center justify-center gap-1 rounded-lg bg-red-700 px-3 py-2 text-xs font-semibold text-white hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">
                     <Repeat className="h-3.5 w-3.5" aria-hidden="true" /> Propose exchange

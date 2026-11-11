@@ -32,6 +32,7 @@ import {
   PlatformStatsDto,
   AnalyticsSummaryDto,
 } from "@skillbarter/shared";
+import type { MatchResultDto } from "../types/matches";
 
 const API_BASE_URL =
   typeof window !== "undefined"
@@ -264,15 +265,16 @@ export const api = {
   matches: {
     recommendations: (page = 1) => {
       const params = new URLSearchParams({ page: String(page), limit: "50" });
-      return fetchApi<any[]>(`/matches/recommendations?${params.toString()}`);
+      return fetchApi<MatchResultDto[]>(`/matches/recommendations?${params.toString()}`);
     },
     discover: (category?: string, search?: string, format?: string, page = 1) => {
       const params = new URLSearchParams({ page: String(page) });
       if (category) params.set("category", category);
       if (search) params.set("search", search);
       if (format) params.set("format", format);
-      return fetchApi<any[]>(`/matches/discover?${params.toString()}`);
+      return fetchApi<MatchResultDto[]>(`/matches/discover?${params.toString()}`);
     },
+    getDetails: (userId: string) => fetchApi<{ match: MatchResultDto }>(`/matches/${userId}`),
   },
 
   // Exchanges
