@@ -46,7 +46,10 @@ Cluster: `skillbarter-dev` (FREE, AWS `AP_SOUTH_1`, MongoDB 8.0.37, state `IDLE`
 7. **Accessibility:** Automated axe/browser smoke passed, but manual keyboard/screen-reader testing and full WCAG 2.2 AA verification remain outstanding.
 8. **Network hardening:** Replace the Atlas `0.0.0.0/0` entry only after the actual staging service's supported outbound IP ranges are verified. Do not guess ranges or risk locking out the backend.
 9. **Branch safeguards:** GitHub branch metadata reports `protected: false` for both `main` and `development`. The branch-protection read endpoint was unavailable to this integration. Older progress notes claiming that `main` is protected must not be treated as current evidence.
-10. **Migration reconciliation:** No current source-to-target reconciliation evidence was established by this audit. The development collection counts do not prove a complete legacy data migration.
+
+## Legacy data scope
+
+The existing cutover note states that importing historical PostgreSQL records is a separate scope unless preserving old user/exchange records is explicitly required. This release audit therefore makes no claim that legacy data has been migrated and does not treat historical-data migration as a release gate. Keep the legacy production database untouched; define a separate, reviewed migration plan only if historical records become an explicit requirement.
 
 ## Production protection
 
