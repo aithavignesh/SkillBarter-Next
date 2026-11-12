@@ -10,7 +10,7 @@ This document separates verified evidence from release gates that remain unverif
 - Repository: [aithavignesh/SkillBarter-Next](https://github.com/aithavignesh/SkillBarter-Next); default branch is `main`.
 - `main` head: `e3c556fbc25df68ff129a3eeca447c8761c0470e`.
 - `development` head: `681248de8ac0af861aba8179779a34f7dfedf04e`.
-- Latest open pull-request query returned no open PRs at audit time.
+- At audit start, the open pull-request query returned no results; this evidence report is tracked in [PR #65](https://github.com/aithavignesh/SkillBarter-Next/pull/65).
 - CI run [42995318447](https://github.com/aithavignesh/SkillBarter-Next/actions/runs/42995318447) completed successfully on the audited development SHA. Its `verify` job passed. The workflow includes the high/critical npm audit gate, shared package build, typecheck, lint, test suite and production build.
 - Browser smoke run [42995318489](https://github.com/aithavignesh/SkillBarter-Next/actions/runs/42995318489) completed successfully on the same SHA. Its `browser-a11y` job passed.
 - The browser audit covers the route list in `frontend/tests/a11y-smoke.mjs` at 375px, 768px and 1440px viewports with axe. It installs fixture API responses in the browser; it is not a live backend end-to-end run or a manual WCAG 2.2 AA assessment.
