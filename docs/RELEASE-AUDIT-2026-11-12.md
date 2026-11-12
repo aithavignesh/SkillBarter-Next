@@ -37,7 +37,7 @@ Cluster: `skillbarter-dev` (FREE, AWS `AP_SOUTH_1`, MongoDB 8.0.37, state `IDLE`
 
 ## Release gates not yet verified
 
-1. **UI parity:** Every screen in `docs/UI-PARITY-PLAN.md` remains unchecked. The required matched-viewport screenshots and screen-by-screen interaction evidence have not been recorded. Workshop publishing is explicitly disabled in the current UI until a backend premium-entitlement check exists.
+1. **UI parity:** The `docs/UI-PARITY-PLAN.md` checklist has 19 unchecked items and zero checked items. The required matched-viewport screenshots and screen-by-screen interaction evidence have not been recorded. Workshop publishing is explicitly disabled in the current UI until a backend premium-entitlement check exists.
 2. **Authentication and onboarding:** Automated backend tests cover unverified-user onboarding completion and verification gates for protected features. Live staging behavior has not been demonstrated.
 3. **Email and OTP delivery:** Resend and 2Factor integrations exist in code, but no actual recipient inbox/SMS handset delivery evidence is recorded for staging.
 4. **Admin, safety and privacy:** Backend tests cover admin authorization, block enforcement and profile privacy. Live staging role-boundary, report moderation and block/privacy workflows have not been demonstrated.
