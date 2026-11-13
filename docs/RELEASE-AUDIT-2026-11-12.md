@@ -1,62 +1,71 @@
 # SkillBarter-Next release evidence audit
 
-Audit date: 2026-11-12  
-Audited working commit: `681248de8ac0af861aba8179779a34f7dfedf04e` on `development`
+Audit date: 2026-11-13  
+Audited commit: `72759d407b401b43dc5a125936034db1f4656ef1` on `development`
 
-This document separates verified evidence from release gates that remain unverified. A green CI run or a READY frontend preview is not, by itself, a release sign-off.
+This report separates verified repository/CI/preview/database evidence from release gates that remain unverified. A green CI run or READY frontend preview is not, by itself, a release sign-off.
 
-## Verified repository and CI evidence
+## Repository, PR and branch evidence
 
-- Repository: [aithavignesh/SkillBarter-Next](https://github.com/aithavignesh/SkillBarter-Next); default branch is `main`.
-- `main` head: `e3c556fbc25df68ff129a3eeca447c8761c0470e`.
-- `development` head: `681248de8ac0af861aba8179779a34f7dfedf04e`.
-- At audit start, the open pull-request query returned no results; this evidence report is tracked in [PR #65](https://github.com/aithavignesh/SkillBarter-Next/pull/65).
-- CI run [42995318447](https://github.com/aithavignesh/SkillBarter-Next/actions/runs/42995318447) completed successfully on the audited development SHA. Its `verify` job passed. The workflow includes the high/critical npm audit gate, shared package build, typecheck, lint, test suite and production build.
-- Browser smoke run [42995318489](https://github.com/aithavignesh/SkillBarter-Next/actions/runs/42995318489) completed successfully on the same SHA. Its `browser-a11y` job passed.
-- The browser audit covers the route list in `frontend/tests/a11y-smoke.mjs` at 375px, 768px and 1440px viewports with axe. It installs fixture API responses in the browser; it is not a live backend end-to-end run or a manual WCAG 2.2 AA assessment.
-- The repository contains 40 Next.js `page.tsx` files, including the legacy catch-all route and dynamic workshop routes. Page-file count is not proof that all legacy screens are visually and functionally equivalent.
+- Target repository: [aithavignesh/SkillBarter-Next](https://github.com/aithavignesh/SkillBarter-Next); default branch is `main`.
+- Current `main` head: `e3c556fbc25df68ff129a3eeca447c8761c0470e`.
+- Current `development` head: `72759d407b401b43dc5a125936034db1f4656ef1`.
+- PR #65, the documentation-only release evidence report, merged into `development` on 2026-11-13: [PR #65](https://github.com/aithavignesh/SkillBarter-Next/pull/65).
+- No open pull requests were returned by the current repository PR query.
+- GitHub branch metadata reports `protected: false` for new-repository `main` and `development`; the repository rulesets endpoint returned an empty list. The legacy repository `aithavignesh/SkillBarter` `main` also reports `protected: false`. Required branch safeguards are therefore not in place.
 
-## Verified preview and architecture evidence
+## Current CI and browser audit
+
+Both latest push workflows completed successfully on the exact audited development commit `72759d407b401b43dc5a125936034db1f4656ef1` on 2026-11-13:
+
+- [CI run 43405810009](https://github.com/aithavignesh/SkillBarter-Next/actions/runs/43405810009): `verify` job passed. Steps include dependency install, high/critical npm audit gate, shared build, typecheck, lint, test suite and production build.
+- [Browser accessibility run 43405810206](https://github.com/aithavignesh/SkillBarter-Next/actions/runs/43405810206): `browser-a11y` job passed. It audited configured routes at 375px, 768px and 1440px with Playwright/axe.
+
+The browser suite installs mocked API fixtures in the browser. It is not a live backend end-to-end test, manual keyboard/screen-reader assessment, or full WCAG 2.2 AA sign-off.
+
+## Frontend preview and architecture
 
 - Vercel project: [skillbarter-next-preview](https://vercel.com/aithavignesh/skillbarter-next-preview).
-- Latest deployment [3X7WpDx53HV2W3AfvS6GrgMu6fqu](https://vercel.com/aithavignesh/skillbarter-next-preview/3X7WpDx53HV2W3AfvS6GrgMu6fqu) is `READY`, sourced from `development` at the exact audited SHA `681248de8ac0af861aba8179779a34f7dfedf04e`. It is a preview deployment (`target: null`), not a production promotion.
-- The development preview has a `BACKEND_API_URL` environment-variable entry configured for the `development` branch. Its encrypted value was not retrieved.
-- The checked-in architecture remains Next.js + Express.js + MongoDB: the root npm workspaces are `frontend`, `backend` and `shared`; the backend uses Express and Mongoose.
-- `render.yaml` declares a development-only staging service, `autoDeployTrigger: checksPass`, and `/api/v1/ready` as the health check. This manifest does not prove the actual Render service has matching settings or is running the audited SHA.
+- Latest deployment [AqLfbPqis3FXwqd5CmhRq2K6dC3H](https://vercel.com/aithavignesh/skillbarter-next-preview/AqLfbPqis3FXwqd5CmhRq2K6dC3H) is `READY` and sourced from `development` at the exact audited commit `72759d407b401b43dc5a125936034db1f4656ef1`. It has `target: null`, so it is a preview, not a production promotion or proof of a live backend staging deployment.
+- The project metadata reports `live: false`.
+- Root npm workspaces are `frontend`, `backend` and `shared`; the frontend is Next.js, the backend package uses Express and Mongoose. The required Next.js + Express.js + MongoDB architecture is preserved.
 
-## Verified development database evidence
+## UI migration and parity
 
-Atlas project: `SkillBarter-Next-Development`  
-Cluster: `skillbarter-dev` (FREE, AWS `AP_SOUTH_1`, MongoDB 8.0.37, state `IDLE`)
+- The recursive repository tree contains 40 Next.js `page.tsx` files. Count alone is not proof of parity.
+- The UI parity plan still has 19 unchecked checklist items and zero checked items: [UI parity plan](https://github.com/aithavignesh/SkillBarter-Next/blob/development/docs/UI-PARITY-PLAN.md).
+- The legacy catch-all route `frontend/src/app/[...legacy]/page.tsx` maps multiple distinct legacy screen identifiers to shared destinations (for example, learning-goals/teaching-skills to `/skills`, advanced-search to `/discover`, AI-matching to `/matches`, create-post/groups to `/community`, and privacy/account-settings to `/settings`). These compatibility redirects do not prove that each original screen has a distinct, complete implementation.
+- Workshop aliases target `/workshops/workshops`, `/workshops/create-workshop`, and `/workshops/my-workshops`, while the current route tree contains only the dynamic `/workshops/[id]` and `/workshops/workshop-details` pages under that segment. A dynamic detail route is not evidence of a distinct directory, create form, or member-workshops workflow.
+- Matched-viewport screenshots and screen-by-screen interaction verification against the legacy app have not been recorded. Workshop publishing remains disabled pending a backend premium-entitlement check.
 
-- Database: `skillbarter`; 17 collections and 63 documents in the inspected database snapshot.
-- Counts: users 7; skills 38; userSkills 6; analyticsEvents 12.
-- Counts: exchanges 0; exchangeSessions 0; conversations 0; messages 0; reviews 0; reports 0; blocks 0; otpChallenges 0; notifications 0; communityPosts 0; connections 0; auditLogs 0; authCooldowns 0.
-- Database user `skillbarter_app` is scoped to the `skillbarter-dev` cluster and has `readWrite` on the `skillbarter` database.
-- The Atlas access list contains `0.0.0.0/0` with the comment “Render staging backend; restrict to fixed egress IPs when available”. This is an open network rule and remains a release security blocker.
+## Atlas development database evidence
+
+- Atlas project: `SkillBarter-Next-Development`; cluster: `skillbarter-dev` (FREE, AWS `AP_SOUTH_1`, MongoDB 8.0.37, state `IDLE`).
+- Database: `skillbarter`; 17 collections.
+- Current collection counts read directly from Atlas: users 7; skills 38; userSkills 6; analyticsEvents 12.
+- Current counts are zero for exchanges, exchangeSessions, conversations, messages, reviews, reports, blocks, otpChallenges, notifications, communityPosts, connections, auditLogs and authCooldowns.
+- Atlas database user `skillbarter_app` has `readWrite` on only the `skillbarter` database and is scoped to the `skillbarter-dev` cluster.
+- The Atlas network access list contains `0.0.0.0/0` with comment “Render staging backend; restrict to fixed egress IPs when available”. This is an open network rule and a release security blocker.
 
 ## Release gates not yet verified
 
-1. **UI parity:** The `docs/UI-PARITY-PLAN.md` checklist has 19 unchecked items and zero checked items. The required matched-viewport screenshots and screen-by-screen interaction evidence have not been recorded. Workshop publishing is explicitly disabled in the current UI until a backend premium-entitlement check exists.
-2. **Authentication and onboarding:** Automated backend tests cover unverified-user onboarding completion and verification gates for protected features. Live staging behavior has not been demonstrated.
-3. **Email and OTP delivery:** Resend and 2Factor integrations exist in code, but no actual recipient inbox/SMS handset delivery evidence is recorded for staging.
-4. **Admin, safety and privacy:** Backend tests cover admin authorization, block enforcement and profile privacy. Live staging role-boundary, report moderation and block/privacy workflows have not been demonstrated.
-5. **Render staging:** The Render connector workspace was not selected for this audit, so the actual service configuration, active deploy SHA, health/readiness responses, environment configuration and database connection could not be independently verified. Do not infer these from `render.yaml` or the Vercel preview.
-6. **Real two-user lifecycle:** The development database currently has no exchanges, sessions, conversations, messages or reviews. The automated Alice/Bob integration test uses synthetic test accounts; it is not evidence of a real two-account staging journey.
-7. **Accessibility:** Automated axe/browser smoke passed, but manual keyboard/screen-reader testing and full WCAG 2.2 AA verification remain outstanding.
-8. **Network hardening:** Replace the Atlas `0.0.0.0/0` entry only after the actual staging service's supported outbound IP ranges are verified. Do not guess ranges or risk locking out the backend.
-9. **Branch safeguards:** GitHub branch metadata reports `protected: false` for both `main` and `development`. The branch-protection read endpoint was unavailable to this integration. Older progress notes claiming that `main` is protected must not be treated as current evidence.
-
-## Legacy data scope
-
-The existing cutover note states that importing historical PostgreSQL records is a separate scope unless preserving old user/exchange records is explicitly required. This release audit therefore makes no claim that legacy data has been migrated and does not treat historical-data migration as a release gate. Keep the legacy production database untouched; define a separate, reviewed migration plan only if historical records become an explicit requirement.
+1. **Complete UI parity:** 19 parity checklist items remain unchecked; aliases, page-file counts and mocked route smoke tests do not establish screen-by-screen visual/interaction parity.
+2. **Authentication/onboarding:** Automated backend tests cover unverified-user onboarding completion and verification gates for protected features. Live staging behavior for both verified and unverified accounts has not been demonstrated.
+3. **Email and OTP delivery:** Provider integration code may exist, but this audit has no actual recipient inbox or SMS handset delivery evidence. Atlas currently has zero OTP challenge documents.
+4. **Admin, blocks, reports and privacy:** Code-level regression coverage is not live staging proof of admin/non-admin role boundaries, report moderation, block enforcement and privacy behavior.
+5. **Render backend staging:** The Render workspace was listed but not selected. The actual service, active deployment SHA, health/readiness response, runtime environment configuration, and backend-to-Atlas connection were not inspected in this run. Do not infer them from `render.yaml` or the Vercel preview.
+6. **Real two-user lifecycle:** Atlas currently has zero exchanges, sessions, conversations, messages and reviews. Synthetic Alice/Bob tests using isolated test persistence are not evidence of a real staging journey from registration through matching, request/acceptance, scheduling, messaging, completion and reviews.
+7. **Accessibility:** Automated axe/browser smoke passed at mobile/tablet/desktop widths, but manual keyboard/screen-reader testing and full WCAG 2.2 AA verification remain outstanding.
+8. **Network hardening:** Replace the Atlas `0.0.0.0/0` rule only after the actual Render service's supported outbound IP ranges are confirmed. Do not guess ranges or risk locking out the backend.
+9. **Branch safeguards:** New-repository `main` and `development`, and legacy `main`, are reported unprotected. Configure required CI checks and prevent direct production pushes before release.
 
 ## Production protection
 
 - New repository `main` remains at `e3c556fbc25df68ff129a3eeca447c8761c0470e`.
 - Legacy repository [aithavignesh/SkillBarter](https://github.com/aithavignesh/SkillBarter) `main` remains at `e167793465ab638824d4fd066a70556ad9a1de41`.
-- No production branch, production deployment or production database was modified during this audit.
+- No production branch, production deployment, legacy production database, or new-repository production database was modified during this audit.
+- No historical PostgreSQL-to-MongoDB data migration is claimed. Keep the legacy production database untouched; treat any historical-data import as a separately scoped migration.
 
 ## Decision
 
-**NOT RELEASE-READY.** Keep development work on feature branches and `development`. Do not promote to production until every gate above has direct, current evidence, including the complete real two-user staging journey and hardened Atlas networking.
+**NOT RELEASE-READY.** Continue reversible development on feature branches and `development`. Do not promote to production until every gate above has direct, current evidence, including a verified Render staging deployment on the audited SHA, actual email/SMS delivery, hardened Atlas networking, complete UI parity, and a real two-user staging lifecycle.
