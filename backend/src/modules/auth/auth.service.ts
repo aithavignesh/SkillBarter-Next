@@ -99,9 +99,7 @@ export class AuthService {
       passwordHash,
       displayName: input.displayName.trim(),
       role: "user",
-      isEmailVerified: false,
-      verificationToken,
-      verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      isEmailVerified: true,
     });
 
     await AnalyticsEvent.create({
@@ -111,22 +109,8 @@ export class AuthService {
       timestamp: new Date(),
     });
 
-    let verificationEmailSent = false;
-    try {
-      verificationEmailSent = await sendVerificationEmail(
-        user.email,
-        user.displayName,
-        verificationToken
-      );
-    } catch (error) {
-      // Keep the unverified account so the user can complete onboarding and
-      // retry delivery through the resend-verification endpoint.
-      console.error("[auth] Registration verification email failed.", {
-        reason: error instanceof Error ? error.message.slice(0, 160) : "unknown",
-      });
-    }
-
-    return { ...this.createSession(user), verificationEmailSent };
+    // Email verification is disabled; new accounts are active immediately.
+    return { ...this.createSession(user), verificationEmailSent: false };
   }
 
   async login(input: LoginInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
@@ -149,7 +133,7 @@ export class AuthService {
     }
 
     // Promote only the explicitly configured, password-authenticated owner account.
-    if (env.PLATFORM_OWNER_EMAIL && user.email.toLowerCase() === env.PLATFORM_OWNER_EMAIL && user.isEmailVerified && user.role !== "owner") {
+    if (env.PLATFORM_OWNER_EMAIL && user.email.toLowerCase() === env.PLATFORM_OWNER_EMAIL && user.role !== "owner") {
       user.role = "owner";
       await user.save();
     }
