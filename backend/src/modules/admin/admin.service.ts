@@ -124,6 +124,9 @@ export class AdminService {
       if (adminId === targetUser._id.toString()) {
         throw new AppError("You cannot change your own administrator role", 400, "SELF_ROLE_CHANGE");
       }
+      if (input.role === "admin" && !targetUser.isEmailVerified) {
+        throw new AppError("The teammate must verify their email before receiving administrator access", 400, "ADMIN_EMAIL_NOT_VERIFIED");
+      }
       if (input.role === "user" && targetUser.role === "admin") {
         const adminCount = await User.countDocuments({ role: "admin" });
         if (adminCount <= 1) {
