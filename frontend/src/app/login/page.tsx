@@ -10,11 +10,6 @@ import { AlertCircle, CheckCircle2, KeyRound, LogIn, Mail, Phone } from "lucide-
 type Mode = "phone" | "emailOtp" | "password";
 
 function getPostLoginPath(user: AuthUser): string {
-  if (!user.isEmailVerified) {
-    return user.onboardingCompleted
-      ? `/verify-email?email=${encodeURIComponent(user.email)}`
-      : "/onboarding";
-  }
   if (!user.onboardingCompleted) return "/onboarding";
   return user.role === "owner" || user.role === "admin" ? "/admin" : "/dashboard";
 }
