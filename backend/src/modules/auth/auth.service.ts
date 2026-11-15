@@ -92,7 +92,6 @@ export class AuthService {
     }
 
     const passwordHash = await hashPassword(input.password);
-    const verificationToken = generateSecureToken();
     const user = await User.create({
       email: input.email.toLowerCase().trim(),
       phone: normalizedPhone,
