@@ -35,7 +35,7 @@ const userSchema = new Schema<IUser>(
     passwordChangedAt: { type: Date },
     displayName: { type: String, required: true, trim: true },
     role: { type: String, enum: ["user", "admin", "owner"], default: "user", index: true },
-    isEmailVerified: { type: Boolean, default: false },
+    isEmailVerified: { type: Boolean, default: true },
     verificationToken: { type: String },
     verificationTokenExpiresAt: { type: Date },
     passwordResetToken: { type: String },
