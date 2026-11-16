@@ -53,9 +53,9 @@ This report separates directly observed evidence from release criteria that rema
 
 - Vercel project: [skillbarter-next-preview](https://vercel.com/aithavignesh/skillbarter-next-preview); project metadata reports `live: false`.
 - The Vercel deployment associated with the audited development SHA `34af94f44d1ffbed4a592efd44e16742e66187e4` is [Th57uqnHagPi8HcLeHvxNncQY3eC](https://vercel.com/aithavignesh/skillbarter-next-preview/Th57uqnHagPi8HcLeHvxNncQY3eC), state `CANCELED`, target `null`. The latest READY development preview is on the earlier SHA `b40fdce6973a19a7254332302d711bd1ce284001`, not the audited commit.
-- Render service listing identifies `skillbarter-next-api-staging` on branch `development`, URL [skillbarter-next-api-staging.onrender.com](https://skillbarter-next-api-staging.onrender.com). The live service configuration reports auto-deploy trigger `commit`, blank health-check path, and service IP allowlist `0.0.0.0/0`.
-- The checked-in `render.yaml` instead declares `autoDeployTrigger: checksPass` and health check `/api/v1/ready`. The actual service configuration therefore does not match the checked-in staging manifest.
-- The active Render deployment SHA, health/readiness response, runtime environment configuration, and backend-to-Atlas connectivity were not verified. No exact-commit live backend staging deployment is established by the available evidence.
+- The checked-in `render.yaml` declares a development-only service, `autoDeployTrigger: checksPass`, and health check `/api/v1/ready`. This manifest alone does not prove that the actual Render service has matching settings or is running.
+- Render's service-read path requires a workspace explicitly confirmed by the user. No workspace was confirmed in this non-interactive run, so the actual service configuration, active deployment SHA, health/readiness response, runtime environment, and backend-to-Atlas connectivity were not verified.
+- No exact-commit live backend staging deployment is established by the available evidence.
 
 ## Real two-user journey
 
