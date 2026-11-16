@@ -33,6 +33,10 @@ function createAuthenticate(options: { allowUnverifiedEmail?: boolean } = {}) {
       if (user.passwordChangedAt && (!payload.iat || payload.iat < user.passwordChangedAt.getTime() / 1000)) {
         throw new AppError("Password changed; please sign in again", 401, "SESSION_REVOKED");
       }
+      // Unverified members may complete onboarding, but normal protected APIs stay locked.
+      if (!options.allowUnverifiedEmail && !user.isEmailVerified) {
+        throw new AppError("Please verify your email address to access this feature.", 403, "EMAIL_NOT_VERIFIED");
+      }
       if (user.isSuspended) {
         throw new AppError(
           `Your account has been suspended: ${user.suspensionReason || "Violation of terms"}`,
@@ -78,7 +82,7 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
       if (payload) {
         const user = await User.findById(payload.userId);
         const tokenIsCurrent = !user?.passwordChangedAt || Boolean(payload.iat && payload.iat >= user.passwordChangedAt.getTime() / 1000);
-        if (user && tokenIsCurrent && !user.isSuspended) {
+        if (user && tokenIsCurrent && user.isEmailVerified && !user.isSuspended) {
           req.user = user;
           req.tokenPayload = payload;
         }
