@@ -98,3 +98,9 @@ PR [#67](https://github.com/aithavignesh/SkillBarter-Next/pull/67) is still open
 - A fresh Vercel Preview deployment was manually triggered for the exact development SHA `34af94f44d1ffbed4a592efd44e16742e66187e4` and is **READY**: [deployment DprRwTmx6VFpLrMCJG1jfN2x4RtF](https://vercel.com/aithavignesh/skillbarter-next-preview/DprRwTmx6VFpLrMCJG1jfN2x4RtF). This is frontend preview evidence only; it does not prove Render backend staging or a real connected full-stack journey.
 - Read-only Vercel production history shows the latest `main` SHA production-target deployment is canceled, and an earlier development SHA production-target deployment is in ERROR. No successful production deployment was observed in this project history; no production deploy was triggered.
 - **Do not merge PR #69:** its verify check is failing. Continue dependency remediation on a dedicated branch with generated lockfile and complete tests.
+
+
+## Fresh dependency audit finding
+
+The current CI run on the audit PR head [44278808909](https://github.com/aithavignesh/SkillBarter-Next/actions/runs/44278808909) failed at `npm audit --audit-level=high` before typecheck, lint, tests or production build. npm audit reported **23 vulnerabilities (7 moderate, 16 high, 0 critical)**. The earlier development SHA CI pass is from Nov 16; advisories are dynamic and this fresh result is a release blocker. Some fixes require major version changes. No dependency changes were made because local GitHub DNS/network is unavailable, preventing lockfile generation and local compatibility testing. A dedicated branch will test non-breaking audit remediation in CI only; no candidate will be merged without all required checks passing.
+
