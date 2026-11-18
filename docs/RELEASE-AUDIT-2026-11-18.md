@@ -1,6 +1,6 @@
 # SkillBarter-Next Release Evidence Audit
 
-**Audit date:** 2026-11-18 15:05 IST  
+**Audit date:** 2026-11-18  
 **Audited development commit:** `34af94f44d1ffbed4a592efd44e16742e66187e4`  
 **Decision:** NOT RELEASE-READY
 
@@ -88,3 +88,13 @@ Fresh read-only inspection of project `SkillBarter-Next-Development`, cluster `s
 PR [#67](https://github.com/aithavignesh/SkillBarter-Next/pull/67) is still open and stale: its audit branch is 3 commits ahead and 7 behind current `development`. Do not merge it as-is.
 
 **Final release decision: NOT RELEASE-READY.** Continue safe, reversible work on feature branches and `development`. Merge only after the PR-head required checks pass. Keep both production branches and databases untouched until every release gate has direct, current evidence.
+
+
+## New checks and preview verification (Nov 18)
+
+- The documentation PR [#69](https://github.com/aithavignesh/SkillBarter-Next/pull/69) has a green automated browser-a11y run [44278808961](https://github.com/aithavignesh/SkillBarter-Next/actions/runs/44278808961), but its `verify` run [44278808909](https://github.com/aithavignesh/SkillBarter-Next/actions/runs/44278808909) **failed at the high-severity npm audit gate before typecheck, lint, tests, or production build ran**.
+- The current audit database reported **23 dependency vulnerabilities: 7 moderate, 16 high, 0 critical**. Several suggested fixes are major-version changes. This is a dynamic advisory result; the development SHA's Nov 16 green CI does not override today's audit finding.
+- No dependency upgrade was attempted: this environment cannot resolve GitHub from the local container, so lockfile regeneration and compatibility testing cannot be performed locally. Do not apply a blanket `npm audit fix --force` without testing the major changes.
+- A fresh Vercel Preview deployment was manually triggered for the exact development SHA `34af94f44d1ffbed4a592efd44e16742e66187e4` and is **READY**: [deployment DprRwTmx6VFpLrMCJG1jfN2x4RtF](https://vercel.com/aithavignesh/skillbarter-next-preview/DprRwTmx6VFpLrMCJG1jfN2x4RtF). This is frontend preview evidence only; it does not prove Render backend staging or a real connected full-stack journey.
+- Read-only Vercel production history shows the latest `main` SHA production-target deployment is canceled, and an earlier development SHA production-target deployment is in ERROR. No successful production deployment was observed in this project history; no production deploy was triggered.
+- **Do not merge PR #69:** its verify check is failing. Continue dependency remediation on a dedicated branch with generated lockfile and complete tests.
