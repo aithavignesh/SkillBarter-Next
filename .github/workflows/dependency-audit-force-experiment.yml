@@ -1,0 +1,54 @@
+name: Dependency audit major remediation experiment
+
+on:
+  push:
+    branches:
+      - fix/audit-force-experiment-2026-11-18
+
+permissions:
+  contents: read
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Try forced dependency remediation (ephemeral runner only)
+        run: npm audit fix --force || true
+      - name: Capture dependency candidate and audit report
+        run: |
+          npm audit --json > audit.json || true
+          git diff -- package.json package-lock.json frontend/package.json backend/package.json shared/package.json > dependency-candidate.patch
+      - name: Build shared workspace
+        run: npm run build -w shared
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Regression tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+      - name: Upload candidate only (no repository dependency changes)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: force-audit-candidate
+          path: |
+            package.json
+            package-lock.json
+            frontend/package.json
+            backend/package.json
+            shared/package.json
+            audit.json
+            dependency-candidate.patch
+      - name: Fail security gate if high or critical remain
+        if: always()
+        run: |
+          node -e 'const a=require("./audit.json"); const v=a.metadata?.vulnerabilities||{}; const n=(v.high||0)+(v.critical||0); console.log("High:",v.high||0,"Critical:",v.critical||0); if(n>0) process.exit(1);'
