@@ -74,10 +74,11 @@ authRouter.post(
   (req, res, next) => authController.requestPhoneOtp(req, res, next)
 );
 authRouter.post("/phone/verify-otp", authLimiter, (req, res, next) => authController.verifyPhoneOtp(req, res, next));
+// Email OTP uses the service-level per-address cooldown (60 seconds) and
+// the global API safety limit. Avoid stacking additional IP + destination
+// limiters here, which can block legitimate users sharing campus/mobile NATs.
 authRouter.post(
   "/email/request-otp",
-  otpIpLimiter,
-  emailOtpDestinationLimiter,
   (req, res, next) => authController.requestEmailOtp(req, res, next)
 );
 authRouter.post("/email/verify-otp", authLimiter, (req, res, next) => authController.verifyEmailOtp(req, res, next));
