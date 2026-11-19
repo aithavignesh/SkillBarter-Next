@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-function createAuthenticate(options: { allowUnverifiedEmail?: boolean } = {}) {
+function createAuthenticate() {
   return async function authenticateRequest(req: Request, _res: Response, next: NextFunction): Promise<void> {
     try {
       let token: string | undefined;
@@ -33,10 +33,7 @@ function createAuthenticate(options: { allowUnverifiedEmail?: boolean } = {}) {
       if (user.passwordChangedAt && (!payload.iat || payload.iat < user.passwordChangedAt.getTime() / 1000)) {
         throw new AppError("Password changed; please sign in again", 401, "SESSION_REVOKED");
       }
-      // Unverified members may complete onboarding, but normal protected APIs stay locked.
-      if (!options.allowUnverifiedEmail && !user.isEmailVerified) {
-        throw new AppError("Please verify your email address to access this feature.", 403, "EMAIL_NOT_VERIFIED");
-      }
+      // Email verification is optional; valid authenticated accounts may use the app.
       if (user.isSuspended) {
         throw new AppError(
           `Your account has been suspended: ${user.suspensionReason || "Violation of terms"}`,
@@ -55,7 +52,7 @@ function createAuthenticate(options: { allowUnverifiedEmail?: boolean } = {}) {
 }
 
 export const authenticate = createAuthenticate();
-export const authenticateForOnboarding = createAuthenticate({ allowUnverifiedEmail: true });
+export const authenticateForOnboarding = authenticate;
 
 export function requireOnboardingCompleted(req: Request, _res: Response, next: NextFunction): void {
   if (!req.user) {
@@ -82,7 +79,7 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
       if (payload) {
         const user = await User.findById(payload.userId);
         const tokenIsCurrent = !user?.passwordChangedAt || Boolean(payload.iat && payload.iat >= user.passwordChangedAt.getTime() / 1000);
-        if (user && tokenIsCurrent && user.isEmailVerified && !user.isSuspended) {
+        if (user && tokenIsCurrent && !user.isSuspended) {
           req.user = user;
           req.tokenPayload = payload;
         }
