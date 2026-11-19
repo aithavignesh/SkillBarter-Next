@@ -105,16 +105,5 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user.isEmailVerified) {
-    return (
-      <AccessGate
-        title="Verify your email to continue"
-        description="Your profile is saved. Verify your email address to unlock exchanges, messages, skills management, and other protected features."
-        href="/verify-email"
-        action="Verify email"
-      />
-    );
-  }
-
   return <>{children}</>;
 }
