@@ -49,6 +49,10 @@ app.use(
     limit: 200,
     standardHeaders: "draft-7",
     legacyHeaders: false,
+    // Authentication routes have dedicated per-endpoint protections below.
+    // Exempt them from the shared API ceiling so normal app traffic cannot
+    // consume the same IP budget and block login/OTP for users behind NAT.
+    skip: (req) => /^\/(?:v1\/)?auth(?:\/|$)/.test(req.path),
   })
 );
 
