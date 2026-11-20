@@ -580,6 +580,16 @@ for (const viewport of viewports) {
           await page.keyboard.press("Tab");
           const categoryFocused = await skillCategory.evaluate((element) => element === document.activeElement);
           if (!categoryFocused) failures.push({ route: routePath, viewport: viewport.name, type: "keyboard-order", detail: "Tab from Skill Name should focus Category" });
+
+          await skillName.focus();
+          await page.keyboard.press("Shift+Tab");
+          const saveFocused = await page.getByRole("button", { name: "Save Skill" }).evaluate((element) => element === document.activeElement);
+          if (!saveFocused) failures.push({ route: routePath, viewport: viewport.name, type: "dialog-focus-trap", detail: "Shift+Tab from the first field should wrap to Save Skill" });
+
+          await page.keyboard.press("Escape");
+          await page.getByRole("dialog").waitFor({ state: "detached", timeout: 3000 }).catch(() => {});
+          const openerFocused = await page.getByRole("button", { name: "Add Learning Goal" }).evaluate((element) => element === document.activeElement);
+          if (!openerFocused) failures.push({ route: routePath, viewport: viewport.name, type: "dialog-focus-restore", detail: "Closing the skill dialog should restore focus to Add Learning Goal" });
         }
       }
 
