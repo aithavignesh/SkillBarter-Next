@@ -261,7 +261,13 @@ async function installAuthenticatedApi(page) {
       await route.fulfill(failure(404, "NOT_FOUND", "The requested record was not found"));
       return;
     }
-    if (path.endsWith("/skills/user")) {\n      await route.fulfill(success({ skills: [\n        { id: "507f1f77bcf86cd799439051", name: "TypeScript", category: "Software Development", type: "offered", proficiency: "advanced", yearsExperience: 3, description: "Typed JavaScript" },\n        { id: "507f1f77bcf86cd799439052", name: "Python", category: "Software Development", type: "wanted", proficiency: "beginner", yearsExperience: 0, description: "Automation" }\n      ] }));\n      return;\n    }
+    if (path.endsWith("/skills/user")) {
+      await route.fulfill(success({ skills: [
+        { id: "507f1f77bcf86cd799439051", name: "TypeScript", category: "Software Development", type: "offered", proficiency: "advanced", yearsExperience: 3, description: "Typed JavaScript" },
+        { id: "507f1f77bcf86cd799439052", name: "Python", category: "Software Development", type: "wanted", proficiency: "beginner", yearsExperience: 0, description: "Automation" }
+      ] }));
+      return;
+    }
     if (path.endsWith("/community/connections")) {
       await route.fulfill(success({ connections: [] }));
       return;
