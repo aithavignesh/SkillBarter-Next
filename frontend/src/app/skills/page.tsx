@@ -22,6 +22,55 @@ export default function SkillsPage() {
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!showAddModal) return;
+
+    const dialog = document.getElementById("add-skill-dialog");
+    if (!dialog) return;
+
+    const getFocusableElements = () =>
+      Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => element.getAttribute("aria-hidden") !== "true");
+
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    getFocusableElements()[0]?.focus();
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setShowAddModal(false);
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const elements = getFocusableElements();
+      if (elements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleDialogKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleDialogKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, [showAddModal]);
+
 
   const fetchSkills = async () => {
     try {
@@ -215,7 +264,7 @@ export default function SkillsPage() {
       {/* Add Skill Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="add-skill-title" className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-5">
+          <div id="add-skill-dialog" role="dialog" aria-modal="true" aria-labelledby="add-skill-title" className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-5">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-red-600">
                 {skillType === "offered" ? "Offer New Skill" : "New Learning Goal"}
@@ -256,7 +305,7 @@ export default function SkillsPage() {
                   id="skill-category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white"
+                  className="w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
                 >
                   {skillCategories.map((c) => (
                     <option key={c} value={c}>{c}</option>
