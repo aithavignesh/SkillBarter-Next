@@ -97,7 +97,7 @@ export default function SkillsPage() {
               setSkillType("offered");
               setShowAddModal(true);
             }}
-            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-emerald-500 shadow-sm"
+            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
           >
             <Plus className="h-4 w-4" /> Add Skill to Teach
           </button>
@@ -107,7 +107,7 @@ export default function SkillsPage() {
               setSkillType("wanted");
               setShowAddModal(true);
             }}
-            className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-red-500 shadow-sm"
+            className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
           >
             <Plus className="h-4 w-4" /> Add Learning Goal
           </button>
@@ -150,14 +150,7 @@ export default function SkillsPage() {
                         <p className="mt-1.5 text-xs text-slate-600">{s.description}</p>
                       )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(s.id)}
-                      className="text-slate-400 hover:text-rose-600 p-1"
-                      title="Remove skill"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <button\n                      type="button"\n                      aria-label={`Remove ${s.name} from skills you teach`}\n                      onClick={() => handleRemoveSkill(s.id)}\n                      className="rounded-md p-1 text-slate-400 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"\n                    >\n                      <Trash2 className="h-4 w-4" aria-hidden="true" />\n                    </button>
                   </div>
                 ))}
               </div>
@@ -196,14 +189,7 @@ export default function SkillsPage() {
                         <p className="mt-1.5 text-xs text-slate-600">{s.description}</p>
                       )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(s.id)}
-                      className="text-slate-400 hover:text-rose-600 p-1"
-                      title="Remove goal"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <button\n                      type="button"\n                      aria-label={`Remove ${s.name} from learning goals`}\n                      onClick={() => handleRemoveSkill(s.id)}\n                      className="rounded-md p-1 text-slate-400 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"\n                    >\n                      <Trash2 className="h-4 w-4" aria-hidden="true" />\n                    </button>
                   </div>
                 ))}
               </div>
@@ -215,12 +201,12 @@ export default function SkillsPage() {
       {/* Add Skill Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-5">
+          <div role="dialog" aria-modal="true" aria-labelledby="add-skill-title" className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-5">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-red-600">
                 {skillType === "offered" ? "Offer New Skill" : "New Learning Goal"}
               </span>
-              <h3 className="mt-1 text-2xl font-bold text-slate-900">
+              <h3 id="add-skill-title" className="mt-1 text-2xl font-bold text-slate-900">
                 {skillType === "offered" ? "Add Skill You Teach" : "Add Skill You Want"}
               </h3>
             </div>
@@ -234,25 +220,17 @@ export default function SkillsPage() {
 
             <form onSubmit={handleAddSkill} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                  Skill Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
+                <label htmlFor="skill-name" className="block text-xs font-semibold uppercase text-slate-700 mb-1">\n                  Skill Name\n                </label>
+                <input\n                  id="skill-name"\n                  type="text"\n                  required\n                  value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Python, Docker, Figma, Spanish"
-                  className="w-full rounded-xl border border-slate-300 p-2.5 text-sm"
+                  className="w-full rounded-xl border border-slate-300 p-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                  Category
-                </label>
-                <select
-                  value={category}
+                <label htmlFor="skill-category" className="block text-xs font-semibold uppercase text-slate-700 mb-1">\n                  Category\n                </label>
+                <select\n                  id="skill-category"\n                  value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white"
                 >
@@ -264,11 +242,8 @@ export default function SkillsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                    Proficiency
-                  </label>
-                  <select
-                    value={proficiency}
+                  <label htmlFor="skill-proficiency" className="block text-xs font-semibold uppercase text-slate-700 mb-1">\n                    Proficiency\n                  </label>
+                  <select\n                    id="skill-proficiency"\n                    value={proficiency}
                     onChange={(e) => setProficiency(e.target.value as any)}
                     className="w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white"
                   >
@@ -280,12 +255,8 @@ export default function SkillsPage() {
                 </div>
                 {skillType === "offered" && (
                   <div>
-                    <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                      Years Exp.
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
+                    <label htmlFor="skill-years-experience" className="block text-xs font-semibold uppercase text-slate-700 mb-1">\n                      Years Exp.\n                    </label>
+                    <input\n                      id="skill-years-experience"\n                      type="number"\n                      min="0"
                       max="50"
                       value={yearsExperience}
                       onChange={(e) => setYearsExperience(parseInt(e.target.value, 10) || 0)}
@@ -296,11 +267,8 @@ export default function SkillsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                  Description / Focus Areas
-                </label>
-                <textarea
-                  rows={3}
+                <label htmlFor="skill-description" className="block text-xs font-semibold uppercase text-slate-700 mb-1">\n                  Description / Focus Areas\n                </label>
+                <textarea\n                  id="skill-description"\n                  rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What specifically can you guide or want to learn?"
@@ -312,14 +280,14 @@ export default function SkillsPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-xl bg-red-600 px-5 py-2 text-xs font-semibold text-white hover:bg-red-500 disabled:opacity-50"
+                  className="rounded-xl bg-red-600 px-5 py-2 text-xs font-semibold text-white hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Skill"}
                 </button>
