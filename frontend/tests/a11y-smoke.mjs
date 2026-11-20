@@ -261,10 +261,7 @@ async function installAuthenticatedApi(page) {
       await route.fulfill(failure(404, "NOT_FOUND", "The requested record was not found"));
       return;
     }
-    if (path.endsWith("/skills/user")) {
-      await route.fulfill(success({ skills: [] }));
-      return;
-    }
+    if (path.endsWith("/skills/user")) {\n      await route.fulfill(success({ skills: [\n        { id: "507f1f77bcf86cd799439051", name: "TypeScript", category: "Software Development", type: "offered", proficiency: "advanced", yearsExperience: 3, description: "Typed JavaScript" },\n        { id: "507f1f77bcf86cd799439052", name: "Python", category: "Software Development", type: "wanted", proficiency: "beginner", yearsExperience: 0, description: "Automation" }\n      ] }));\n      return;\n    }
     if (path.endsWith("/community/connections")) {
       await route.fulfill(success({ connections: [] }));
       return;
@@ -509,6 +506,74 @@ for (const viewport of viewports) {
         const incomingHidden = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
         if (sentVisible !== 1 || incomingHidden !== 0 || !page.url().includes("view=sent")) {
           failures.push({ route: routePath, viewport: viewport.name, type: "sent-route", detail: "Sent request deep link did not open its filtered inbox" });
+        }
+      }
+
+      if (routePath === "/register") {
+        const fields = [
+          ["Full / Display Name", "register-display-name"],
+          ["Email address", "register-email"],
+          ["Mobile number", "register-phone"],
+          ["Password", "register-password"]
+        ];
+        for (const [label, id] of fields) {
+          if (await page.getByLabel(label).count() !== 1) {
+            failures.push({ route: routePath, viewport: viewport.name, type: "form-label", detail: label + " must be associated with its input" });
+          }
+        }
+        await page.getByLabel("Full / Display Name").focus();
+        for (const expectedId of ["register-email", "register-phone", "register-password"]) {
+          await page.keyboard.press("Tab");
+          const activeId = await page.evaluate(() => document.activeElement?.id || "");
+          if (activeId !== expectedId) {
+            failures.push({ route: routePath, viewport: viewport.name, type: "keyboard-order", detail: "Expected " + expectedId + " after Tab, received " + (activeId || "no identified control") });
+            break;
+          }
+        }
+      }
+
+      if (routePath === "/forgot-password") {
+        if (await page.getByLabel("Email address").count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "form-label", detail: "Email address must be associated with its input" });
+        } else {
+          await page.getByLabel("Email address").focus();
+          await page.keyboard.press("Tab");
+          const submitFocused = await page.getByRole("button", { name: "Send Reset Link" }).evaluate((element) => element === document.activeElement);
+          if (!submitFocused) failures.push({ route: routePath, viewport: viewport.name, type: "keyboard-order", detail: "Tab from email should focus Send Reset Link" });
+        }
+      }
+
+      if (routePath === "/reset-password?token=invalid") {
+        const tokenField = page.getByLabel("Reset Token");
+        const passwordField = page.getByLabel("New Password");
+        if (await tokenField.count() !== 1 || await passwordField.count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "form-label", detail: "Reset token and new password labels must be associated with their inputs" });
+        } else {
+          await tokenField.focus();
+          await page.keyboard.press("Tab");
+          const passwordFocused = await passwordField.evaluate((element) => element === document.activeElement);
+          if (!passwordFocused) failures.push({ route: routePath, viewport: viewport.name, type: "keyboard-order", detail: "Tab from reset token should focus New Password" });
+        }
+      }
+
+      if (routePath === "/skills") {
+        const removeOffered = page.getByRole("button", { name: "Remove TypeScript from skills you teach" });
+        const removeWanted = page.getByRole("button", { name: "Remove Python from learning goals" });
+        if (await removeOffered.count() !== 1 || await removeWanted.count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "icon-button-name", detail: "Skill removal buttons must have descriptive accessible names" });
+        }
+        await page.getByRole("button", { name: "Add Learning Goal" }).click();
+        const skillName = page.getByLabel("Skill Name");
+        const skillCategory = page.getByLabel("Category");
+        const proficiency = page.getByLabel("Proficiency");
+        const description = page.getByLabel("Description / Focus Areas");
+        if (await skillName.count() !== 1 || await skillCategory.count() !== 1 || await proficiency.count() !== 1 || await description.count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "modal-form-labels", detail: "Skill modal controls must have associated labels" });
+        } else {
+          await skillName.focus();
+          await page.keyboard.press("Tab");
+          const categoryFocused = await skillCategory.evaluate((element) => element === document.activeElement);
+          if (!categoryFocused) failures.push({ route: routePath, viewport: viewport.name, type: "keyboard-order", detail: "Tab from Skill Name should focus Category" });
         }
       }
 
