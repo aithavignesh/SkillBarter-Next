@@ -150,7 +150,14 @@ export default function SkillsPage() {
                         <p className="mt-1.5 text-xs text-slate-600">{s.description}</p>
                       )}
                     </div>
-                    <button\n                      type="button"\n                      aria-label={`Remove ${s.name} from skills you teach`}\n                      onClick={() => handleRemoveSkill(s.id)}\n                      className="rounded-md p-1 text-slate-400 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"\n                    >\n                      <Trash2 className="h-4 w-4" aria-hidden="true" />\n                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Remove ${s.name} from skills you teach`}
+                      onClick={() => handleRemoveSkill(s.id)}
+                      className="rounded-md p-1 text-slate-400 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -189,7 +196,14 @@ export default function SkillsPage() {
                         <p className="mt-1.5 text-xs text-slate-600">{s.description}</p>
                       )}
                     </div>
-                    <button\n                      type="button"\n                      aria-label={`Remove ${s.name} from learning goals`}\n                      onClick={() => handleRemoveSkill(s.id)}\n                      className="rounded-md p-1 text-slate-400 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"\n                    >\n                      <Trash2 className="h-4 w-4" aria-hidden="true" />\n                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Remove ${s.name} from learning goals`}
+                      onClick={() => handleRemoveSkill(s.id)}
+                      className="rounded-md p-1 text-slate-400 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -220,8 +234,14 @@ export default function SkillsPage() {
 
             <form onSubmit={handleAddSkill} className="space-y-4">
               <div>
-                <label htmlFor="skill-name" className="block text-xs font-semibold uppercase text-slate-700 mb-1">\n                  Skill Name\n                </label>
-                <input\n                  id="skill-name"\n                  type="text"\n                  required\n                  value={name}
+                <label htmlFor="skill-name" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                  Skill Name
+                </label>
+                <input
+                  id="skill-name"
+                  type="text"
+                  required
+                  value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Python, Docker, Figma, Spanish"
                   className="w-full rounded-xl border border-slate-300 p-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
@@ -229,8 +249,12 @@ export default function SkillsPage() {
               </div>
 
               <div>
-                <label htmlFor="skill-category" className="block text-xs font-semibold uppercase text-slate-700 mb-1">\n                  Category\n                </label>
-                <select\n                  id="skill-category"\n                  value={category}
+                <label htmlFor="skill-category" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                  Category
+                </label>
+                <select
+                  id="skill-category"
+                  value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white"
                 >
@@ -242,8 +266,12 @@ export default function SkillsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="skill-proficiency" className="block text-xs font-semibold uppercase text-slate-700 mb-1">\n                    Proficiency\n                  </label>
-                  <select\n                    id="skill-proficiency"\n                    value={proficiency}
+                  <label htmlFor="skill-proficiency" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                    Proficiency
+                  </label>
+                  <select
+                    id="skill-proficiency"
+                    value={proficiency}
                     onChange={(e) => setProficiency(e.target.value as any)}
                     className="w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white"
                   >
@@ -255,8 +283,13 @@ export default function SkillsPage() {
                 </div>
                 {skillType === "offered" && (
                   <div>
-                    <label htmlFor="skill-years-experience" className="block text-xs font-semibold uppercase text-slate-700 mb-1">\n                      Years Exp.\n                    </label>
-                    <input\n                      id="skill-years-experience"\n                      type="number"\n                      min="0"
+                    <label htmlFor="skill-years-experience" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                      Years Exp.
+                    </label>
+                    <input
+                      id="skill-years-experience"
+                      type="number"
+                      min="0"
                       max="50"
                       value={yearsExperience}
                       onChange={(e) => setYearsExperience(parseInt(e.target.value, 10) || 0)}
@@ -267,8 +300,12 @@ export default function SkillsPage() {
               </div>
 
               <div>
-                <label htmlFor="skill-description" className="block text-xs font-semibold uppercase text-slate-700 mb-1">\n                  Description / Focus Areas\n                </label>
-                <textarea\n                  id="skill-description"\n                  rows={3}
+                <label htmlFor="skill-description" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                  Description / Focus Areas
+                </label>
+                <textarea
+                  id="skill-description"
+                  rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What specifically can you guide or want to learn?"
