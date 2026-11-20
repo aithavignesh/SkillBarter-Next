@@ -70,16 +70,30 @@ function ResetPasswordContent() {
         ) : (
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="reset-password-token" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">\n                Reset Token\n              </label>
-              <input\n                id="reset-password-token"\n                type="text"\n                autoComplete="off"\n                required\n                value={token}
+              <label htmlFor="reset-password-token" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                Reset Token
+              </label>
+              <input
+                id="reset-password-token"
+                type="text"
+                autoComplete="off"
+                required
+                value={token}
                 onChange={(e) => setToken(e.target.value)}
                 className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-mono transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                 placeholder="Paste reset token here"
               />
             </div>
             <div>
-              <label htmlFor="reset-password-new-password" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">\n                New Password\n              </label>
-              <input\n                id="reset-password-new-password"\n                type="password"\n                autoComplete="new-password"\n                required\n                value={newPassword}
+              <label htmlFor="reset-password-new-password" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                New Password
+              </label>
+              <input
+                id="reset-password-new-password"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                 placeholder="At least 8 chars, 1 uppercase, 1 number"
