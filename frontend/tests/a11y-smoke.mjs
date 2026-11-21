@@ -262,7 +262,10 @@ async function installAuthenticatedApi(page) {
       return;
     }
     if (path.endsWith("/skills/user")) {
-      await route.fulfill(success({ skills: [] }));
+      await route.fulfill(success({ skills: [
+        { id: "507f1f77bcf86cd799439051", name: "TypeScript", category: "Software Development", type: "offered", proficiency: "advanced", yearsExperience: 3, description: "Typed JavaScript" },
+        { id: "507f1f77bcf86cd799439052", name: "Python", category: "Software Development", type: "wanted", proficiency: "beginner", yearsExperience: 0, description: "Automation" }
+      ] }));
       return;
     }
     if (path.endsWith("/community/connections")) {
@@ -509,6 +512,84 @@ for (const viewport of viewports) {
         const incomingHidden = await page.getByRole("heading", { name: "With Incoming Requester" }).count();
         if (sentVisible !== 1 || incomingHidden !== 0 || !page.url().includes("view=sent")) {
           failures.push({ route: routePath, viewport: viewport.name, type: "sent-route", detail: "Sent request deep link did not open its filtered inbox" });
+        }
+      }
+
+      if (routePath === "/register") {
+        const fields = [
+          ["Full / Display Name", "register-display-name"],
+          ["Email address", "register-email"],
+          ["Mobile number", "register-phone"],
+          ["Password", "register-password"]
+        ];
+        for (const [label, id] of fields) {
+          if (await page.getByLabel(label).count() !== 1) {
+            failures.push({ route: routePath, viewport: viewport.name, type: "form-label", detail: label + " must be associated with its input" });
+          }
+        }
+        await page.getByLabel("Full / Display Name").focus();
+        for (const expectedId of ["register-email", "register-phone", "register-password"]) {
+          await page.keyboard.press("Tab");
+          const activeId = await page.evaluate(() => document.activeElement?.id || "");
+          if (activeId !== expectedId) {
+            failures.push({ route: routePath, viewport: viewport.name, type: "keyboard-order", detail: "Expected " + expectedId + " after Tab, received " + (activeId || "no identified control") });
+            break;
+          }
+        }
+      }
+
+      if (routePath === "/forgot-password") {
+        if (await page.getByLabel("Email address").count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "form-label", detail: "Email address must be associated with its input" });
+        } else {
+          await page.getByLabel("Email address").focus();
+          await page.keyboard.press("Tab");
+          const submitFocused = await page.getByRole("button", { name: "Send Reset Link" }).evaluate((element) => element === document.activeElement);
+          if (!submitFocused) failures.push({ route: routePath, viewport: viewport.name, type: "keyboard-order", detail: "Tab from email should focus Send Reset Link" });
+        }
+      }
+
+      if (routePath === "/reset-password?token=invalid") {
+        const tokenField = page.getByLabel("Reset Token");
+        const passwordField = page.getByLabel("New Password");
+        if (await tokenField.count() !== 1 || await passwordField.count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "form-label", detail: "Reset token and new password labels must be associated with their inputs" });
+        } else {
+          await tokenField.focus();
+          await page.keyboard.press("Tab");
+          const passwordFocused = await passwordField.evaluate((element) => element === document.activeElement);
+          if (!passwordFocused) failures.push({ route: routePath, viewport: viewport.name, type: "keyboard-order", detail: "Tab from reset token should focus New Password" });
+        }
+      }
+
+      if (routePath === "/skills") {
+        const removeOffered = page.getByRole("button", { name: "Remove TypeScript from skills you teach" });
+        const removeWanted = page.getByRole("button", { name: "Remove Python from learning goals" });
+        if (await removeOffered.count() !== 1 || await removeWanted.count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "icon-button-name", detail: "Skill removal buttons must have descriptive accessible names" });
+        }
+        await page.getByRole("button", { name: "Add Learning Goal" }).click();
+        const skillName = page.getByLabel("Skill Name");
+        const skillCategory = page.getByLabel("Category");
+        const proficiency = page.getByLabel("Proficiency");
+        const description = page.getByLabel("Description / Focus Areas");
+        if (await skillName.count() !== 1 || await skillCategory.count() !== 1 || await proficiency.count() !== 1 || await description.count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "modal-form-labels", detail: "Skill modal controls must have associated labels" });
+        } else {
+          await skillName.focus();
+          await page.keyboard.press("Tab");
+          const categoryFocused = await skillCategory.evaluate((element) => element === document.activeElement);
+          if (!categoryFocused) failures.push({ route: routePath, viewport: viewport.name, type: "keyboard-order", detail: "Tab from Skill Name should focus Category" });
+
+          await skillName.focus();
+          await page.keyboard.press("Shift+Tab");
+          const saveFocused = await page.getByRole("button", { name: "Save Skill" }).evaluate((element) => element === document.activeElement);
+          if (!saveFocused) failures.push({ route: routePath, viewport: viewport.name, type: "dialog-focus-trap", detail: "Shift+Tab from the first field should wrap to Save Skill" });
+
+          await page.keyboard.press("Escape");
+          await page.getByRole("dialog").waitFor({ state: "detached", timeout: 3000 }).catch(() => {});
+          const openerFocused = await page.getByRole("button", { name: "Add Learning Goal" }).evaluate((element) => element === document.activeElement);
+          if (!openerFocused) failures.push({ route: routePath, viewport: viewport.name, type: "dialog-focus-restore", detail: "Closing the skill dialog should restore focus to Add Learning Goal" });
         }
       }
 

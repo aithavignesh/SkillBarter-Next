@@ -70,11 +70,13 @@ function ResetPasswordContent() {
         ) : (
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+              <label htmlFor="reset-password-token" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                 Reset Token
               </label>
               <input
+                id="reset-password-token"
                 type="text"
+                autoComplete="off"
                 required
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
@@ -83,11 +85,13 @@ function ResetPasswordContent() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+              <label htmlFor="reset-password-new-password" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                 New Password
               </label>
               <input
+                id="reset-password-new-password"
                 type="password"
+                autoComplete="new-password"
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}

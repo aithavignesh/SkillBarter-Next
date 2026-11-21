@@ -22,6 +22,59 @@ export default function SkillsPage() {
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!showAddModal) return;
+
+    const dialog = document.getElementById("add-skill-dialog");
+    if (!dialog) return;
+
+    const getFocusableElements = () =>
+      Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => element.getAttribute("aria-hidden") !== "true");
+
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    getFocusableElements()[0]?.focus();
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setShowAddModal(false);
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const elements = getFocusableElements();
+      if (elements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (!first || !last) {
+        event.preventDefault();
+        return;
+      }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleDialogKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleDialogKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, [showAddModal]);
+
 
   const fetchSkills = async () => {
     try {
@@ -97,7 +150,7 @@ export default function SkillsPage() {
               setSkillType("offered");
               setShowAddModal(true);
             }}
-            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-emerald-500 shadow-sm"
+            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
           >
             <Plus className="h-4 w-4" /> Add Skill to Teach
           </button>
@@ -107,7 +160,7 @@ export default function SkillsPage() {
               setSkillType("wanted");
               setShowAddModal(true);
             }}
-            className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-red-500 shadow-sm"
+            className="flex items-center gap-1.5 rounded-xl bg-red-700 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-800 focus-visible:ring-offset-2"
           >
             <Plus className="h-4 w-4" /> Add Learning Goal
           </button>
@@ -152,11 +205,11 @@ export default function SkillsPage() {
                     </div>
                     <button
                       type="button"
+                      aria-label={`Remove ${s.name} from skills you teach`}
                       onClick={() => handleRemoveSkill(s.id)}
-                      className="text-slate-400 hover:text-rose-600 p-1"
-                      title="Remove skill"
+                      className="rounded-md p-1 text-slate-400 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </div>
                 ))}
@@ -198,11 +251,11 @@ export default function SkillsPage() {
                     </div>
                     <button
                       type="button"
+                      aria-label={`Remove ${s.name} from learning goals`}
                       onClick={() => handleRemoveSkill(s.id)}
-                      className="text-slate-400 hover:text-rose-600 p-1"
-                      title="Remove goal"
+                      className="rounded-md p-1 text-slate-400 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </div>
                 ))}
@@ -215,12 +268,12 @@ export default function SkillsPage() {
       {/* Add Skill Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-5">
+          <div id="add-skill-dialog" role="dialog" aria-modal="true" aria-labelledby="add-skill-title" className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-5">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-red-600">
                 {skillType === "offered" ? "Offer New Skill" : "New Learning Goal"}
               </span>
-              <h3 className="mt-1 text-2xl font-bold text-slate-900">
+              <h3 id="add-skill-title" className="mt-1 text-2xl font-bold text-slate-900">
                 {skillType === "offered" ? "Add Skill You Teach" : "Add Skill You Want"}
               </h3>
             </div>
@@ -234,27 +287,29 @@ export default function SkillsPage() {
 
             <form onSubmit={handleAddSkill} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="skill-name" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Skill Name
                 </label>
                 <input
+                  id="skill-name"
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Python, Docker, Figma, Spanish"
-                  className="w-full rounded-xl border border-slate-300 p-2.5 text-sm"
+                  className="w-full rounded-xl border border-slate-300 p-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="skill-category" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Category
                 </label>
                 <select
+                  id="skill-category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white"
+                  className="w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
                 >
                   {skillCategories.map((c) => (
                     <option key={c} value={c}>{c}</option>
@@ -264,10 +319,11 @@ export default function SkillsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                  <label htmlFor="skill-proficiency" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                     Proficiency
                   </label>
                   <select
+                    id="skill-proficiency"
                     value={proficiency}
                     onChange={(e) => setProficiency(e.target.value as any)}
                     className="w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white"
@@ -280,10 +336,11 @@ export default function SkillsPage() {
                 </div>
                 {skillType === "offered" && (
                   <div>
-                    <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                    <label htmlFor="skill-years-experience" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                       Years Exp.
                     </label>
                     <input
+                      id="skill-years-experience"
                       type="number"
                       min="0"
                       max="50"
@@ -296,10 +353,11 @@ export default function SkillsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="skill-description" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Description / Focus Areas
                 </label>
                 <textarea
+                  id="skill-description"
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -312,14 +370,14 @@ export default function SkillsPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-xl bg-red-600 px-5 py-2 text-xs font-semibold text-white hover:bg-red-500 disabled:opacity-50"
+                  className="rounded-xl bg-red-600 px-5 py-2 text-xs font-semibold text-white hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Skill"}
                 </button>
