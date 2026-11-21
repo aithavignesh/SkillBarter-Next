@@ -569,6 +569,10 @@ for (const viewport of viewports) {
         const hiddenHeading = expectedType === "wanted" ? /Skills You Teach/ : /Skills You Want to Learn/;
         const destination = new URL(page.url());
         await page.getByRole("heading", { name: expectedHeading }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        await page.waitForFunction((label) => {
+          const button = Array.from(document.querySelectorAll("button")).find((item) => item.textContent?.trim() === label);
+          return button?.getAttribute("aria-pressed") === "true";
+        }, expectedButton, { timeout: 5000 }).catch(() => {});
         const selected = await page.getByRole("button", { name: expectedButton }).getAttribute("aria-pressed");
         if (destination.pathname !== "/skills" || destination.searchParams.get("type") !== expectedType || selected !== "true" || await page.getByRole("heading", { name: hiddenHeading }).count() !== 0) {
           failures.push({ route: routePath, viewport: viewport.name, type: "legacy-skill-intent", detail: "Legacy skill route must open its matching filtered skill view" });
