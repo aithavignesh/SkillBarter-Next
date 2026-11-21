@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Exchange } from "../../models/Exchange";
 import { ExchangeSession } from "../../models/ExchangeSession";
+import { User } from "../../models/User";
+import { Skill } from "../../models/Skill";
+import { UserSkill } from "../../models/UserSkill";
+import { Conversation } from "../../models/Conversation";
+import { Notification as NotificationModel } from "../../models/Notification";
+import { AnalyticsEvent } from "../../models/AnalyticsEvent";
 import { ExchangesService } from "./exchanges.service";
 
 describe("ExchangesService.updateSessionStatus route binding", () => {
@@ -100,7 +106,7 @@ describe("ExchangesService two-party lifecycle integration", () => {
 
     expect(proposal.status).toBe("PENDING");
     expect(await Conversation.countDocuments({})).toBe(1);
-    expect(await Notification.countDocuments({ recipientId: recipient._id, type: "EXCHANGE_REQUESTED" })).toBe(1);
+    expect(await NotificationModel.countDocuments({ recipientId: recipient._id, type: "EXCHANGE_REQUESTED" })).toBe(1);
     expect(await AnalyticsEvent.countDocuments({ eventName: "EXCHANGE_REQUESTED" })).toBe(1);
 
     await expect(
