@@ -160,7 +160,7 @@ export default function SkillsPage() {
               setSkillType("wanted");
               setShowAddModal(true);
             }}
-            className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
+            className="flex items-center gap-1.5 rounded-xl bg-red-700 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-800 focus-visible:ring-offset-2"
           >
             <Plus className="h-4 w-4" /> Add Learning Goal
           </button>
