@@ -151,6 +151,12 @@ describe("ExchangesService two-party lifecycle integration", () => {
     expect(await User.findById(requester.id).then((user) => user?.completedExchangesCount)).toBe(0);
     expect(await User.findById(recipient.id).then((user) => user?.completedExchangesCount)).toBe(0);
 
+    // A repeated confirmation by the same participant before the second party confirms is idempotent.
+    const repeatedConfirmation = await service.confirmCompletion(proposal.id, requester.id);
+    expect(repeatedConfirmation.status).toBe("SCHEDULED");
+    expect(await User.findById(requester.id).then((user) => user?.completedExchangesCount)).toBe(0);
+    expect(await User.findById(recipient.id).then((user) => user?.completedExchangesCount)).toBe(0);
+
     const completed = await service.confirmCompletion(proposal.id, recipient.id);
     expect(completed.status).toBe("COMPLETED");
     expect(completed.completionStatus).toEqual({
@@ -158,7 +164,6 @@ describe("ExchangesService two-party lifecycle integration", () => {
       recipientConfirmed: true,
     });
 
-    await service.confirmCompletion(proposal.id, requester.id);
     expect(await User.findById(requester.id).then((user) => user?.completedExchangesCount)).toBe(1);
     expect(await User.findById(recipient.id).then((user) => user?.completedExchangesCount)).toBe(1);
     expect(await AnalyticsEvent.countDocuments({ eventName: "EXCHANGE_COMPLETED" })).toBe(1);
