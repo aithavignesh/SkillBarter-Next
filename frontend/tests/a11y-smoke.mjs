@@ -562,7 +562,7 @@ for (const viewport of viewports) {
         }
       }
 
-      if (routePath === "/screens/notification-settings") {
+      if (routePath === "/screens/notification-settings" || routePath === "/notifications?view=settings") {
         const destination = new URL(page.url());
         const headingCount = await page.getByRole("heading", { name: "Notification preferences" }).count();
         const requestsToggle = page.getByRole("checkbox", { name: /Requests/ });
@@ -572,8 +572,13 @@ for (const viewport of viewports) {
         } else {
           await requestsToggle.uncheck();
           await saveButton.click();
-          await page.getByRole("status", { name: "Preferences saved on this browser." }).waitFor({ state: "visible", timeout: 3000 }).catch(() => {});
+          await page.getByText("Preferences saved on this browser.").waitFor({ state: "visible", timeout: 3000 }).catch(() => {});
           await page.reload({ waitUntil: "domcontentloaded" });
+          await page.getByRole("heading", { name: "Notification preferences" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+          await page.waitForFunction(() => {
+            const checkbox = document.getElementById("notification-preference-requests");
+            return checkbox instanceof HTMLInputElement && checkbox.checked === false;
+          }, null, { timeout: 5000 }).catch(() => {});
           const persistedRequestsToggle = page.getByRole("checkbox", { name: /Requests/ });
           if (await persistedRequestsToggle.isChecked()) {
             failures.push({ route: routePath, viewport: viewport.name, type: "notification-preferences-persistence", detail: "Saved notification preferences should persist for the signed-in account in this browser" });
