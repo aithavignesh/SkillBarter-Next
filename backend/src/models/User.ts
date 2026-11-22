@@ -18,6 +18,7 @@ export interface IUser extends Document {
   preferredSessionFormat: "video" | "chat" | "in_person" | "any";
   availability: string;
   isProfilePublic: boolean;
+  locationVisibility: boolean;
   onboardingCompleted: boolean;
   reputationScore: number;
   completedExchangesCount: number;
@@ -50,6 +51,7 @@ const userSchema = new Schema<IUser>(
     },
     availability: { type: String, default: "Flexible" },
     isProfilePublic: { type: Boolean, default: true },
+    locationVisibility: { type: Boolean, default: true },
     onboardingCompleted: { type: Boolean, default: false },
     reputationScore: { type: Number, default: 5.0, min: 1, max: 5 },
     completedExchangesCount: { type: Number, default: 0, min: 0 },

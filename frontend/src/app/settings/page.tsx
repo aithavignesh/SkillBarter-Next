@@ -14,12 +14,15 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isProfilePublic, setIsProfilePublic] = useState(user?.isProfilePublic ?? true);
+  const [locationVisibility, setLocationVisibility] = useState(user?.locationVisibility ?? true);
   const [privacySaving, setPrivacySaving] = useState(false);
   const [privacyError, setPrivacyError] = useState<string | null>(null);
   const [privacySuccess, setPrivacySuccess] = useState(false);
 
   useEffect(() => {
-    if (user) setIsProfilePublic(user.isProfilePublic ?? true);
+    if (!user) return;
+    setIsProfilePublic(user.isProfilePublic ?? true);
+    setLocationVisibility(user.locationVisibility ?? true);
   }, [user]);
 
   const handlePrivacySave = async () => {
@@ -27,11 +30,11 @@ export default function SettingsPage() {
     setPrivacyError(null);
     setPrivacySuccess(false);
     try {
-      const result = await api.users.updateProfile({ isProfilePublic });
+      const result = await api.users.updateProfile({ isProfilePublic, locationVisibility });
       setUser(result.user);
       setPrivacySuccess(true);
     } catch (err: unknown) {
-      setPrivacyError(err instanceof Error ? err.message : "Unable to update profile visibility.");
+      setPrivacyError(err instanceof Error ? err.message : "Unable to update privacy settings.");
     } finally {
       setPrivacySaving(false);
     }
@@ -89,36 +92,51 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Profile visibility controls */}
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-5 shadow-sm" aria-labelledby="profile-visibility-heading">
+      {/* Privacy controls */}
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-5 shadow-sm" aria-labelledby="privacy-settings-heading">
         <div>
-          <h2 id="profile-visibility-heading" className="text-base font-bold text-slate-900">Profile visibility</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-600">Choose whether your profile can appear in member discovery and be opened by other members. Your email address and phone number are never shown on public profiles.</p>
+          <h2 id="privacy-settings-heading" className="text-base font-bold text-slate-900">Privacy settings</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">Control whether members can discover your profile and see your saved location. Your email address and phone number are never shown on public profiles.</p>
         </div>
         {privacyError && <p className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700" role="alert">{privacyError}</p>}
-        {privacySuccess && <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700" role="status">Profile visibility saved.</p>}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {privacySuccess && <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700" role="status">Privacy settings saved.</p>}
+        <div className="space-y-5">
           <label htmlFor="profile-visibility" className="flex items-start gap-3 text-sm text-slate-700">
             <input
               id="profile-visibility"
               type="checkbox"
               checked={isProfilePublic}
               onChange={(event) => setIsProfilePublic(event.target.checked)}
-              className="mt-0.5 h-5 w-5 rounded border-slate-300 text-red-600 focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-red-600 focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
             />
             <span>
               <span className="block font-semibold text-slate-900">Show my profile in discovery</span>
               <span className="mt-1 block text-sm text-slate-500">{isProfilePublic ? "Other members can discover and open your profile." : "Your profile is hidden from member discovery and other members cannot open it."}</span>
             </span>
           </label>
-          <button
-            type="button"
-            onClick={handlePrivacySave}
-            disabled={privacySaving || !user}
-            className="min-h-11 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
-          >
-            {privacySaving ? "Saving..." : "Save visibility"}
-          </button>
+          <label htmlFor="location-visibility" className="flex items-start gap-3 text-sm text-slate-700">
+            <input
+              id="location-visibility"
+              type="checkbox"
+              checked={locationVisibility}
+              onChange={(event) => setLocationVisibility(event.target.checked)}
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-red-600 focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+            />
+            <span>
+              <span className="block font-semibold text-slate-900">Show my saved location to other members</span>
+              <span className="mt-1 block text-sm text-slate-500">{locationVisibility ? "Your saved location can appear on your public profile and in member discovery." : "Your saved location is hidden from public profiles and member discovery. You can still see it on your own account."}</span>
+            </span>
+          </label>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handlePrivacySave}
+              disabled={privacySaving || !user}
+              className="min-h-11 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
+            >
+              {privacySaving ? "Saving..." : "Save privacy settings"}
+            </button>
+          </div>
         </div>
       </section>
 

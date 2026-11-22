@@ -20,6 +20,7 @@ describe("MatchesService candidate visibility", () => {
       bio: "Happy to exchange practical skills.",
       avatarUrl: "",
       location: "Hyderabad",
+      locationVisibility: false,
       preferredSessionFormat: "online",
       availability: "Weekends",
       reputationScore: 4.6,
@@ -77,6 +78,7 @@ describe("MatchesService candidate visibility", () => {
     const match = await service.getMatchDetails(currentUserId.toString(), targetUserId.toString());
 
     expect(match.user.id).toBe(targetUserId.toString());
+    expect(match.user.location).toBe("");
     expect(match.reciprocalMatch).toBe(true);
     expect(match.theyTeachYouLearn.map((skill) => skill.name)).toContain("Python");
     expect(match.youTeachTheyLearn.map((skill) => skill.name)).toContain("React");

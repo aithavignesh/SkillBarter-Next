@@ -158,7 +158,7 @@ export class UsersService {
       displayName: user.displayName,
       bio: user.bio,
       avatarUrl: user.avatarUrl,
-      location: user.location,
+      location: requestingUserId === user._id.toString() || user.locationVisibility !== false ? user.location : "",
       preferredSessionFormat: user.preferredSessionFormat,
       availability: user.availability,
       reputationScore: user.reputationScore,
@@ -183,6 +183,7 @@ export class UsersService {
     if (input.preferredSessionFormat !== undefined) user.preferredSessionFormat = input.preferredSessionFormat;
     if (input.availability !== undefined) user.availability = input.availability;
     if (input.isProfilePublic !== undefined) user.isProfilePublic = input.isProfilePublic;
+    if (input.locationVisibility !== undefined) user.locationVisibility = input.locationVisibility;
 
     await user.save();
 

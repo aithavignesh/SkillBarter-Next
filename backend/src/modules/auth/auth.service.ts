@@ -31,6 +31,7 @@ export function formatAuthUser(user: IUser): AuthUser {
     isEmailVerified: user.isEmailVerified,
     onboardingCompleted: user.onboardingCompleted,
     isProfilePublic: user.isProfilePublic,
+    locationVisibility: user.locationVisibility !== false,
     avatarUrl: user.avatarUrl,
     bio: user.bio,
     location: user.location,
