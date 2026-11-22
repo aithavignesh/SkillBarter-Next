@@ -130,6 +130,7 @@ describe("ExchangesService two-party lifecycle integration", () => {
     expect(recipientInbox.messages).toHaveLength(1);
     expect(recipientInbox.messages[0]?.content).toBe("Hello, ready to exchange skills?");
     expect(recipientInbox.messages[0]?.readBy).toContain(recipient.id);
+    expect((await Message.findById(firstMessage.id))?.readBy.map((id) => id.toString())).toContain(recipient.id);
 
     const reply = await messagesService.sendMessage(conversationId, recipient.id, "Yes, let us schedule our first session.");
     expect(reply.senderId).toBe(recipient.id);
@@ -137,6 +138,7 @@ describe("ExchangesService two-party lifecycle integration", () => {
     expect(requesterInbox.messages).toHaveLength(2);
     expect(requesterInbox.messages[1]?.content).toBe("Yes, let us schedule our first session.");
     expect(requesterInbox.messages[1]?.readBy).toContain(requester.id);
+    expect((await Message.findById(reply.id))?.readBy.map((id) => id.toString())).toContain(requester.id);
 
     await expect(
       messagesService.sendMessage(conversationId, outsider.id, "Unauthorized message")
