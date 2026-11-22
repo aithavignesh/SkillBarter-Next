@@ -10,7 +10,7 @@ const sectionTargets: Record<string, string> = {
   requests: "/exchanges",
   membership: "/monetization",
   support: "/support/support",
-  activity: "/dashboard",
+  activity: "/notifications",
   discover: "/discover",
   matches: "/matches",
   notifications: "/notifications",
