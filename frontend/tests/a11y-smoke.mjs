@@ -60,7 +60,7 @@ const routes = [
   "/screens/faq",
   "/screens/privacy",
   "/screens/account-settings",
-  "/screens/activity",
+  "/screens/activity", "/activity",
   "/workshops/workshops",
   "/workshops/create-workshop",
   "/workshops/my-workshops",
@@ -567,6 +567,14 @@ for (const viewport of viewports) {
         const headingCount = await page.getByRole("heading", { name: "Notifications" }).count();
         if (destination.pathname !== "/notifications" || headingCount !== 1) {
           failures.push({ route: routePath, viewport: viewport.name, type: "notification-settings-destination", detail: "Legacy notification settings route must open the notifications screen" });
+        }
+      }
+
+      if (routePath === "/screens/activity" || routePath === "/activity") {
+        const destination = new URL(page.url());
+        const headingCount = await page.getByRole("heading", { name: "Notifications" }).count();
+        if (destination.pathname !== "/notifications" || headingCount !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "activity-destination", detail: "Legacy activity screen must open the notifications history" });
         }
       }
 
