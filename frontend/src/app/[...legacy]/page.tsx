@@ -57,7 +57,7 @@ const screenTargets: Record<string, string> = {
   faq: "/support/faq",
   privacy: "/settings",
   "account-settings": "/settings",
-  activity: "/dashboard",
+  activity: "/notifications",
 };
 
 const screenIdTargets: Record<string, (id: string) => string> = {
