@@ -562,6 +562,38 @@ for (const viewport of viewports) {
         }
       }
 
+      if (routePath === "/screens/notification-settings") {
+        const destination = new URL(page.url());
+        const headingCount = await page.getByRole("heading", { name: "Notifications" }).count();
+        if (destination.pathname !== "/notifications" || headingCount !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "notification-settings-destination", detail: "Legacy notification settings route must open the notifications screen" });
+        }
+      }
+
+      if (routePath === "/screens/create-post") {
+        const destination = new URL(page.url());
+        const dialog = page.getByRole("dialog");
+        await dialog.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        const headingCount = await dialog.getByRole("heading", { name: "Create Community Post" }).count();
+        const titleField = page.getByLabel("Title");
+        const contentField = page.getByLabel("Content");
+        const tagsField = page.getByLabel("Tags (comma separated)");
+        if (destination.pathname !== "/community" || destination.search !== "" || await dialog.count() !== 1 || headingCount !== 1 || await titleField.count() !== 1 || await contentField.count() !== 1 || await tagsField.count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "create-post-intent", detail: "Legacy create-post route must open the labelled community post dialog" });
+        } else {
+          await titleField.focus();
+          await page.keyboard.press("Tab");
+          const contentFocused = await contentField.evaluate((element) => element === document.activeElement);
+          if (!contentFocused) failures.push({ route: routePath, viewport: viewport.name, type: "create-post-keyboard-order", detail: "Tab from Title should focus Content" });
+          await page.keyboard.press("Escape");
+          await dialog.waitFor({ state: "detached", timeout: 3000 }).catch(() => {});
+          const triggerFocused = await page.getByRole("button", { name: "Share a Post" }).evaluate((element) => element === document.activeElement);
+          if (!triggerFocused) failures.push({ route: routePath, viewport: viewport.name, type: "create-post-focus-restore", detail: "Closing the create-post dialog should restore focus to Share a Post" });
+          await page.getByRole("button", { name: "Share a Post" }).click();
+          await page.getByRole("dialog").waitFor({ state: "visible", timeout: 3000 }).catch(() => {});
+        }
+      }
+
       if (routePath === "/screens/learning-goals" || routePath === "/screens/teaching-skills") {
         const expectedType = routePath === "/screens/learning-goals" ? "wanted" : "offered";
         const expectedButton = expectedType === "wanted" ? "Learning goals" : "Skills I teach";
@@ -690,6 +722,19 @@ await guestPage.goto(baseUrl + "/safety", { waitUntil: "domcontentloaded" });
 const guestHeading = await guestPage.locator("h1").first().textContent().catch(() => "");
 if (!guestHeading?.toLowerCase().includes("sign in")) {
   failures.push({ route: "/safety", viewport: "guest", type: "auth-gate", detail: guestHeading || "No gate heading" });
+}
+await guestPage.goto(baseUrl + "/screens/create-post", { waitUntil: "domcontentloaded" });
+const signInDialog = guestPage.getByRole("dialog");
+await signInDialog.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+const signInHeading = await signInDialog.getByRole("heading", { name: "Sign in to create a post" }).count();
+if (await signInDialog.count() !== 1 || signInHeading !== 1 || await signInDialog.getByRole("link", { name: "Sign in" }).count() !== 1) {
+  failures.push({ route: "/screens/create-post", viewport: "guest", type: "create-post-auth-gate", detail: "Guests should be prompted to sign in before creating a post" });
+}
+const guestDialogAudit = await new AxeBuilder({ page: guestPage })
+  .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+  .analyze();
+for (const violation of guestDialogAudit.violations.filter((item) => item.impact === "critical" || item.impact === "serious")) {
+  failures.push({ route: "/screens/create-post", viewport: "guest", type: "accessibility", id: violation.id, impact: violation.impact, detail: violation.help });
 }
 await guestPage.close();
 
