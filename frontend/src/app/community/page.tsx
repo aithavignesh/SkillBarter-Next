@@ -14,12 +14,14 @@ export default function CommunityPage() {
   const router = useRouter();
   const dialogRef = useRef<HTMLDivElement>(null);
   const createPostTriggerRef = useRef<HTMLButtonElement>(null);
+  const verificationTriggerRef = useRef<HTMLAnchorElement>(null);
   const [posts, setPosts] = useState<CommunityPostDto[]>([]);
   const [loading, setLoading] = useState(true);
 
   // New post modal state
   const [showModal, setShowModal] = useState(false);
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
+  const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [tagsInput, setTagsInput] = useState("");
@@ -46,12 +48,13 @@ export default function CommunityPage() {
     const action = new URLSearchParams(window.location.search).get("action");
     if (action !== "create") return;
 
-    if (user) setShowModal(true);
-    else setShowSignInPrompt(true);
+    if (!user) setShowSignInPrompt(true);
+    else if (!user.isEmailVerified) setShowVerificationPrompt(true);
+    else setShowModal(true);
     router.replace("/community", { scroll: false });
   }, [authLoading, user, router]);
 
-  const dialogOpen = showModal || showSignInPrompt;
+  const dialogOpen = showModal || showSignInPrompt || showVerificationPrompt;
 
   useEffect(() => {
     if (!dialogOpen) return;
@@ -65,6 +68,7 @@ export default function CommunityPage() {
       if (event.key === "Escape") {
         setShowModal(false);
         setShowSignInPrompt(false);
+        setShowVerificationPrompt(false);
         return;
       }
       if (event.key !== "Tab") return;
@@ -88,7 +92,8 @@ export default function CommunityPage() {
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      createPostTriggerRef.current?.focus();
+      if (createPostTriggerRef.current) createPostTriggerRef.current.focus();
+      else verificationTriggerRef.current?.focus();
     };
   }, [dialogOpen]);
 
@@ -132,7 +137,7 @@ export default function CommunityPage() {
       title="Community Feed"
       description="Share learning milestones, exchange study roadmaps, and connect with fellow members."
       icon={<MessageSquare className="h-3.5 w-3.5" />}
-      actions={user ? <button ref={createPostTriggerRef} type="button" aria-haspopup="dialog" aria-controls="create-post-dialog" onClick={() => setShowModal(true)} className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs"><Plus className="h-4 w-4" /> Share a Post</button> : undefined}
+      actions={user ? (user.isEmailVerified ? <button ref={createPostTriggerRef} type="button" aria-haspopup="dialog" aria-controls="create-post-dialog" onClick={() => setShowModal(true)} className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs"><Plus className="h-4 w-4" /> Share a Post</button> : <Link ref={verificationTriggerRef} href="/verify-email" className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs">Verify email to post</Link>) : undefined}
     >
       <div className="space-y-8">
       {loading ? (
@@ -295,6 +300,18 @@ export default function CommunityPage() {
             <div className="flex justify-end gap-3">
               <button type="button" onClick={() => setShowSignInPrompt(false)} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700">Close</button>
               <Link href="/login" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">Sign in</Link>
+            </div>
+          </div>
+        </div>
+      )}
+      {showVerificationPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-post-verification-heading" className="w-full max-w-md space-y-4 rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
+            <h3 id="create-post-verification-heading" className="text-lg font-bold text-slate-900">Verify your email to create a post</h3>
+            <p className="text-sm leading-6 text-slate-600">Your profile is saved. Verify your email address to unlock community posting.</p>
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => setShowVerificationPrompt(false)} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700">Close</button>
+              <Link href="/verify-email" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">Verify email</Link>
             </div>
           </div>
         </div>
