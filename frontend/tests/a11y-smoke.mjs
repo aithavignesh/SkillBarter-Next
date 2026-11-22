@@ -562,6 +562,39 @@ for (const viewport of viewports) {
         }
       }
 
+      if (routePath === "/screens/notification-settings") {
+        const destination = new URL(page.url());
+        const headingCount = await page.getByRole("heading", { name: "Notifications" }).count();
+        if (destination.pathname !== "/notifications" || headingCount !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "notification-settings-destination", detail: "Legacy notification settings route must open the notifications screen" });
+        }
+      }
+
+      if (routePath === "/screens/create-post") {
+        const dialog = page.getByRole("dialog");
+        await dialog.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        await page.waitForFunction(() => location.pathname === "/community" && location.search === "", null, { timeout: 5000 }).catch(() => {});
+        const destination = new URL(page.url());
+        const headingCount = await dialog.getByRole("heading", { name: "Create Community Post" }).count();
+        const titleField = page.getByLabel("Title");
+        const contentField = page.getByLabel("Content");
+        const tagsField = page.getByLabel("Tags (comma separated)");
+        if (destination.pathname !== "/community" || destination.search !== "" || await dialog.count() !== 1 || headingCount !== 1 || await titleField.count() !== 1 || await contentField.count() !== 1 || await tagsField.count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "create-post-intent", detail: "Legacy create-post route must open the labelled community post dialog" });
+        } else {
+          await titleField.focus();
+          await page.keyboard.press("Tab");
+          const contentFocused = await contentField.evaluate((element) => element === document.activeElement);
+          if (!contentFocused) failures.push({ route: routePath, viewport: viewport.name, type: "create-post-keyboard-order", detail: "Tab from Title should focus Content" });
+          await page.keyboard.press("Escape");
+          await dialog.waitFor({ state: "detached", timeout: 3000 }).catch(() => {});
+          const triggerFocused = await page.getByRole("button", { name: "Share a Post" }).evaluate((element) => element === document.activeElement);
+          if (!triggerFocused) failures.push({ route: routePath, viewport: viewport.name, type: "create-post-focus-restore", detail: "Closing the create-post dialog should restore focus to Share a Post" });
+          await page.getByRole("button", { name: "Share a Post" }).click();
+          await page.getByRole("dialog").waitFor({ state: "visible", timeout: 3000 }).catch(() => {});
+        }
+      }
+
       if (routePath === "/screens/learning-goals" || routePath === "/screens/teaching-skills") {
         const expectedType = routePath === "/screens/learning-goals" ? "wanted" : "offered";
         const expectedButton = expectedType === "wanted" ? "Learning goals" : "Skills I teach";
@@ -677,7 +710,8 @@ for (const viewport of viewports) {
 }
 
 // Verify the client-side access gates independently of the authenticated page audit.
-const guestPage = await browser.newPage({ viewport: { width: 375, height: 812 } });
+const guestContext = await browser.newContext({ viewport: { width: 375, height: 812 } });
+const guestPage = await guestContext.newPage();
 await guestPage.route("**/api/v1/**", async (route) => {
   const path = new URL(route.request().url()).pathname;
   if (path.endsWith("/auth/me")) {
@@ -691,9 +725,23 @@ const guestHeading = await guestPage.locator("h1").first().textContent().catch((
 if (!guestHeading?.toLowerCase().includes("sign in")) {
   failures.push({ route: "/safety", viewport: "guest", type: "auth-gate", detail: guestHeading || "No gate heading" });
 }
-await guestPage.close();
+await guestPage.goto(baseUrl + "/screens/create-post", { waitUntil: "domcontentloaded" });
+const signInDialog = guestPage.getByRole("dialog");
+await signInDialog.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+const signInHeading = await signInDialog.getByRole("heading", { name: "Sign in to create a post" }).count();
+if (await signInDialog.count() !== 1 || signInHeading !== 1 || await signInDialog.getByRole("link", { name: "Sign in" }).count() !== 1) {
+  failures.push({ route: "/screens/create-post", viewport: "guest", type: "create-post-auth-gate", detail: "Guests should be prompted to sign in before creating a post" });
+}
+const guestDialogAudit = await new AxeBuilder({ page: guestPage })
+  .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+  .analyze();
+for (const violation of guestDialogAudit.violations.filter((item) => item.impact === "critical" || item.impact === "serious")) {
+  failures.push({ route: "/screens/create-post", viewport: "guest", type: "accessibility", id: violation.id, impact: violation.impact, detail: violation.help });
+}
+await guestContext.close();
 
-const incompletePage = await browser.newPage({ viewport: { width: 375, height: 812 } });
+const incompleteContext = await browser.newContext({ viewport: { width: 375, height: 812 } });
+const incompletePage = await incompleteContext.newPage();
 await incompletePage.route("**/api/v1/**", async (route) => {
   const path = new URL(route.request().url()).pathname;
   if (path.endsWith("/auth/me")) {
@@ -712,9 +760,10 @@ const onboardingHeading = await incompletePage.locator("h1").first().textContent
 if (!onboardingHeading || onboardingHeading.toLowerCase().includes("complete your learning profile")) {
   failures.push({ route: "/onboarding", viewport: "unverified-incomplete", type: "onboarding-access", detail: onboardingHeading || "Onboarding did not render" });
 }
-await incompletePage.close();
+await incompleteContext.close();
 
-const unverifiedPage = await browser.newPage({ viewport: { width: 375, height: 812 } });
+const unverifiedContext = await browser.newContext({ viewport: { width: 375, height: 812 } });
+const unverifiedPage = await unverifiedContext.newPage();
 await unverifiedPage.route("**/api/v1/**", async (route) => {
   const path = new URL(route.request().url()).pathname;
   if (path.endsWith("/auth/me")) {
@@ -728,7 +777,20 @@ const verificationGate = await unverifiedPage.locator("h1").first().textContent(
 if (!verificationGate?.toLowerCase().includes("verify your email")) {
   failures.push({ route: "/dashboard", viewport: "unverified-complete", type: "verification-gate", detail: verificationGate || "No gate heading" });
 }
-await unverifiedPage.close();
+await unverifiedPage.goto(baseUrl + "/screens/create-post", { waitUntil: "domcontentloaded" });
+const createPostVerificationDialog = unverifiedPage.getByRole("dialog");
+await createPostVerificationDialog.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+const createPostVerificationHeading = await createPostVerificationDialog.getByRole("heading", { name: "Verify your email to create a post" }).count();
+if (await createPostVerificationDialog.count() !== 1 || createPostVerificationHeading !== 1 || await createPostVerificationDialog.getByRole("link", { name: "Verify email" }).count() !== 1) {
+  failures.push({ route: "/screens/create-post", viewport: "unverified-complete", type: "create-post-verification-gate", detail: "Unverified members must be prompted to verify before posting" });
+}
+const verificationDialogAudit = await new AxeBuilder({ page: unverifiedPage })
+  .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+  .analyze();
+for (const violation of verificationDialogAudit.violations.filter((item) => item.impact === "critical" || item.impact === "serious")) {
+  failures.push({ route: "/screens/create-post", viewport: "unverified-complete", type: "accessibility", id: violation.id, impact: violation.impact, detail: violation.help });
+}
+await unverifiedContext.close();
 
 await browser.close();
 
