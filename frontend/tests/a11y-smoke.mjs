@@ -336,7 +336,7 @@ for (const viewport of viewports) {
   const tabletCoreRoutes = new Set([
     "/", "/login", "/register", "/onboarding", "/dashboard", "/discover", "/matches", "/matches/507f1f77bcf86cd799439033", "/screens/match-details/507f1f77bcf86cd799439033",
     "/exchanges", "/exchanges/507f1f77bcf86cd799439013", "/screens/exchange-rating/507f1f77bcf86cd799439025", "/exchanges/calendar", "/screens/calendar", "/screens/schedule",
-    "/messages", "/skills", "/screens/add-skill", "/screens/learning-goals", "/screens/teaching-skills", "/community/posts/507f1f77bcf86cd799439029", "/screens/post-details/507f1f77bcf86cd799439029", "/profile/edit", "/settings", "/safety", "/admin"
+    "/messages", "/notifications", "/notifications?view=settings", "/screens/notification-settings", "/screens/activity", "/skills", "/screens/add-skill", "/screens/learning-goals", "/screens/teaching-skills", "/community/posts/507f1f77bcf86cd799439029", "/screens/post-details/507f1f77bcf86cd799439029", "/profile/edit", "/settings", "/safety", "/admin"
   ]);
   const routesForViewport = viewport.name === "tablet"
     ? routes.filter((routePath) => tabletCoreRoutes.has(routePath))
