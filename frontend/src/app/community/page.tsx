@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
@@ -11,7 +10,6 @@ import { MessageSquare, Plus, Trash2, Tag, AlertCircle } from "lucide-react";
 
 export default function CommunityPage() {
   const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
   const dialogRef = useRef<HTMLDivElement>(null);
   const createPostTriggerRef = useRef<HTMLButtonElement>(null);
   const verificationTriggerRef = useRef<HTMLAnchorElement>(null);
@@ -51,8 +49,8 @@ export default function CommunityPage() {
     if (!user) setShowSignInPrompt(true);
     else if (!user.isEmailVerified) setShowVerificationPrompt(true);
     else setShowModal(true);
-    router.replace("/community", { scroll: false });
-  }, [authLoading, user, router]);
+    window.history.replaceState(null, "", "/community");
+  }, [authLoading, user]);
 
   const dialogOpen = showModal || showSignInPrompt || showVerificationPrompt;
 
