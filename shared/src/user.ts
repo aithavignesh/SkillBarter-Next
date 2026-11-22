@@ -33,6 +33,7 @@ export const profileUpdateSchema = z.object({
   preferredSessionFormat: sessionFormatEnum.optional(),
   availability: z.string().max(200).trim().optional(),
   isProfilePublic: z.boolean().optional(),
+  locationVisibility: z.boolean().optional(),
 });
 
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
