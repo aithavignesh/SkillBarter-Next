@@ -72,7 +72,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 60); do
+          for attempt in $(seq 1 30); do
             checks="$(curl --fail --silent --show-error \
               -H "Accept: application/vnd.github+json" \
               -H "Authorization: Bearer $GITHUB_TOKEN" \
@@ -98,7 +98,7 @@ jobs:
         run: |
           set -euo pipefail
           last_body=""
-          for attempt in $(seq 1 60); do
+          for attempt in $(seq 1 45); do
             last_body="$(curl --fail --silent --show-error --max-time 10 "$STAGING_API_URL/api/v1/ready" 2>/dev/null || true)"
             if [ -n "$last_body" ] && printf '%s' "$last_body" | jq -e --arg sha "$GITHUB_SHA" '
               .status == "ready" and
@@ -127,7 +127,7 @@ jobs:
           fi
 
           last_body=""
-          for attempt in $(seq 1 60); do
+          for attempt in $(seq 1 45); do
             last_body="$(curl --fail --silent --show-error --max-time 10 "$WEB_PREVIEW_URL/api/build-info" 2>/dev/null || true)"
             if [ -n "$last_body" ] && printf '%s' "$last_body" | jq -e --arg sha "$GITHUB_SHA" '
               .service == "skillbarter-next-web" and
