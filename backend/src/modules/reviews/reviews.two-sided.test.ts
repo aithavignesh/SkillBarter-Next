@@ -87,9 +87,9 @@ describe("ReviewsService two-sided completed exchange", () => {
     ]);
 
     expect(requesterReviews).toHaveLength(1);
-    expect(requesterReviews[0].rating).toBe(4);
+    expect(requesterReviews[0]?.rating).toBe(4);
     expect(recipientReviews).toHaveLength(1);
-    expect(recipientReviews[0].rating).toBe(5);
+    expect(recipientReviews[0]?.rating).toBe(5);
     expect(refreshedRequester?.reputationScore).toBe(4);
     expect(refreshedRecipient?.reputationScore).toBe(5);
 
