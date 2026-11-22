@@ -65,6 +65,8 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Wait for CI verification on this exact commit
         env:
