@@ -573,6 +573,7 @@ for (const viewport of viewports) {
       if (routePath === "/screens/create-post") {
         const dialog = page.getByRole("dialog");
         await dialog.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        await page.waitForFunction(() => location.pathname === "/community" && location.search === "", null, { timeout: 5000 }).catch(() => {});
         const destination = new URL(page.url());
         const headingCount = await dialog.getByRole("heading", { name: "Create Community Post" }).count();
         const titleField = page.getByLabel("Title");
