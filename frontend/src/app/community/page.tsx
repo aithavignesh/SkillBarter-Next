@@ -135,7 +135,7 @@ export default function CommunityPage() {
       title="Community Feed"
       description="Share learning milestones, exchange study roadmaps, and connect with fellow members."
       icon={<MessageSquare className="h-3.5 w-3.5" />}
-      actions={user ? (user.isEmailVerified ? <button ref={createPostTriggerRef} type="button" aria-haspopup="dialog" aria-controls="create-post-dialog" onClick={() => setShowModal(true)} className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs"><Plus className="h-4 w-4" /> Share a Post</button> : <Link ref={verificationTriggerRef} href="/verify-email" className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs">Verify email to post</Link>) : undefined}
+      actions={user ? (user.isEmailVerified ? <button ref={createPostTriggerRef} type="button" aria-haspopup="dialog" aria-controls={showModal ? "create-post-dialog" : undefined} onClick={() => setShowModal(true)} className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs"><Plus className="h-4 w-4" /> Share a Post</button> : <Link ref={verificationTriggerRef} href="/verify-email" className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs">Verify email to post</Link>) : undefined}
     >
       <div className="space-y-8">
       {loading ? (
