@@ -1,0 +1,73 @@
+name: Patch compatible npm dependency advisories
+
+on:
+  push:
+    branches:
+      - chore/patch-moderate-dependencies-20261122
+
+permissions:
+  contents: write
+
+jobs:
+  patch-lockfile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install current lockfile
+        run: npm ci --no-audit --no-fund
+      - name: Apply semver-compatible security fixes
+        run: npm audit fix --package-lock-only --ignore-scripts
+      - name: Reinstall patched lockfile
+        run: npm ci --no-audit --no-fund
+      - name: Report remaining audit findings
+        shell: bash
+        run: |
+          npm audit --json > /tmp/npm-audit.json || true
+          node <<'NODE'
+          const fs = require("node:fs");
+          const audit = JSON.parse(fs.readFileSync("/tmp/npm-audit.json", "utf8"));
+          const summary = audit.metadata?.vulnerabilities || {};
+          console.log("Patched dependency audit:", JSON.stringify(summary));
+          for (const [name, item] of Object.entries(audit.vulnerabilities || {})) {
+            console.log(JSON.stringify({ name, severity: item.severity, range: item.range, fixAvailable: item.fixAvailable }));
+          }
+          NODE
+      - name: Block high and critical advisories
+        run: npm audit --audit-level=high
+      - name: Verify shared build
+        run: npm run build -w shared
+      - name: Verify TypeScript
+        run: npm run typecheck
+      - name: Verify lint
+        run: npm run lint
+      - name: Verify backend and frontend tests
+        run: npm test
+      - name: Verify production build
+        run: npm run build
+      - name: Commit compatible lockfile updates
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- package-lock.json; then
+            echo "No compatible lockfile updates were produced."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "chore(deps): patch compatible npm advisories"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+      - name: Upload patched lockfile for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: patched-package-lock
+          path: package-lock.json
+          if-no-files-found: error
