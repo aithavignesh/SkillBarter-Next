@@ -573,7 +573,7 @@ for (const viewport of viewports) {
           const button = Array.from(document.querySelectorAll("button")).find((item) => item.textContent?.trim() === label);
           return button?.getAttribute("aria-pressed") === "true";
         }, expectedButton, { timeout: 5000 }).catch(() => {});
-        const selected = await page.getByRole("button", { name: expectedButton }).getAttribute("aria-pressed");
+        const selected = await page.getByRole("button", { name: expectedButton, exact: true }).getAttribute("aria-pressed");
         if (destination.pathname !== "/skills" || destination.searchParams.get("type") !== expectedType || selected !== "true" || await page.getByRole("heading", { name: hiddenHeading }).count() !== 0) {
           failures.push({ route: routePath, viewport: viewport.name, type: "legacy-skill-intent", detail: "Legacy skill route must open its matching filtered skill view" });
         }
