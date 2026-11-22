@@ -22,6 +22,19 @@ export default function SkillsPage() {
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<"all" | "offered" | "wanted">("all");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedType = params.get("type");
+    if (requestedType === "offered" || requestedType === "wanted") {
+      setActiveView(requestedType);
+      setSkillType(requestedType);
+    }
+    if (params.get("action") === "add") {
+      setShowAddModal(true);
+    }
+  }, []);
   useEffect(() => {
     if (!showAddModal) return;
 
@@ -147,6 +160,7 @@ export default function SkillsPage() {
           <button
             type="button"
             onClick={() => {
+              setActiveView("offered");
               setSkillType("offered");
               setShowAddModal(true);
             }}
@@ -157,6 +171,7 @@ export default function SkillsPage() {
           <button
             type="button"
             onClick={() => {
+              setActiveView("wanted");
               setSkillType("wanted");
               setShowAddModal(true);
             }}
@@ -167,12 +182,18 @@ export default function SkillsPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Filter skill inventory">
+        <button type="button" aria-pressed={activeView === "all"} onClick={() => setActiveView("all")} className={activeView === "all" ? "min-h-10 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-700 focus-visible:ring-offset-2" : "min-h-10 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-700 focus-visible:ring-offset-2"}>All skills</button>
+        <button type="button" aria-pressed={activeView === "offered"} onClick={() => setActiveView("offered")} className={activeView === "offered" ? "min-h-10 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-700 focus-visible:ring-offset-2" : "min-h-10 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-700 focus-visible:ring-offset-2"}>Skills I teach</button>
+        <button type="button" aria-pressed={activeView === "wanted"} onClick={() => setActiveView("wanted")} className={activeView === "wanted" ? "min-h-10 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-700 focus-visible:ring-offset-2" : "min-h-10 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-700 focus-visible:ring-offset-2"}>Learning goals</button>
+      </div>
+
       {loading ? (
         <div className="p-12 text-center text-sm text-slate-500">Loading your skills...</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className={`grid grid-cols-1 gap-8 ${activeView === "all" ? "md:grid-cols-2" : ""}`}>
           {/* Offered Skills */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-4 shadow-sm">
+          <div hidden={activeView === "wanted"} className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-4 shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
@@ -218,7 +239,7 @@ export default function SkillsPage() {
           </div>
 
           {/* Wanted Skills */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-4 shadow-sm">
+          <div hidden={activeView === "offered"} className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-4 shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-red-500" />

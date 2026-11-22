@@ -336,7 +336,7 @@ for (const viewport of viewports) {
   const tabletCoreRoutes = new Set([
     "/", "/login", "/register", "/onboarding", "/dashboard", "/discover", "/matches", "/matches/507f1f77bcf86cd799439033", "/screens/match-details/507f1f77bcf86cd799439033",
     "/exchanges", "/exchanges/507f1f77bcf86cd799439013", "/screens/exchange-rating/507f1f77bcf86cd799439025", "/exchanges/calendar", "/screens/calendar", "/screens/schedule",
-    "/messages", "/community/posts/507f1f77bcf86cd799439029", "/screens/post-details/507f1f77bcf86cd799439029", "/profile/edit", "/settings", "/safety", "/admin"
+    "/messages", "/skills", "/screens/add-skill", "/screens/learning-goals", "/screens/teaching-skills", "/community/posts/507f1f77bcf86cd799439029", "/screens/post-details/507f1f77bcf86cd799439029", "/profile/edit", "/settings", "/safety", "/admin"
   ]);
   const routesForViewport = viewport.name === "tablet"
     ? routes.filter((routePath) => tabletCoreRoutes.has(routePath))
@@ -559,6 +559,33 @@ for (const viewport of viewports) {
           await page.keyboard.press("Tab");
           const passwordFocused = await passwordField.evaluate((element) => element === document.activeElement);
           if (!passwordFocused) failures.push({ route: routePath, viewport: viewport.name, type: "keyboard-order", detail: "Tab from reset token should focus New Password" });
+        }
+      }
+
+      if (routePath === "/screens/learning-goals" || routePath === "/screens/teaching-skills") {
+        const expectedType = routePath === "/screens/learning-goals" ? "wanted" : "offered";
+        const expectedButton = expectedType === "wanted" ? "Learning goals" : "Skills I teach";
+        const expectedHeading = expectedType === "wanted" ? /Skills You Want to Learn/ : /Skills You Teach/;
+        const hiddenHeading = expectedType === "wanted" ? /Skills You Teach/ : /Skills You Want to Learn/;
+        const destination = new URL(page.url());
+        await page.getByRole("heading", { name: expectedHeading }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        await page.waitForFunction((label) => {
+          const button = Array.from(document.querySelectorAll("button")).find((item) => item.textContent?.trim() === label);
+          return button?.getAttribute("aria-pressed") === "true";
+        }, expectedButton, { timeout: 5000 }).catch(() => {});
+        const selected = await page.getByRole("button", { name: expectedButton, exact: true }).getAttribute("aria-pressed");
+        if (destination.pathname !== "/skills" || destination.searchParams.get("type") !== expectedType || selected !== "true" || await page.getByRole("heading", { name: hiddenHeading }).count() !== 0) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "legacy-skill-intent", detail: "Legacy skill route must open its matching filtered skill view" });
+        }
+      }
+
+      if (routePath === "/screens/add-skill") {
+        const destination = new URL(page.url());
+        const dialog = page.getByRole("dialog");
+        await dialog.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        const headingCount = await dialog.getByRole("heading", { name: "Add Skill You Teach" }).count();
+        if (destination.pathname !== "/skills" || destination.searchParams.get("action") !== "add" || destination.searchParams.get("type") !== "offered" || await dialog.count() !== 1 || headingCount !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "legacy-add-skill-intent", detail: "Legacy add-skill route must open the offered-skill dialog" });
         }
       }
 
