@@ -7,7 +7,7 @@ const routes = [
   "/reset-password?token=invalid", "/verify-email", "/onboarding", "/dashboard",
   "/discover", "/matches", "/matches/507f1f77bcf86cd799439033", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges?status=ACTIVE", "/exchanges?status=COMPLETED", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/507f1f77bcf86cd799439013", "/exchanges/active-exchange",
   "/exchanges/exchange-history", "/exchanges/exchange-rating", "/exchanges/schedule", "/exchanges/calendar",
-  "/messages", "/messages/507f1f77bcf86cd799439011", "/messages/chat-details", "/notifications",
+  "/messages", "/messages/507f1f77bcf86cd799439011", "/messages/chat-details", "/notifications", "/notifications?view=settings",
   "/profile", "/profile/edit", "/profile/507f1f77bcf86cd799439011", "/profile/edit-profile",
   "/profile/public-profile", "/profile/skills", "/profile/add-skill", "/skills", "/community", "/community/posts/507f1f77bcf86cd799439029",
   "/connections", "/feed", "/monetization", "/settings", "/safety", "/trust",
@@ -564,9 +564,20 @@ for (const viewport of viewports) {
 
       if (routePath === "/screens/notification-settings") {
         const destination = new URL(page.url());
-        const headingCount = await page.getByRole("heading", { name: "Notifications" }).count();
-        if (destination.pathname !== "/notifications" || headingCount !== 1) {
-          failures.push({ route: routePath, viewport: viewport.name, type: "notification-settings-destination", detail: "Legacy notification settings route must open the notifications screen" });
+        const headingCount = await page.getByRole("heading", { name: "Notification preferences" }).count();
+        const requestsToggle = page.getByRole("checkbox", { name: /Requests/ });
+        const saveButton = page.getByRole("button", { name: "Save preferences" });
+        if (destination.pathname !== "/notifications" || destination.searchParams.get("view") !== "settings" || headingCount !== 1 || await requestsToggle.count() !== 1 || await saveButton.count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "notification-settings-destination", detail: "Legacy notification settings route must open the real preferences view" });
+        } else {
+          await requestsToggle.uncheck();
+          await saveButton.click();
+          await page.getByRole("status", { name: "Preferences saved on this browser." }).waitFor({ state: "visible", timeout: 3000 }).catch(() => {});
+          await page.reload({ waitUntil: "domcontentloaded" });
+          const persistedRequestsToggle = page.getByRole("checkbox", { name: /Requests/ });
+          if (await persistedRequestsToggle.isChecked()) {
+            failures.push({ route: routePath, viewport: viewport.name, type: "notification-preferences-persistence", detail: "Saved notification preferences should persist for the signed-in account in this browser" });
+          }
         }
       }
 
