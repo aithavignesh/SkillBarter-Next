@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "../../services/api";
 import { AppPageShell } from "../../components/ui/AppPageShell";
@@ -34,8 +35,17 @@ const NOTIFICATION_PREFERENCE_OPTIONS: {
 ];
 
 export default function NotificationsPage() {
+  return (
+    <Suspense fallback={<AppPageShell eyebrow="Activity Updates" title="Notifications" icon={<Bell className="h-3.5 w-3.5" />}><div role="status" className="p-12 text-center text-sm text-slate-500">Loading notifications...</div></AppPageShell>}>
+      <NotificationsPageContent />
+    </Suspense>
+  );
+}
+
+function NotificationsPageContent() {
+  const searchParams = useSearchParams();
+  const view = searchParams.get("view") === "settings" ? "settings" : "activity";
   const { user } = useAuth();
-  const [view, setView] = useState<"activity" | "settings">("activity");
   const [preferences, setPreferences] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
   const [preferencesSaved, setPreferencesSaved] = useState(false);
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
@@ -65,11 +75,6 @@ export default function NotificationsPage() {
   useEffect(() => {
     void fetchNotifications();
   }, [fetchNotifications]);
-
-  useEffect(() => {
-    const requestedView = new URLSearchParams(window.location.search).get("view");
-    setView(requestedView === "settings" ? "settings" : "activity");
-  }, []);
 
   useEffect(() => {
     if (!user?.id) {
@@ -173,6 +178,10 @@ export default function NotificationsPage() {
       }
     >
       <div className="space-y-4">
+        <nav aria-label="Notification views" className="flex flex-wrap gap-2">
+          <Link href="/notifications" aria-current={view === "activity" ? "page" : undefined} className={view === "activity" ? "inline-flex min-h-10 items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white" : "inline-flex min-h-10 items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"}>Activity history</Link>
+          <Link href="/notifications?view=settings" aria-current={view === "settings" ? "page" : undefined} className={view === "settings" ? "inline-flex min-h-10 items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white" : "inline-flex min-h-10 items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"}>Preferences</Link>
+        </nav>
         {actionError && (
           <div
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
