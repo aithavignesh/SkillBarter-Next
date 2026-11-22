@@ -175,7 +175,7 @@ export class MatchesService {
           displayName: candidate.displayName,
           bio: candidate.bio,
           avatarUrl: candidate.avatarUrl,
-          location: candidate.location,
+          location: candidate.locationVisibility === false ? "" : candidate.location,
           preferredSessionFormat: candidate.preferredSessionFormat,
           availability: candidate.availability,
           reputationScore: candidate.reputationScore,
