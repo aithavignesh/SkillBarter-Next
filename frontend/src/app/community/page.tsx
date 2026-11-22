@@ -132,7 +132,7 @@ export default function CommunityPage() {
       title="Community Feed"
       description="Share learning milestones, exchange study roadmaps, and connect with fellow members."
       icon={<MessageSquare className="h-3.5 w-3.5" />}
-      actions={user ? <button ref={createPostTriggerRef} type="button" onClick={() => setShowModal(true)} className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs"><Plus className="h-4 w-4" /> Share a Post</button> : undefined}
+      actions={user ? <button ref={createPostTriggerRef} type="button" aria-haspopup="dialog" aria-controls="create-post-dialog" onClick={() => setShowModal(true)} className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs"><Plus className="h-4 w-4" /> Share a Post</button> : undefined}
     >
       <div className="space-y-8">
       {loading ? (
@@ -212,7 +212,7 @@ export default function CommunityPage() {
       {/* New Post Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-post-heading" className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4">
+          <div id="create-post-dialog" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-post-heading" className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4">
             <h3 id="create-post-heading" className="text-xl font-bold text-slate-900">Create Community Post</h3>
 
             {error && (
