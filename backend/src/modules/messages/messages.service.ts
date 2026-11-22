@@ -85,14 +85,25 @@ export class MessagesService {
     );
 
     const formattedMessages: MessageDto[] = messages.map((m) => {
-      const sender = m.senderId as unknown as { displayName?: string };
+      const sender = m.senderId as unknown as {
+        _id?: mongoose.Types.ObjectId;
+        displayName?: string;
+      };
+      const senderId = sender?._id?.toString() || m.senderId.toString();
+      const readBy = new Set(m.readBy.map((id) => id.toString()));
+
+      // The query above marks incoming messages as read. Reflect that write in
+      // the same response so the recipient does not need a second fetch before
+      // the returned read receipts match the persisted state.
+      if (senderId !== userId) readBy.add(userId);
+
       return {
         id: m._id.toString(),
         conversationId: m.conversationId.toString(),
-        senderId: m.senderId._id ? m.senderId._id.toString() : m.senderId.toString(),
+        senderId,
         senderName: sender?.displayName,
         content: m.content,
-        readBy: m.readBy.map((id) => id.toString()),
+        readBy: [...readBy],
         createdAt: m.createdAt.toISOString(),
       };
     });
