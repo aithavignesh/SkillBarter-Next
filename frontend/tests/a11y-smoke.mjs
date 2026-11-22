@@ -359,7 +359,7 @@ for (const viewport of viewports) {
         horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth + 1
       }));
 
-      if (response && response.status() >= 500) {
+      if (response && response.status() >= 400) {
         failures.push({ route: routePath, viewport: viewport.name, type: "http", detail: "HTTP " + response.status() });
       }
       if (pageState.textLength === 0) {
