@@ -571,9 +571,9 @@ for (const viewport of viewports) {
       }
 
       if (routePath === "/screens/create-post") {
-        const destination = new URL(page.url());
         const dialog = page.getByRole("dialog");
         await dialog.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+        const destination = new URL(page.url());
         const headingCount = await dialog.getByRole("heading", { name: "Create Community Post" }).count();
         const titleField = page.getByLabel("Title");
         const contentField = page.getByLabel("Content");
