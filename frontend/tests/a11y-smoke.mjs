@@ -710,7 +710,8 @@ for (const viewport of viewports) {
 }
 
 // Verify the client-side access gates independently of the authenticated page audit.
-const guestPage = await browser.newPage({ viewport: { width: 375, height: 812 } });
+const guestContext = await browser.newContext({ viewport: { width: 375, height: 812 } });
+const guestPage = await guestContext.newPage();
 await guestPage.route("**/api/v1/**", async (route) => {
   const path = new URL(route.request().url()).pathname;
   if (path.endsWith("/auth/me")) {
@@ -737,9 +738,10 @@ const guestDialogAudit = await new AxeBuilder({ page: guestPage })
 for (const violation of guestDialogAudit.violations.filter((item) => item.impact === "critical" || item.impact === "serious")) {
   failures.push({ route: "/screens/create-post", viewport: "guest", type: "accessibility", id: violation.id, impact: violation.impact, detail: violation.help });
 }
-await guestPage.close();
+await guestContext.close();
 
-const incompletePage = await browser.newPage({ viewport: { width: 375, height: 812 } });
+const incompleteContext = await browser.newContext({ viewport: { width: 375, height: 812 } });
+const incompletePage = await incompleteContext.newPage();
 await incompletePage.route("**/api/v1/**", async (route) => {
   const path = new URL(route.request().url()).pathname;
   if (path.endsWith("/auth/me")) {
@@ -758,9 +760,10 @@ const onboardingHeading = await incompletePage.locator("h1").first().textContent
 if (!onboardingHeading || onboardingHeading.toLowerCase().includes("complete your learning profile")) {
   failures.push({ route: "/onboarding", viewport: "unverified-incomplete", type: "onboarding-access", detail: onboardingHeading || "Onboarding did not render" });
 }
-await incompletePage.close();
+await incompleteContext.close();
 
-const unverifiedPage = await browser.newPage({ viewport: { width: 375, height: 812 } });
+const unverifiedContext = await browser.newContext({ viewport: { width: 375, height: 812 } });
+const unverifiedPage = await unverifiedContext.newPage();
 await unverifiedPage.route("**/api/v1/**", async (route) => {
   const path = new URL(route.request().url()).pathname;
   if (path.endsWith("/auth/me")) {
@@ -787,7 +790,7 @@ const verificationDialogAudit = await new AxeBuilder({ page: unverifiedPage })
 for (const violation of verificationDialogAudit.violations.filter((item) => item.impact === "critical" || item.impact === "serious")) {
   failures.push({ route: "/screens/create-post", viewport: "unverified-complete", type: "accessibility", id: violation.id, impact: violation.impact, detail: violation.help });
 }
-await unverifiedPage.close();
+await unverifiedContext.close();
 
 await browser.close();
 
