@@ -44,9 +44,10 @@ export class AuthController {
       const result = await authService.register(input);
 
       setAuthCookies(res, result.accessToken, result.refreshToken);
-      sendSuccess(res, {
+sendSuccess(res, {
         user: result.user,
         accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
         verificationEmailSent: result.verificationEmailSent,
       }, undefined, 201);
     } catch (error) {
@@ -59,7 +60,11 @@ export class AuthController {
       const input = loginSchema.parse(req.body);
       const result = await authService.login(input);
       setAuthCookies(res, result.accessToken, result.refreshToken);
-      sendSuccess(res, { user: result.user, accessToken: result.accessToken });
+sendSuccess(res, {
+        user: result.user,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      });
     } catch (error) {
       next(error);
     }
@@ -196,7 +201,7 @@ export class AuthController {
       if (!token) throw new AppError("Refresh token missing", 401, "REFRESH_TOKEN_REQUIRED");
       const result = await authService.refresh(token);
       setAuthCookies(res, result.accessToken, result.refreshToken);
-      sendSuccess(res, { accessToken: result.accessToken });
+      sendSuccess(res, { accessToken: result.accessToken, refreshToken: result.refreshToken });
     } catch (error) {
       next(error);
     }
