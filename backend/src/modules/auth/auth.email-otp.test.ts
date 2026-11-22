@@ -12,11 +12,13 @@ vi.mock("../../utils/email", () => ({
   sendVerificationEmail: vi.fn().mockResolvedValue(true),
 }));
 
+import { env } from "../../config/env";
 import { AuthCooldown } from "../../models/AuthCooldown";
 import { OtpChallenge } from "../../models/OtpChallenge";
 import { User } from "../../models/User";
 import { authService } from "./auth.service";
 
+const originalEmailDisabled = env.EMAIL_DISABLED;
 const testEmails: string[] = [];
 const testUserIds: string[] = [];
 
@@ -32,11 +34,13 @@ afterEach(async () => {
   ]);
   testEmails.length = 0;
   testUserIds.length = 0;
+  env.EMAIL_DISABLED = originalEmailDisabled;
   sendLoginOtpEmailMock.mockReset();
 });
 
 describe("Email OTP provider lifecycle", () => {
   it("stores only a hash, sends the generated code, and verifies the same challenge", async () => {
+    env.EMAIL_DISABLED = "false";
     const email = "email-otp-" + Date.now() + "-" + Math.random().toString(36).slice(2) + "@example.test";
     testEmails.push(email);
     const user = await User.create({
@@ -69,6 +73,7 @@ describe("Email OTP provider lifecycle", () => {
   });
 
   it("removes the challenge and releases the resend cooldown when email delivery fails", async () => {
+    env.EMAIL_DISABLED = "false";
     const email = "email-otp-failure-" + Date.now() + "-" + Math.random().toString(36).slice(2) + "@example.test";
     testEmails.push(email);
     const user = await User.create({
