@@ -773,6 +773,19 @@ const verificationGate = await unverifiedPage.locator("h1").first().textContent(
 if (!verificationGate?.toLowerCase().includes("verify your email")) {
   failures.push({ route: "/dashboard", viewport: "unverified-complete", type: "verification-gate", detail: verificationGate || "No gate heading" });
 }
+await unverifiedPage.goto(baseUrl + "/screens/create-post", { waitUntil: "domcontentloaded" });
+const createPostVerificationDialog = unverifiedPage.getByRole("dialog");
+await createPostVerificationDialog.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+const createPostVerificationHeading = await createPostVerificationDialog.getByRole("heading", { name: "Verify your email to create a post" }).count();
+if (await createPostVerificationDialog.count() !== 1 || createPostVerificationHeading !== 1 || await createPostVerificationDialog.getByRole("link", { name: "Verify email" }).count() !== 1) {
+  failures.push({ route: "/screens/create-post", viewport: "unverified-complete", type: "create-post-verification-gate", detail: "Unverified members must be prompted to verify before posting" });
+}
+const verificationDialogAudit = await new AxeBuilder({ page: unverifiedPage })
+  .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+  .analyze();
+for (const violation of verificationDialogAudit.violations.filter((item) => item.impact === "critical" || item.impact === "serious")) {
+  failures.push({ route: "/screens/create-post", viewport: "unverified-complete", type: "accessibility", id: violation.id, impact: violation.impact, detail: violation.help });
+}
 await unverifiedPage.close();
 
 await browser.close();
