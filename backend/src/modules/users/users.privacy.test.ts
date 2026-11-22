@@ -87,4 +87,35 @@ describe("Public profile privacy boundaries", () => {
     ).rejects.toMatchObject({ statusCode: 403, code: "PROFILE_PRIVATE" });
   });
 
+  it("hides a member's location from others while keeping it visible to the owner", async () => {
+    const suffix = Date.now() + "-" + Math.random().toString(36).slice(2);
+    const member = await User.create({
+      email: "location-privacy-member-" + suffix + "@example.com",
+      passwordHash: "test-hash",
+      displayName: "Location Privacy Member",
+      location: "Hyderabad",
+      locationVisibility: false,
+      isProfilePublic: true,
+      isEmailVerified: true,
+    });
+    const visitor = await User.create({
+      email: "location-privacy-visitor-" + suffix + "@example.com",
+      passwordHash: "test-hash",
+      displayName: "Location Privacy Visitor",
+      isEmailVerified: true,
+    });
+    createdUserIds.push(member._id.toString(), visitor._id.toString());
+
+    const publicProfile = await usersService.getPublicProfile(member._id.toString(), visitor._id.toString());
+    expect(publicProfile.location).toBe("");
+
+    const ownProfile = await usersService.getPublicProfile(member._id.toString(), member._id.toString());
+    expect(ownProfile.location).toBe("Hyderabad");
+
+    const updated = await usersService.updateProfile(member._id.toString(), { locationVisibility: true });
+    expect(updated.locationVisibility).toBe(true);
+    expect(formatAuthUser(updated).locationVisibility).toBe(true);
+    expect((await usersService.getPublicProfile(member._id.toString(), visitor._id.toString())).location).toBe("Hyderabad");
+  });
+
 });
