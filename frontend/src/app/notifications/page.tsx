@@ -201,7 +201,7 @@ function NotificationsPageContent() {
         {view === "settings" ? (
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="notification-preferences-heading">
             <div>
-              <h2 id="notification-preferences-heading" className="text-lg font-bold text-slate-900">Notification preferences</h2>
+              <h2 id="notification-preferences-heading" className="text-lg font-bold text-slate-900">Choose your notification categories</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">Choose the activity categories you want to keep visible in your notification experience.</p>
               <p className="mt-2 text-xs leading-5 text-amber-800">These settings are saved in this browser for your account. Server-side email and SMS delivery preferences are not connected yet.</p>
             </div>
