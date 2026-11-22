@@ -8,6 +8,10 @@ import { UserSkill } from "../../models/UserSkill";
 import { Conversation } from "../../models/Conversation";
 import { Notification as NotificationModel } from "../../models/Notification";
 import { AnalyticsEvent } from "../../models/AnalyticsEvent";
+import { Message } from "../../models/Message";
+import { Review } from "../../models/Review";
+import { messagesService } from "../messages/messages.service";
+import { reviewsService } from "../reviews/reviews.service";
 import { ExchangesService } from "./exchanges.service";
 
 describe("ExchangesService.updateSessionStatus route binding", () => {
@@ -55,6 +59,8 @@ describe("ExchangesService two-party lifecycle integration", () => {
       mongoose.connection.collection("conversations").deleteMany({}),
       mongoose.connection.collection("notifications").deleteMany({}),
       mongoose.connection.collection("analyticsevents").deleteMany({}),
+      Message.deleteMany({}),
+      Review.deleteMany({}),
     ]);
   });
 
@@ -69,6 +75,12 @@ describe("ExchangesService two-party lifecycle integration", () => {
       email: "recipient.lifecycle@example.test",
       passwordHash: "test-password-hash",
       displayName: "Recipient",
+      onboardingCompleted: true,
+    });
+    const outsider = await User.create({
+      email: "outsider.lifecycle@example.test",
+      passwordHash: "test-password-hash",
+      displayName: "Outsider",
       onboardingCompleted: true,
     });
     const offeredSkill = await Skill.create({
@@ -106,6 +118,34 @@ describe("ExchangesService two-party lifecycle integration", () => {
 
     expect(proposal.status).toBe("PENDING");
     expect(await Conversation.countDocuments({})).toBe(1);
+    const conversation = await Conversation.findOne({ participants: { $all: [requester._id, recipient._id] } });
+    expect(conversation).not.toBeNull();
+    const conversationId = conversation!._id.toString();
+
+    const firstMessage = await messagesService.sendMessage(conversationId, requester.id, "Hello, ready to exchange skills?");
+    expect(firstMessage.senderId).toBe(requester.id);
+    expect(await NotificationModel.countDocuments({ recipientId: recipient._id, type: "NEW_MESSAGE" })).toBe(1);
+
+    const recipientInbox = await messagesService.getConversationMessages(conversationId, recipient.id);
+    expect(recipientInbox.messages).toHaveLength(1);
+    expect(recipientInbox.messages[0]?.content).toBe("Hello, ready to exchange skills?");
+    expect(recipientInbox.messages[0]?.readBy).toContain(recipient.id);
+
+    const reply = await messagesService.sendMessage(conversationId, recipient.id, "Yes, let us schedule our first session.");
+    expect(reply.senderId).toBe(recipient.id);
+    const requesterInbox = await messagesService.getConversationMessages(conversationId, requester.id);
+    expect(requesterInbox.messages).toHaveLength(2);
+    expect(requesterInbox.messages[1]?.content).toBe("Yes, let us schedule our first session.");
+    expect(requesterInbox.messages[1]?.readBy).toContain(requester.id);
+
+    await expect(
+      messagesService.sendMessage(conversationId, outsider.id, "Unauthorized message")
+    ).rejects.toThrow("Unauthorized to send message in this conversation");
+    await expect(
+      messagesService.getConversationMessages(conversationId, outsider.id)
+    ).rejects.toThrow("Unauthorized access to conversation");
+    expect(await Message.countDocuments({ conversationId })).toBe(2);
+    expect(await NotificationModel.countDocuments({ type: "NEW_MESSAGE" })).toBe(2);
     expect(await NotificationModel.countDocuments({ recipientId: recipient._id, type: "EXCHANGE_REQUESTED" })).toBe(1);
     expect(await AnalyticsEvent.countDocuments({ eventName: "EXCHANGE_REQUESTED" })).toBe(1);
 
@@ -157,6 +197,14 @@ describe("ExchangesService two-party lifecycle integration", () => {
     expect(await User.findById(requester.id).then((user) => user?.completedExchangesCount)).toBe(0);
     expect(await User.findById(recipient.id).then((user) => user?.completedExchangesCount)).toBe(0);
 
+    await expect(
+      reviewsService.createReview(requester.id, {
+        exchangeId: proposal.id,
+        rating: 5,
+        comment: "Too early to review",
+      })
+    ).rejects.toMatchObject({ statusCode: 400, code: "EXCHANGE_NOT_COMPLETED" });
+
     const completed = await service.confirmCompletion(proposal.id, recipient.id);
     expect(completed.status).toBe("COMPLETED");
     expect(completed.completionStatus).toEqual({
@@ -167,5 +215,38 @@ describe("ExchangesService two-party lifecycle integration", () => {
     expect(await User.findById(requester.id).then((user) => user?.completedExchangesCount)).toBe(1);
     expect(await User.findById(recipient.id).then((user) => user?.completedExchangesCount)).toBe(1);
     expect(await AnalyticsEvent.countDocuments({ eventName: "EXCHANGE_COMPLETED" })).toBe(1);
+
+    const requesterReview = await reviewsService.createReview(requester.id, {
+      exchangeId: proposal.id,
+      rating: 5,
+      comment: "Excellent learning exchange.",
+    });
+    const recipientReview = await reviewsService.createReview(recipient.id, {
+      exchangeId: proposal.id,
+      rating: 4,
+      comment: "Clear explanations and great collaboration.",
+    });
+    expect(requesterReview.revieweeId).toBe(recipient.id);
+    expect(recipientReview.revieweeId).toBe(requester.id);
+    expect(await Review.countDocuments({ exchangeId: proposal.id })).toBe(2);
+    expect(await User.findById(recipient.id).then((user) => user?.reputationScore)).toBe(5);
+    expect(await User.findById(requester.id).then((user) => user?.reputationScore)).toBe(4);
+    expect(await NotificationModel.countDocuments({ type: "REVIEW_RECEIVED" })).toBe(2);
+    expect(await AnalyticsEvent.countDocuments({ eventName: "REVIEW_SUBMITTED" })).toBe(2);
+
+    await expect(
+      reviewsService.createReview(requester.id, {
+        exchangeId: proposal.id,
+        rating: 5,
+        comment: "Duplicate review attempt.",
+      })
+    ).rejects.toMatchObject({ statusCode: 409, code: "DUPLICATE_REVIEW" });
+    await expect(
+      reviewsService.createReview(outsider.id, {
+        exchangeId: proposal.id,
+        rating: 5,
+        comment: "Not a participant review.",
+      })
+    ).rejects.toMatchObject({ statusCode: 403, code: "FORBIDDEN" });
   });
 });
