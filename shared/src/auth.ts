@@ -58,6 +58,7 @@ export interface AuthUser {
   isEmailVerified: boolean;
   onboardingCompleted: boolean;
   isProfilePublic?: boolean;
+  locationVisibility?: boolean;
   avatarUrl?: string;
   bio?: string;
   location?: string;
