@@ -10,7 +10,7 @@ const sectionTargets: Record<string, string> = {
   requests: "/exchanges",
   membership: "/monetization",
   support: "/support/support",
-  activity: "/dashboard",
+  activity: "/notifications",
   discover: "/discover",
   matches: "/matches",
   notifications: "/notifications",
@@ -40,9 +40,9 @@ const screenTargets: Record<string, string> = {
   schedule: "/exchanges/calendar",
   calendar: "/exchanges/calendar",
   notifications: "/notifications",
-  "notification-settings": "/settings",
+  "notification-settings": "/notifications",
   "chat-details": "/messages",
-  "create-post": "/community",
+  "create-post": "/community?action=create",
   "post-details": "/community",
   groups: "/community",
   "group-details": "/community",
@@ -57,7 +57,7 @@ const screenTargets: Record<string, string> = {
   faq: "/support/faq",
   privacy: "/settings",
   "account-settings": "/settings",
-  activity: "/dashboard",
+  activity: "/notifications",
 };
 
 const screenIdTargets: Record<string, (id: string) => string> = {
