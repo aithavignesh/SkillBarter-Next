@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
@@ -9,12 +9,17 @@ import { CommunityPostDto } from "@skillbarter/shared";
 import { MessageSquare, Plus, Trash2, Tag, AlertCircle } from "lucide-react";
 
 export default function CommunityPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const createPostTriggerRef = useRef<HTMLButtonElement>(null);
+  const verificationTriggerRef = useRef<HTMLAnchorElement>(null);
   const [posts, setPosts] = useState<CommunityPostDto[]>([]);
   const [loading, setLoading] = useState(true);
 
   // New post modal state
   const [showModal, setShowModal] = useState(false);
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
+  const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [tagsInput, setTagsInput] = useState("");
@@ -35,6 +40,61 @@ export default function CommunityPage() {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    if (authLoading) return;
+    const action = new URLSearchParams(window.location.search).get("action");
+    if (action !== "create") return;
+
+    if (!user) setShowSignInPrompt(true);
+    else if (!user.isEmailVerified) setShowVerificationPrompt(true);
+    else setShowModal(true);
+    window.history.replaceState(null, "", "/community");
+  }, [authLoading, user]);
+
+  const dialogOpen = showModal || showSignInPrompt || showVerificationPrompt;
+
+  useEffect(() => {
+    if (!dialogOpen) return;
+
+    const getFocusable = () => Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>("button:not([disabled]), input:not([disabled]), textarea:not([disabled]), a[href], select:not([disabled])") ?? []
+    );
+
+    getFocusable()[0]?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowModal(false);
+        setShowSignInPrompt(false);
+        setShowVerificationPrompt(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const focusable = getFocusable();
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      if (createPostTriggerRef.current) createPostTriggerRef.current.focus();
+      else verificationTriggerRef.current?.focus();
+    };
+  }, [dialogOpen]);
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +136,7 @@ export default function CommunityPage() {
       title="Community Feed"
       description="Share learning milestones, exchange study roadmaps, and connect with fellow members."
       icon={<MessageSquare className="h-3.5 w-3.5" />}
-      actions={user ? <button type="button" onClick={() => setShowModal(true)} className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs"><Plus className="h-4 w-4" /> Share a Post</button> : undefined}
+      actions={user ? (user.isEmailVerified ? <button ref={createPostTriggerRef} type="button" aria-haspopup="dialog" aria-controls={showModal ? "create-post-dialog" : undefined} onClick={() => setShowModal(true)} className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs"><Plus className="h-4 w-4" /> Share a Post</button> : <Link ref={verificationTriggerRef} href="/verify-email" className="sb-button-primary inline-flex items-center gap-1.5 px-4 py-2.5 text-xs">Verify email to post</Link>) : undefined}
     >
       <div className="space-y-8">
       {loading ? (
@@ -156,8 +216,8 @@ export default function CommunityPage() {
       {/* New Post Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4">
-            <h3 className="text-xl font-bold text-slate-900">Create Community Post</h3>
+          <div id="create-post-dialog" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-post-heading" className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl space-y-4">
+            <h3 id="create-post-heading" className="text-xl font-bold text-slate-900">Create Community Post</h3>
 
             {error && (
               <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-4 text-xs text-rose-700 border border-rose-200">
@@ -168,10 +228,11 @@ export default function CommunityPage() {
 
             <form onSubmit={handleCreatePost} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="create-post-title" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Title
                 </label>
                 <input
+                  id="create-post-title"
                   type="text"
                   required
                   value={title}
@@ -182,10 +243,11 @@ export default function CommunityPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="create-post-content" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Content
                 </label>
                 <textarea
+                  id="create-post-content"
                   rows={5}
                   required
                   value={content}
@@ -196,10 +258,11 @@ export default function CommunityPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+                <label htmlFor="create-post-tags" className="block text-xs font-semibold uppercase text-slate-700 mb-1">
                   Tags (comma separated)
                 </label>
                 <input
+                  id="create-post-tags"
                   type="text"
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
@@ -225,6 +288,30 @@ export default function CommunityPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {showSignInPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-post-sign-in-heading" className="w-full max-w-md space-y-4 rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
+            <h3 id="create-post-sign-in-heading" className="text-lg font-bold text-slate-900">Sign in to create a post</h3>
+            <p className="text-sm leading-6 text-slate-600">Sign in to share a learning milestone or start a community discussion.</p>
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => setShowSignInPrompt(false)} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700">Close</button>
+              <Link href="/login" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">Sign in</Link>
+            </div>
+          </div>
+        </div>
+      )}
+      {showVerificationPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-post-verification-heading" className="w-full max-w-md space-y-4 rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
+            <h3 id="create-post-verification-heading" className="text-lg font-bold text-slate-900">Verify your email to create a post</h3>
+            <p className="text-sm leading-6 text-slate-600">Your profile is saved. Verify your email address to unlock community posting.</p>
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => setShowVerificationPrompt(false)} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700">Close</button>
+              <Link href="/verify-email" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">Verify email</Link>
+            </div>
           </div>
         </div>
       )}
