@@ -40,7 +40,7 @@ const screenTargets: Record<string, string> = {
   schedule: "/exchanges/calendar",
   calendar: "/exchanges/calendar",
   notifications: "/notifications",
-  "notification-settings": "/notifications",
+  "notification-settings": "/notifications?view=settings",
   "chat-details": "/messages",
   "create-post": "/community?action=create",
   "post-details": "/community",

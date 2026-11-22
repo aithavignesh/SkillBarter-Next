@@ -7,7 +7,7 @@ const routes = [
   "/reset-password?token=invalid", "/verify-email", "/onboarding", "/dashboard",
   "/discover", "/matches", "/matches/507f1f77bcf86cd799439033", "/exchanges", "/exchanges?view=incoming", "/exchanges?view=sent", "/exchanges?status=ACTIVE", "/exchanges?status=COMPLETED", "/exchanges/507f1f77bcf86cd799439011", "/exchanges/507f1f77bcf86cd799439013", "/exchanges/active-exchange",
   "/exchanges/exchange-history", "/exchanges/exchange-rating", "/exchanges/schedule", "/exchanges/calendar",
-  "/messages", "/messages/507f1f77bcf86cd799439011", "/messages/chat-details", "/notifications",
+  "/messages", "/messages/507f1f77bcf86cd799439011", "/messages/chat-details", "/notifications", "/notifications?view=settings",
   "/profile", "/profile/edit", "/profile/507f1f77bcf86cd799439011", "/profile/edit-profile",
   "/profile/public-profile", "/profile/skills", "/profile/add-skill", "/skills", "/community", "/community/posts/507f1f77bcf86cd799439029",
   "/connections", "/feed", "/monetization", "/settings", "/safety", "/trust",
@@ -336,7 +336,7 @@ for (const viewport of viewports) {
   const tabletCoreRoutes = new Set([
     "/", "/login", "/register", "/onboarding", "/dashboard", "/discover", "/matches", "/matches/507f1f77bcf86cd799439033", "/screens/match-details/507f1f77bcf86cd799439033",
     "/exchanges", "/exchanges/507f1f77bcf86cd799439013", "/screens/exchange-rating/507f1f77bcf86cd799439025", "/exchanges/calendar", "/screens/calendar", "/screens/schedule",
-    "/messages", "/skills", "/screens/add-skill", "/screens/learning-goals", "/screens/teaching-skills", "/community/posts/507f1f77bcf86cd799439029", "/screens/post-details/507f1f77bcf86cd799439029", "/profile/edit", "/settings", "/safety", "/admin"
+    "/messages", "/notifications", "/notifications?view=settings", "/screens/notification-settings", "/screens/activity", "/skills", "/screens/add-skill", "/screens/learning-goals", "/screens/teaching-skills", "/community/posts/507f1f77bcf86cd799439029", "/screens/post-details/507f1f77bcf86cd799439029", "/profile/edit", "/settings", "/safety", "/admin"
   ]);
   const routesForViewport = viewport.name === "tablet"
     ? routes.filter((routePath) => tabletCoreRoutes.has(routePath))
@@ -359,7 +359,7 @@ for (const viewport of viewports) {
         horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth + 1
       }));
 
-      if (response && response.status() >= 500) {
+      if (response && response.status() >= 400) {
         failures.push({ route: routePath, viewport: viewport.name, type: "http", detail: "HTTP " + response.status() });
       }
       if (pageState.textLength === 0) {
@@ -562,11 +562,27 @@ for (const viewport of viewports) {
         }
       }
 
-      if (routePath === "/screens/notification-settings") {
+      if (routePath === "/screens/notification-settings" || routePath === "/notifications?view=settings") {
         const destination = new URL(page.url());
-        const headingCount = await page.getByRole("heading", { name: "Notifications" }).count();
-        if (destination.pathname !== "/notifications" || headingCount !== 1) {
-          failures.push({ route: routePath, viewport: viewport.name, type: "notification-settings-destination", detail: "Legacy notification settings route must open the notifications screen" });
+        const headingCount = await page.getByRole("heading", { name: "Notification preferences" }).count();
+        const requestsToggle = page.getByRole("checkbox", { name: /Requests/ });
+        const saveButton = page.getByRole("button", { name: "Save preferences" });
+        if (destination.pathname !== "/notifications" || destination.searchParams.get("view") !== "settings" || headingCount !== 1 || await requestsToggle.count() !== 1 || await saveButton.count() !== 1) {
+          failures.push({ route: routePath, viewport: viewport.name, type: "notification-settings-destination", detail: "Legacy notification settings route must open the real preferences view" });
+        } else {
+          await requestsToggle.uncheck();
+          await saveButton.click();
+          await page.getByText("Preferences saved on this browser.").waitFor({ state: "visible", timeout: 3000 }).catch(() => {});
+          await page.reload({ waitUntil: "domcontentloaded" });
+          await page.getByRole("heading", { name: "Notification preferences" }).waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+          await page.waitForFunction(() => {
+            const checkbox = document.getElementById("notification-preference-requests");
+            return checkbox instanceof HTMLInputElement && checkbox.checked === false;
+          }, null, { timeout: 5000 }).catch(() => {});
+          const persistedRequestsToggle = page.getByRole("checkbox", { name: /Requests/ });
+          if (await persistedRequestsToggle.isChecked()) {
+            failures.push({ route: routePath, viewport: viewport.name, type: "notification-preferences-persistence", detail: "Saved notification preferences should persist for the signed-in account in this browser" });
+          }
         }
       }
 
