@@ -18,7 +18,7 @@ beforeAll(async () => {
       await collection.deleteMany({});
     }
   }
-});
+}, 180000);
 
 afterAll(async () => {
   if (mongoose.connection.readyState !== 0) {

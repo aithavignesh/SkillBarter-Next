@@ -79,23 +79,52 @@ async function releaseResendCooldown(channel: "email" | "phone", destination: st
   await AuthCooldown.deleteOne({ key });
 }
 
+export function maskEmail(email: string): string {
+  const parts = email.split("@");
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return email;
+  const username = parts[0];
+  const domain = parts[1];
+  if (username.length <= 2) {
+    return `${username[0]}***@${domain}`;
+  }
+  return `${username[0]}***${username[username.length - 1]}@${domain}`;
+}
+
+export function maskPhone(phone: string): string {
+  if (phone.length <= 4) return phone;
+  const prefix = phone.slice(0, 3);
+  const suffix = phone.slice(-2);
+  const stars = "*".repeat(Math.max(phone.length - 5, 4));
+  return `${prefix} ${stars}${suffix}`;
+}
+
 export class AuthService {
   async register(input: RegisterInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string; verificationEmailSent: boolean }> {
+    const normalizedEmail = input.email.toLowerCase().trim();
     let normalizedPhone = input.phone.replace(/[\s()-]/g, "");
     if (/^\d{10}$/.test(normalizedPhone)) normalizedPhone = "+91" + normalizedPhone;
     else if (/^91\d{10}$/.test(normalizedPhone)) normalizedPhone = "+" + normalizedPhone;
     if (!/^\+[1-9]\d{7,14}$/.test(normalizedPhone)) {
-      throw new AppError("Enter a valid mobile number with country code, e.g. +919876543210", 400, "INVALID_PHONE");
+      throw new AppError("Enter a valid mobile number with country code, e.g. +919876543210", 400, "INVALID_PHONE", { field: "phone" });
     }
-    const existing = await User.findOne({ $or: [{ email: input.email.toLowerCase().trim() }, { phone: normalizedPhone }] });
-    if (existing) {
-      throw new AppError("An account with this email or mobile number already exists", 409, "ACCOUNT_EXISTS");
+
+    const existingByEmail = await User.findOne({ email: normalizedEmail });
+    const existingByPhone = await User.findOne({ phone: normalizedPhone });
+
+    if (existingByEmail && existingByPhone) {
+      throw new AppError("An account with this email and mobile number already exists", 409, "ACCOUNT_EXISTS", { field: "both" });
+    }
+    if (existingByEmail) {
+      throw new AppError("An account with this email already exists", 409, "EMAIL_EXISTS", { field: "email" });
+    }
+    if (existingByPhone) {
+      throw new AppError("An account with this mobile number already exists", 409, "PHONE_EXISTS", { field: "phone" });
     }
 
     const passwordHash = await hashPassword(input.password);
     const verificationToken = generateSecureToken();
     const user = await User.create({
-      email: input.email.toLowerCase().trim(),
+      email: normalizedEmail,
       phone: normalizedPhone,
       passwordHash,
       displayName: input.displayName.trim(),
@@ -137,6 +166,36 @@ export class AuthService {
     }
 
     if (user.isSuspended) {
+      const consolidationMatch = user.suspensionReason?.match(
+        /consolidated into primary account\s+([a-f0-9]{24})/i
+      );
+
+      if (consolidationMatch) {
+        const primaryId = consolidationMatch[1];
+        let primaryUser = null;
+        try {
+          primaryUser = await User.findById(primaryId).select("email phone displayName isSuspended");
+        } catch {
+          // ignore lookup failure
+        }
+
+        if (primaryUser) {
+          const maskedEmail = maskEmail(primaryUser.email);
+          const maskedPhone = primaryUser.phone ? maskPhone(primaryUser.phone) : undefined;
+          throw new AppError(
+            `This account was consolidated into your primary account (${maskedEmail}). Please sign in using your primary account credentials.`,
+            403,
+            "ACCOUNT_CONSOLIDATED",
+            {
+              primaryAccountId: primaryId,
+              primaryEmailMasked: maskedEmail,
+              primaryPhoneMasked: maskedPhone,
+              primaryIsSuspended: primaryUser.isSuspended,
+            }
+          );
+        }
+      }
+
       throw new AppError(
         `Your account has been suspended: ${user.suspensionReason || "Violation of terms"}`,
         403,
