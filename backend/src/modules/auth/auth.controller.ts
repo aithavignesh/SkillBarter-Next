@@ -44,7 +44,7 @@ export class AuthController {
       const result = await authService.register(input);
 
       setAuthCookies(res, result.accessToken, result.refreshToken);
-sendSuccess(res, {
+      sendSuccess(res, {
         user: result.user,
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
@@ -60,7 +60,7 @@ sendSuccess(res, {
       const input = loginSchema.parse(req.body);
       const result = await authService.login(input);
       setAuthCookies(res, result.accessToken, result.refreshToken);
-sendSuccess(res, {
+      sendSuccess(res, {
         user: result.user,
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
@@ -98,7 +98,7 @@ sendSuccess(res, {
       }
       const result = await authService.verifyPhoneOtp(phone, otp, challengeId);
       setAuthCookies(res, result.accessToken, result.refreshToken);
-      sendSuccess(res, { user: result.user, accessToken: result.accessToken });
+      sendSuccess(res, { user: result.user, accessToken: result.accessToken, refreshToken: result.refreshToken });
     } catch (error) { next(error); }
   }
 
@@ -117,7 +117,7 @@ sendSuccess(res, {
       if (typeof email !== "string" || typeof otp !== "string") throw new AppError("Email and OTP are required", 400, "INVALID_OTP");
       const result = await authService.verifyEmailOtp(email, otp);
       setAuthCookies(res, result.accessToken, result.refreshToken);
-      sendSuccess(res, { user: result.user, accessToken: result.accessToken });
+      sendSuccess(res, { user: result.user, accessToken: result.accessToken, refreshToken: result.refreshToken });
     } catch (error) { next(error); }
   }
 
