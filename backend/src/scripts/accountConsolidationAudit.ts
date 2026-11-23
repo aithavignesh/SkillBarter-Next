@@ -220,40 +220,134 @@ export async function inspectAccountConsolidation(
 export async function revertAccountConsolidation(
   secondaryUserId: string,
   adminId: string,
-  reason: string
-): Promise<{ success: boolean; message: string; previousReason?: string }> {
+  reason: string,
+  expectedPrimaryAccountId?: string
+): Promise<{
+  success: boolean;
+  message: string;
+  code?: string;
+  previousReason?: string;
+  primaryAccountId?: string;
+}> {
+  // 1. Administrator Authorization Validation
+  if (!mongoose.Types.ObjectId.isValid(adminId)) {
+    return {
+      success: false,
+      code: "INVALID_ADMIN_ID",
+      message: "Provided administrator ID is not a valid ObjectId",
+    };
+  }
+
+  const admin = await User.findById(adminId);
+  if (!admin) {
+    return {
+      success: false,
+      code: "ADMIN_NOT_FOUND",
+      message: "Administrator account not found",
+    };
+  }
+
+  if (admin.isSuspended) {
+    return {
+      success: false,
+      code: "ADMIN_SUSPENDED",
+      message: "Administrator account is suspended and unauthorized to perform reverts",
+    };
+  }
+
+  if (admin.role !== "admin" && admin.role !== "owner") {
+    return {
+      success: false,
+      code: "INSUFFICIENT_PERMISSIONS",
+      message: "Only administrators or platform owners are authorized to revert account consolidations",
+    };
+  }
+
+  // 2. Target User Validation
+  if (!mongoose.Types.ObjectId.isValid(secondaryUserId)) {
+    return {
+      success: false,
+      code: "INVALID_USER_ID",
+      message: `Provided account ID ${secondaryUserId} is not a valid ObjectId`,
+    };
+  }
+
   const user = await User.findById(secondaryUserId);
   if (!user) {
-    return { success: false, message: `Account with ID ${secondaryUserId} not found` };
+    return {
+      success: false,
+      code: "USER_NOT_FOUND",
+      message: `Account with ID ${secondaryUserId} not found`,
+    };
   }
 
   if (!user.isSuspended) {
-    return { success: false, message: `Account ${secondaryUserId} is not currently suspended` };
+    return {
+      success: false,
+      code: "USER_NOT_SUSPENDED",
+      message: `Account ${secondaryUserId} is not currently suspended`,
+    };
   }
 
-  const previousReason = user.suspensionReason;
+  // 3. Consolidation Relationship Validation (Guard against arbitrary unsuspension)
+  const previousReason = user.suspensionReason || "";
+  const match = previousReason.match(/consolidated into primary account\s+([a-f0-9]{24})/i);
+  if (!match || !match[1]) {
+    return {
+      success: false,
+      code: "NOT_CONSOLIDATED_ACCOUNT",
+      message:
+        "Safety guard: Account was not suspended due to consolidation. Arbitrary unsuspension of non-consolidated accounts is strictly prohibited.",
+    };
+  }
+
+  const extractedPrimaryId = match[1];
+  if (
+    expectedPrimaryAccountId &&
+    expectedPrimaryAccountId.toLowerCase() !== extractedPrimaryId.toLowerCase()
+  ) {
+    return {
+      success: false,
+      code: "PRIMARY_ID_MISMATCH",
+      message: `Consolidation primary account mismatch: Account was consolidated into ${extractedPrimaryId}, but requested revert specified ${expectedPrimaryAccountId}`,
+    };
+  }
+
+  // Verify that the referenced primary account exists
+  const primaryAccount = await User.findById(extractedPrimaryId);
+  if (!primaryAccount) {
+    console.warn(`[audit] Warning: Primary account ${extractedPrimaryId} does not exist in database.`);
+  }
+
+  // 4. Safe Reversible State Update
   user.isSuspended = false;
   user.suspensionReason = undefined;
   await user.save();
 
+  // 5. Immutable Audit Trail
   await AuditLog.create({
-    actorId: new mongoose.Types.ObjectId(adminId),
+    actorId: admin._id,
     action: "REVERT_ACCOUNT_CONSOLIDATION",
     targetType: "user",
     targetId: secondaryUserId,
     details: {
       previousSuspension: true,
       previousSuspensionReason: previousReason,
+      primaryAccountId: extractedPrimaryId,
+      primaryAccountEmail: primaryAccount ? primaryAccount.email : "UNKNOWN",
       newSuspension: false,
-      reason,
+      adminEmail: admin.email,
+      adminRole: admin.role,
+      reason: reason.trim(),
     },
     timestamp: new Date(),
   });
 
   return {
     success: true,
-    message: `Account ${user.email} successfully unsuspended with audit trail entry`,
+    message: `Account ${user.email} successfully unsuspended from consolidation with immutable audit trail`,
     previousReason,
+    primaryAccountId: extractedPrimaryId,
   };
 }
 

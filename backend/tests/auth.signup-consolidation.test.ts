@@ -289,28 +289,102 @@ describe("Account Consolidation Audit and Revert Script", () => {
     expect(report.summary.canPrimarySignIn).toBe(true);
   });
 
-  it("safely and reversibly reverts an incorrect consolidation with an audit log", async () => {
+  it("enforces security constraints on revertAccountConsolidation and prevents arbitrary unsuspension", async () => {
     const passwordHash = await hashPassword("Password123");
-    const adminId = new mongoose.Types.ObjectId().toString();
 
-    const secondary = await User.create({
-      displayName: "Mistakenly Consolidated",
-      email: "mistake@example.com",
+    // 1. Create a regular non-admin user
+    const nonAdmin = await User.create({
+      displayName: "Regular User",
+      email: "regular@example.com",
+      phone: "+919876543240",
       passwordHash,
-      isSuspended: true,
-      suspensionReason: "Account consolidated into primary account 6ae6437e4419de4b9ecc74bc",
+      role: "user",
+      isSuspended: false,
     });
 
-    const result = await revertAccountConsolidation(
-      secondary._id.toString(),
-      adminId,
-      "Consolidation performed in error; legitimate separate user."
+    // 2. Create an admin user
+    const admin = await User.create({
+      displayName: "Security Admin",
+      email: "admin@example.com",
+      phone: "+919876543241",
+      passwordHash,
+      role: "admin",
+      isSuspended: false,
+    });
+
+    // 3. Create a primary user
+    const primary = await User.create({
+      displayName: "Primary Target",
+      email: "primary.target@example.com",
+      phone: "+919876543242",
+      passwordHash,
+      role: "user",
+      isSuspended: false,
+    });
+
+    // 4. Create an account suspended for non-consolidation terms violation
+    const tosViolator = await User.create({
+      displayName: "Bad Actor",
+      email: "tos.bad@example.com",
+      phone: "+919876543243",
+      passwordHash,
+      role: "user",
+      isSuspended: true,
+      suspensionReason: "Harassment and spam violations",
+    });
+
+    // 5. Create a legitimate consolidated account
+    const consolidatedUser = await User.create({
+      displayName: "Mistakenly Consolidated",
+      email: "mistake@example.com",
+      phone: "+919876543244",
+      passwordHash,
+      role: "user",
+      isSuspended: true,
+      suspensionReason: `Account consolidated into primary account ${primary._id.toString()}`,
+    });
+
+    // Check 1: Non-admin caller is rejected
+    const nonAdminAttempt = await revertAccountConsolidation(
+      consolidatedUser._id.toString(),
+      nonAdmin._id.toString(),
+      "Attempting revert as regular user"
     );
+    expect(nonAdminAttempt.success).toBe(false);
+    expect(nonAdminAttempt.code).toBe("INSUFFICIENT_PERMISSIONS");
 
-    expect(result.success).toBe(true);
+    // Check 2: Arbitrary suspended account (non-consolidation) is rejected
+    const arbitraryAttempt = await revertAccountConsolidation(
+      tosViolator._id.toString(),
+      admin._id.toString(),
+      "Trying to unsuspend TOS violator"
+    );
+    expect(arbitraryAttempt.success).toBe(false);
+    expect(arbitraryAttempt.code).toBe("NOT_CONSOLIDATED_ACCOUNT");
+    const stillSuspended = await User.findById(tosViolator._id);
+    expect(stillSuspended?.isSuspended).toBe(true); // Must remain suspended!
 
-    const updatedUser = await User.findById(secondary._id);
-    expect(updatedUser?.isSuspended).toBe(false);
-    expect(updatedUser?.suspensionReason).toBeUndefined();
+    // Check 3: Primary account ID mismatch is rejected
+    const wrongPrimaryAttempt = await revertAccountConsolidation(
+      consolidatedUser._id.toString(),
+      admin._id.toString(),
+      "Wrong primary ID",
+      "000000000000000000000000"
+    );
+    expect(wrongPrimaryAttempt.success).toBe(false);
+    expect(wrongPrimaryAttempt.code).toBe("PRIMARY_ID_MISMATCH");
+
+    // Check 4: Authorized admin successfully reverts genuine consolidated account
+    const validRevert = await revertAccountConsolidation(
+      consolidatedUser._id.toString(),
+      admin._id.toString(),
+      "Consolidation performed in error; confirmed separate user identity",
+      primary._id.toString()
+    );
+    expect(validRevert.success).toBe(true);
+
+    const unsuspendedUser = await User.findById(consolidatedUser._id);
+    expect(unsuspendedUser?.isSuspended).toBe(false);
+    expect(unsuspendedUser?.suspensionReason).toBeUndefined();
   });
 });
