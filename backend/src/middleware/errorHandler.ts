@@ -33,9 +33,17 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
-  // Zod Validation Error
-  if (error instanceof ZodError) {
-    const details = error.issues.map((e) => ({
+  // Zod Validation Error (support both local and cross-package Zod instances)
+  const isZod =
+    error instanceof ZodError ||
+    (error &&
+      typeof error === "object" &&
+      (error as any).name === "ZodError" &&
+      Array.isArray((error as any).issues));
+
+  if (isZod) {
+    const zodErr = error as ZodError;
+    const details = zodErr.issues.map((e) => ({
       field: e.path.join("."),
       message: e.message,
     }));
@@ -50,14 +58,19 @@ export function errorHandler(
     return;
   }
 
-  // AppError
-  if (error instanceof AppError) {
-    res.status(error.statusCode).json({
+  // AppError (support both local and cross-package instances)
+  const isAppError =
+    error instanceof AppError ||
+    (error && typeof error === "object" && (error as any).name === "AppError");
+
+  if (isAppError) {
+    const appErr = error as AppError;
+    res.status(appErr.statusCode || 400).json({
       success: false,
       error: {
-        code: error.code,
-        message: error.message,
-        details: error.details,
+        code: appErr.code,
+        message: appErr.message,
+        details: appErr.details,
       },
     });
     return;

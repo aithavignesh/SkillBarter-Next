@@ -9,8 +9,8 @@ export const passwordSchema = z
   .regex(/[0-9]/, "Password must contain at least one number");
 
 export const registerSchema = z.object({
-  email: z.string().email("Invalid email format").toLowerCase().trim(),
-  phone: z.string().min(8, "Mobile number is required").max(16).trim(),
+  email: z.string().trim().toLowerCase().email("Invalid email format"),
+  phone: z.string().trim().min(8, "Mobile number must be at least 8 digits").max(16, "Mobile number is too long"),
   password: passwordSchema,
   displayName: z.string().min(2, "Name must be at least 2 characters").max(50).trim(),
 });
@@ -18,7 +18,7 @@ export const registerSchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email format").toLowerCase().trim(),
+  email: z.string().trim().toLowerCase().email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -31,7 +31,7 @@ export const verifyEmailSchema = z.object({
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("Invalid email format").toLowerCase().trim(),
+  email: z.string().trim().toLowerCase().email("Invalid email format"),
 });
 
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
@@ -49,6 +49,18 @@ export const changePasswordSchema = z.object({
 });
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1, "Refresh token is required"),
+});
+
+export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
+
+export const resendVerificationSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Invalid email format"),
+});
+
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 
 export interface AuthUser {
   id: string;
