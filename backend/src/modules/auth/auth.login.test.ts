@@ -95,7 +95,7 @@ describe("Password login and refresh-session lifecycle", () => {
     });
   });
 
-  it("accepts a valid refresh token and rejects refresh after account suspension", async () => {
+  it("rotates refresh tokens once and revokes access and refresh tokens on logout", async () => {
     const user = await createUser({
       isEmailVerified: true,
       onboardingCompleted: true,
@@ -131,5 +131,32 @@ describe("Password login and refresh-session lifecycle", () => {
       .set("Authorization", "Bearer " + refreshed.accessToken);
     expect(revokedAccess.status).toBe(401);
     expect(revokedAccess.body.error.code).toBe("SESSION_REVOKED");
+  });
+
+  it("revokes refresh sessions when an account is suspended", async () => {
+    const user = await createUser({
+      isEmailVerified: true,
+      onboardingCompleted: true,
+    });
+    const session = await service.login({
+      email: user.email,
+      password: "CorrectPassword123!",
+    });
+
+    user.isSuspended = true;
+    user.suspensionReason = "Suspended for session revocation test";
+    await user.save();
+
+    const blockedAccess = await request(app)
+      .get("/api/v1/auth/me")
+      .set("Authorization", "Bearer " + session.accessToken);
+    expect(blockedAccess.status).toBe(403);
+    expect(blockedAccess.body.error.code).toBe("ACCOUNT_SUSPENDED");
+
+    await expect(service.refresh(session.refreshToken)).rejects.toMatchObject({
+      statusCode: 401,
+      code: "UNAUTHORIZED",
+    });
+    expect(await RefreshSession.countDocuments({ userId: user._id })).toBe(0);
   });
 });
