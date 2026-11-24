@@ -427,6 +427,7 @@ export class AuthService {
     user.passwordResetToken = undefined;
     user.passwordResetExpiresAt = undefined;
     await user.save();
+    await RefreshSession.deleteMany({ userId: user._id });
   }
 
   async changePassword(userId: string, input: ChangePasswordInput): Promise<void> {
@@ -439,6 +440,7 @@ export class AuthService {
     user.passwordHash = await hashPassword(input.newPassword);
     user.passwordChangedAt = new Date();
     await user.save();
+    await RefreshSession.deleteMany({ userId: user._id });
   }
 
   async refresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
