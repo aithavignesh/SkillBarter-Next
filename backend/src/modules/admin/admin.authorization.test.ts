@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import request from "supertest";
 import { User } from "../../models/User";
 import { AuditLog } from "../../models/AuditLog";
+import { RefreshSession } from "../../models/RefreshSession";
 import { Report } from "../../models/Report";
 import { app } from "../../app";
 import { signAccessToken } from "../../utils/security";
@@ -10,6 +11,7 @@ describe("Admin authorization boundaries", () => {
   const createdUserIds: string[] = [];
 
   afterAll(async () => {
+    await RefreshSession.deleteMany({ userId: { $in: createdUserIds } });
     await Report.deleteMany({
       $or: [
         { reporterId: { $in: createdUserIds } },
@@ -96,6 +98,19 @@ describe("Admin authorization boundaries", () => {
       .send({ role: "admin" });
     expect(allowedPromotion.status).toBe(200);
     expect(allowedPromotion.body.data.user.role).toBe("admin");
+
+    await RefreshSession.create({
+      userId: target._id,
+      sessionId: "admin-suspension-" + suffix,
+      tokenHash: "admin-suspension-token-hash-" + suffix,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+    });
+    const ownerSuspension = await request(app)
+      .patch("/api/v1/admin/users/" + target._id.toString())
+      .set("Authorization", "Bearer " + ownerToken)
+      .send({ isSuspended: true, suspensionReason: "Session revocation test" });
+    expect(ownerSuspension.status).toBe(200);
+    expect(await RefreshSession.countDocuments({ userId: target._id })).toBe(0);
 
     const deniedOwnerSuspension = await request(app)
       .patch("/api/v1/admin/users/" + owner._id.toString())
