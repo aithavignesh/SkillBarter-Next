@@ -150,12 +150,13 @@ export class AdminService {
       }
     }
 
-    await targetUser.save();
-
     if (input.isSuspended !== undefined && changes.previousSuspension !== changes.newSuspension) {
-      // A suspension or restoration must never revive a previously issued session.
+      // Revoke before persisting a restoration. If the session store is unavailable,
+      // the account must remain suspended rather than reviving old credentials.
       await RefreshSession.deleteMany({ userId: targetUser._id });
     }
+
+    await targetUser.save();
 
     await AuditLog.create({
       actorId: new mongoose.Types.ObjectId(adminId),
