@@ -25,6 +25,7 @@ export interface TokenPayload {
   email: string;
   role: "user" | "admin" | "owner";
   sessionId?: string;
+  jti?: string;
   iat?: number;
 }
 
