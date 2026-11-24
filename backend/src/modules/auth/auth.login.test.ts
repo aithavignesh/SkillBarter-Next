@@ -124,7 +124,11 @@ describe("Password login and refresh-session lifecycle", () => {
       code: "INVALID_TOKEN",
     });
 
-    await service.logout(refreshed.refreshToken);
+    const logoutResponse = await request(app)
+      .post("/api/v1/auth/logout")
+      .send({ refreshToken: refreshed.refreshToken });
+    expect(logoutResponse.status).toBe(200);
+
     await expect(service.refresh(refreshed.refreshToken)).rejects.toMatchObject({
       statusCode: 401,
       code: "INVALID_TOKEN",
