@@ -232,7 +232,7 @@ export class AuthService {
       sessionId,
     };
     const accessToken = signAccessToken(tokenPayload);
-    const refreshToken = signRefreshToken(tokenPayload);
+    const refreshToken = signRefreshToken({ ...tokenPayload, jti: generateSecureToken(16) });
 
     await RefreshSession.create({
       userId: user._id,
@@ -466,7 +466,7 @@ export class AuthService {
       sessionId: payload.sessionId,
     };
     const nextAccessToken = signAccessToken(tokenPayload);
-    const nextRefreshToken = signRefreshToken(tokenPayload);
+    const nextRefreshToken = signRefreshToken({ ...tokenPayload, jti: generateSecureToken(16) });
     const previousTokenHash = createHash("sha256").update(refreshToken).digest("hex");
     const nextTokenHash = createHash("sha256").update(nextRefreshToken).digest("hex");
 
