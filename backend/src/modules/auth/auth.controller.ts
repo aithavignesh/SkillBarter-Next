@@ -121,8 +121,13 @@ export class AuthController {
     } catch (error) { next(error); }
   }
 
-  async logout(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const refreshToken =
+        (typeof req.cookies?.refreshToken === "string" && req.cookies.refreshToken) ||
+        (typeof req.body?.refreshToken === "string" && req.body.refreshToken) ||
+        undefined;
+      await authService.logout(refreshToken);
       clearAuthCookies(res);
       sendSuccess(res, { message: "Successfully logged out" });
     } catch (error) {

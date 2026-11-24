@@ -4,6 +4,7 @@ import { env } from "../../config/env";
 import { AuthCooldown } from "../../models/AuthCooldown";
 import { OtpChallenge } from "../../models/OtpChallenge";
 import { User } from "../../models/User";
+import { RefreshSession } from "../../models/RefreshSession";
 import { AuthService } from "./auth.service";
 
 const originalTwoFactorApiKey = env.TWOFACTOR_API_KEY;
@@ -21,6 +22,7 @@ afterEach(async () => {
   await Promise.all([
     OtpChallenge.deleteMany({ phone: { $in: testPhones } }),
     AuthCooldown.deleteMany({ key: { $in: testPhones.map(cooldownKey) } }),
+    RefreshSession.deleteMany({ userId: { $in: testUserIds } }),
     User.deleteMany({ _id: { $in: testUserIds } }),
   ]);
   testPhones.length = 0;

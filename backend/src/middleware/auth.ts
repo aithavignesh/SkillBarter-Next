@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken, TokenPayload } from "../utils/security";
 import { User, IUser } from "../models/User";
+import { RefreshSession } from "../models/RefreshSession";
 import { AppError } from "./errorHandler";
 
 declare global {
@@ -32,6 +33,16 @@ function createAuthenticate(options: { allowUnverifiedEmail?: boolean } = {}) {
       if (!user) throw new AppError("User account not found", 401, "USER_NOT_FOUND");
       if (user.passwordChangedAt && (!payload.iat || payload.iat < user.passwordChangedAt.getTime() / 1000)) {
         throw new AppError("Password changed; please sign in again", 401, "SESSION_REVOKED");
+      }
+      if (payload.sessionId) {
+        const activeSession = await RefreshSession.findOne({
+          userId: user._id,
+          sessionId: payload.sessionId,
+          expiresAt: { $gt: new Date() },
+        }).select("_id").lean();
+        if (!activeSession) {
+          throw new AppError("Session has been revoked; please sign in again", 401, "SESSION_REVOKED");
+        }
       }
       // Unverified members may complete onboarding, but normal protected APIs stay locked.
       if (!options.allowUnverifiedEmail && !user.isEmailVerified) {
@@ -82,7 +93,12 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
       if (payload) {
         const user = await User.findById(payload.userId);
         const tokenIsCurrent = !user?.passwordChangedAt || Boolean(payload.iat && payload.iat >= user.passwordChangedAt.getTime() / 1000);
-        if (user && tokenIsCurrent && user.isEmailVerified && !user.isSuspended) {
+        const sessionIsCurrent = !payload.sessionId || Boolean(user && await RefreshSession.exists({
+          userId: user._id,
+          sessionId: payload.sessionId,
+          expiresAt: { $gt: new Date() },
+        }));
+        if (user && tokenIsCurrent && sessionIsCurrent && user.isEmailVerified && !user.isSuspended) {
           req.user = user;
           req.tokenPayload = payload;
         }

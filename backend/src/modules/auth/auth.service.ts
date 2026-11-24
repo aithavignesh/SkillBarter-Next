@@ -1,7 +1,9 @@
 import { User, IUser } from "../../models/User";
 import { OtpChallenge } from "../../models/OtpChallenge";
+import { RefreshSession } from "../../models/RefreshSession";
 import { AuthCooldown } from "../../models/AuthCooldown";
 import { createHash, randomInt } from "node:crypto";
+import jwt from "jsonwebtoken";
 import { AnalyticsEvent } from "../../models/AnalyticsEvent";
 import {
   RegisterInput,
@@ -44,6 +46,14 @@ export function formatAuthUser(user: IUser): AuthUser {
 }
 
 const AUTH_RESEND_COOLDOWN_MS = 60_000;
+
+function tokenExpiresAt(token: string): Date {
+  const decoded = jwt.decode(token);
+  if (!decoded || typeof decoded === "string" || typeof decoded.exp !== "number") {
+    throw new AppError("Unable to establish a secure session", 500, "SESSION_CREATE_FAILED");
+  }
+  return new Date(decoded.exp * 1000);
+}
 
 function requireEmailDeliveryConfiguration(): void {
   if (
@@ -151,7 +161,7 @@ export class AuthService {
       });
     }
 
-    return { ...this.createSession(user), verificationEmailSent };
+    return { ...(await this.createSession(user)), verificationEmailSent };
   }
 
   async login(input: LoginInput): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
@@ -209,22 +219,29 @@ export class AuthService {
       await user.save();
     }
 
+    return this.createSession(user);
+  }
+
+
+  private async createSession(user: IUser): Promise<{ user: AuthUser; accessToken: string; refreshToken: string }> {
+    const sessionId = generateSecureToken(16);
     const tokenPayload = {
       userId: user._id.toString(),
       email: user.email,
       role: user.role,
+      sessionId,
     };
-
     const accessToken = signAccessToken(tokenPayload);
-    const refreshToken = signRefreshToken(tokenPayload);
+    const refreshToken = signRefreshToken({ ...tokenPayload, jti: generateSecureToken(16) });
+
+    await RefreshSession.create({
+      userId: user._id,
+      sessionId,
+      tokenHash: createHash("sha256").update(refreshToken).digest("hex"),
+      expiresAt: tokenExpiresAt(refreshToken),
+    });
 
     return { user: formatAuthUser(user), accessToken, refreshToken };
-  }
-
-
-  private createSession(user: IUser): { user: AuthUser; accessToken: string; refreshToken: string } {
-    const tokenPayload = { userId: user._id.toString(), email: user.email, role: user.role };
-    return { user: formatAuthUser(user), accessToken: signAccessToken(tokenPayload), refreshToken: signRefreshToken(tokenPayload) };
   }
 
   async requestPhoneOtp(phoneInput: string): Promise<{ challengeId: string; phone: string }> {
@@ -410,6 +427,7 @@ export class AuthService {
     user.passwordResetToken = undefined;
     user.passwordResetExpiresAt = undefined;
     await user.save();
+    await RefreshSession.deleteMany({ userId: user._id });
   }
 
   async changePassword(userId: string, input: ChangePasswordInput): Promise<void> {
@@ -422,17 +440,22 @@ export class AuthService {
     user.passwordHash = await hashPassword(input.newPassword);
     user.passwordChangedAt = new Date();
     await user.save();
+    await RefreshSession.deleteMany({ userId: user._id });
   }
 
   async refresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = verifyRefreshToken(refreshToken);
-    if (!payload) throw new AppError("Invalid or expired refresh token", 401, "INVALID_TOKEN");
+    if (!payload?.sessionId) {
+      throw new AppError("Invalid or expired refresh token", 401, "INVALID_TOKEN");
+    }
 
     const user = await User.findById(payload.userId);
     if (!user || user.isSuspended) {
+      await RefreshSession.deleteMany({ userId: payload.userId });
       throw new AppError("User account not accessible", 401, "UNAUTHORIZED");
     }
     if (user.passwordChangedAt && (!payload.iat || payload.iat < user.passwordChangedAt.getTime() / 1000)) {
+      await RefreshSession.deleteMany({ userId: user._id });
       throw new AppError("Password changed; please sign in again", 401, "SESSION_REVOKED");
     }
 
@@ -440,12 +463,47 @@ export class AuthService {
       userId: user._id.toString(),
       email: user.email,
       role: user.role,
+      sessionId: payload.sessionId,
     };
+    const nextAccessToken = signAccessToken(tokenPayload);
+    const nextRefreshToken = signRefreshToken({ ...tokenPayload, jti: generateSecureToken(16) });
+    const previousTokenHash = createHash("sha256").update(refreshToken).digest("hex");
+    const nextTokenHash = createHash("sha256").update(nextRefreshToken).digest("hex");
 
-    return {
-      accessToken: signAccessToken(tokenPayload),
-      refreshToken: signRefreshToken(tokenPayload),
-    };
+    const rotated = await RefreshSession.findOneAndUpdate(
+      {
+        userId: user._id,
+        sessionId: payload.sessionId,
+        tokenHash: previousTokenHash,
+        expiresAt: { $gt: new Date() },
+      },
+      {
+        $set: {
+          tokenHash: nextTokenHash,
+          expiresAt: tokenExpiresAt(nextRefreshToken),
+          lastUsedAt: new Date(),
+        },
+      },
+      { new: true }
+    );
+
+    if (!rotated) {
+      throw new AppError("Invalid or expired refresh token", 401, "INVALID_TOKEN");
+    }
+
+    return { accessToken: nextAccessToken, refreshToken: nextRefreshToken };
+  }
+
+  async logout(refreshToken?: string): Promise<void> {
+    if (!refreshToken) return;
+
+    const tokenHash = createHash("sha256").update(refreshToken).digest("hex");
+    const payload = verifyRefreshToken(refreshToken);
+    if (payload?.sessionId) {
+      await RefreshSession.deleteOne({ sessionId: payload.sessionId, tokenHash });
+    } else {
+      await RefreshSession.deleteOne({ tokenHash });
+    }
   }
 }
 

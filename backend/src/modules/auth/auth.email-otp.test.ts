@@ -16,6 +16,7 @@ import { env } from "../../config/env";
 import { AuthCooldown } from "../../models/AuthCooldown";
 import { OtpChallenge } from "../../models/OtpChallenge";
 import { User } from "../../models/User";
+import { RefreshSession } from "../../models/RefreshSession";
 import { authService } from "./auth.service";
 
 const originalEmailDisabled = env.EMAIL_DISABLED;
@@ -30,6 +31,7 @@ afterEach(async () => {
   await Promise.all([
     OtpChallenge.deleteMany({ email: { $in: testEmails } }),
     AuthCooldown.deleteMany({ key: { $in: testEmails.map(cooldownKey) } }),
+    RefreshSession.deleteMany({ userId: { $in: testUserIds } }),
     User.deleteMany({ _id: { $in: testUserIds } }),
   ]);
   testEmails.length = 0;

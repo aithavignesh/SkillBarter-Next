@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { User, IUser } from "../models/User";
 import { AuditLog } from "../models/AuditLog";
+import { RefreshSession } from "../models/RefreshSession";
 import { UserSkill } from "../models/UserSkill";
 import { Exchange } from "../models/Exchange";
 import { Conversation } from "../models/Conversation";
@@ -319,12 +320,16 @@ export async function revertAccountConsolidation(
     console.warn(`[audit] Warning: Primary account ${extractedPrimaryId} does not exist in database.`);
   }
 
-  // 4. Safe Reversible State Update
+  // 4. Revoke any historical sessions before restoring the account.
+  // A rollback must not silently reactivate credentials issued before consolidation.
+  await RefreshSession.deleteMany({ userId: user._id });
+
+  // 5. Safe Reversible State Update
   user.isSuspended = false;
   user.suspensionReason = undefined;
   await user.save();
 
-  // 5. Immutable Audit Trail
+  // 6. Immutable Audit Trail
   await AuditLog.create({
     actorId: admin._id,
     action: "REVERT_ACCOUNT_CONSOLIDATION",
