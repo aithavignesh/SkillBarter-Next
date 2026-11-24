@@ -108,12 +108,16 @@ describe("Password login and refresh-session lifecycle", () => {
     const refreshed = await service.refresh(session.refreshToken);
     expect(refreshed.accessToken).toBeTruthy();
     expect(refreshed.refreshToken).toBeTruthy();
-    expect(verifyRefreshToken(refreshed.refreshToken)).toMatchObject({
+    const previousPayload = verifyRefreshToken(session.refreshToken);
+    const refreshedPayload = verifyRefreshToken(refreshed.refreshToken);
+    expect(refreshedPayload).toMatchObject({
       userId: user.id,
       email: user.email,
       role: "user",
       sessionId: expect.any(String),
+      jti: expect.any(String),
     });
+    expect(refreshedPayload?.jti).not.toBe(previousPayload?.jti);
 
     await expect(service.refresh(session.refreshToken)).rejects.toMatchObject({
       statusCode: 401,
