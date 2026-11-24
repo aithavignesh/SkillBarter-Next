@@ -5,6 +5,7 @@ import { ExchangeSession } from "../../models/ExchangeSession";
 import { Skill } from "../../models/Skill";
 import { Report, IReport } from "../../models/Report";
 import { AuditLog } from "../../models/AuditLog";
+import { RefreshSession } from "../../models/RefreshSession";
 import {
   AdminUpdateUserInput,
   AdminReportActionInput,
@@ -151,6 +152,11 @@ export class AdminService {
 
     await targetUser.save();
 
+    if (input.isSuspended !== undefined && changes.previousSuspension !== changes.newSuspension) {
+      // A suspension or restoration must never revive a previously issued session.
+      await RefreshSession.deleteMany({ userId: targetUser._id });
+    }
+
     await AuditLog.create({
       actorId: new mongoose.Types.ObjectId(adminId),
       action: "ADMIN_UPDATE_USER",
@@ -236,6 +242,7 @@ export class AdminService {
         targetUser.isSuspended = true;
         targetUser.suspensionReason = `Suspended following report review: ${input.moderationNotes || report.reason}`;
         await targetUser.save();
+        await RefreshSession.deleteMany({ userId: targetUser._id });
       }
     }
 
