@@ -43,25 +43,25 @@ const MeetingPointVisual: React.FC = () => (
   <div className="relative mx-auto flex min-h-[390px] w-full max-w-[560px] flex-col items-center gap-3 px-2 text-center lg:mt-[-4px] lg:block lg:h-[390px]">
     <div className="relative text-[10px] font-bold uppercase tracking-[0.2em] text-[#7a8290] lg:absolute lg:left-1/2 lg:top-0 lg:h-8 lg:-translate-x-1/2">Two skills, one exchange</div>
 
-    <div className="order-1 relative flex h-[112px] w-full max-w-[290px] shrink-0 flex-col items-center justify-center rounded-[32px] border border-[rgba(126,143,151,.42)] bg-[rgba(181,193,195,.18)] lg:absolute lg:left-0 lg:top-12 lg:order-none lg:h-[270px] lg:w-[58%] lg:max-w-none lg:rounded-full lg:pr-10">
+    <div className="order-1 relative flex h-[112px] w-full max-w-[290px] shrink-0 flex-col items-center justify-center rounded-[32px] border border-[rgba(126,143,151,.42)] bg-[rgba(181,193,195,.18)] dark:border-[#43516a] dark:bg-[#202936]/90 lg:absolute lg:left-0 lg:top-12 lg:order-none lg:h-[270px] lg:w-[58%] lg:max-w-none lg:rounded-full lg:pr-10">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7a8290]">You teach</p>
-      <p className="mt-3 text-[clamp(1.15rem,2vw,1.5rem)] font-semibold tracking-[-0.03em] text-[#17233b]">Web Development</p>
-      <span className="mt-3 h-px w-12 bg-[rgba(126,143,151,.42)] lg:mt-4" />
+      <p className="mt-3 text-[clamp(1.15rem,2vw,1.5rem)] font-semibold tracking-[-0.03em] text-[#17233b] dark:text-[#f2f5f8]">Web Development</p>
+      <span className="mt-3 h-px w-12 bg-[rgba(126,143,151,.42)] dark:bg-[#43516a] lg:mt-4" />
     </div>
 
-    <div className="order-3 relative flex h-[112px] w-full max-w-[290px] shrink-0 flex-col items-center justify-center rounded-[32px] border border-[rgba(201,135,125,.4)] bg-[rgba(218,170,160,.22)] lg:absolute lg:right-0 lg:top-12 lg:order-none lg:h-[270px] lg:w-[58%] lg:max-w-none lg:rounded-full lg:pl-10">
+    <div className="order-3 relative flex h-[112px] w-full max-w-[290px] shrink-0 flex-col items-center justify-center rounded-[32px] border border-[rgba(201,135,125,.4)] bg-[rgba(218,170,160,.22)] dark:border-[#60404a] dark:bg-[#2b2026]/90 lg:absolute lg:right-0 lg:top-12 lg:order-none lg:h-[270px] lg:w-[58%] lg:max-w-none lg:rounded-full lg:pl-10">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7a8290]">You learn</p>
-      <p className="mt-3 text-[clamp(1.15rem,2vw,1.5rem)] font-semibold tracking-[-0.03em] text-[#17233b]">UI/UX Design</p>
-      <span className="mt-3 h-px w-12 bg-[rgba(201,135,125,.4)] lg:mt-4" />
+      <p className="mt-3 text-[clamp(1.15rem,2vw,1.5rem)] font-semibold tracking-[-0.03em] text-[#17233b] dark:text-[#f2f5f8]">UI/UX Design</p>
+      <span className="mt-3 h-px w-12 bg-[rgba(201,135,125,.4)] dark:bg-[#60404a] lg:mt-4" />
     </div>
 
-    <div className="order-2 relative z-10 flex h-[76px] w-[76px] shrink-0 flex-col items-center justify-center rounded-full border-[6px] border-[#f7f7f5] bg-[#17233b] text-white shadow-[0_8px_20px_rgba(23,35,59,.12)] ring-1 ring-[#17233b]/10 lg:absolute lg:left-1/2 lg:top-[145px] lg:order-none lg:h-[100px] lg:w-[100px] lg:-translate-x-1/2 lg:border-[7px]">
+    <div className="order-2 relative z-10 flex h-[76px] w-[76px] shrink-0 flex-col items-center justify-center rounded-full border-[6px] border-[#f7f7f5] bg-[#17233b] text-white shadow-[0_8px_20px_rgba(23,35,59,.12)] ring-1 ring-[#17233b]/10 dark:border-[#10141c] dark:bg-[#344054] lg:absolute lg:left-1/2 lg:top-[145px] lg:order-none lg:h-[100px] lg:w-[100px] lg:-translate-x-1/2 lg:border-[7px]">
       <Users className="h-5 w-5 text-[#f7f7f5]" />
       <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em]">Match</span>
     </div>
 
     <div className="order-4 relative flex items-center gap-3 pb-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#7a8290] lg:absolute lg:bottom-3 lg:left-1/2 lg:order-none lg:-translate-x-1/2">
-      <span className="h-px w-8 bg-[#17233b]/20" />
+      <span className="h-px w-8 bg-[#17233b]/20 dark:bg-white/20" />
       <span>Learn together</span>
       <span className="h-px w-8 bg-[#d31d24]/30" />
     </div>
@@ -117,8 +117,8 @@ const InteractiveInfoBlock: React.FC<{
 };
 
 const PathwaySection: React.FC = () => (
-  <div className="border-b border-[#dedfdd]">
-    <section className="bg-white">
+  <div className="border-b border-[#dedfdd] dark:border-[#2b3442]">
+    <section className="bg-white dark:bg-[#171c26]">
       <div className="mx-auto grid max-w-7xl grid-cols-1 px-5 sm:px-8 lg:grid-cols-3 lg:px-10">
         <InteractiveInfoBlock label="01" title="Tell us what you know" text="Add the skills you can teach and the skills you want to learn." details={[
             { label: 'WHAT YOU DO', text: 'Add skills you can confidently share and skills you want to learn.' },
@@ -129,12 +129,12 @@ const PathwaySection: React.FC = () => (
             { label: 'WHAT YOU DO', text: 'Review people whose skills, interests, location and trust signals fit your goals.' },
             { label: 'WHY IT MATTERS', text: 'Relevant context helps you choose a useful match instead of browsing at random.' },
             { label: 'NEXT', text: 'Start a conversation with someone who complements what you want to learn.' },
-          ]} className="border-t border-[#e8e9e7] lg:border-l lg:border-t-0" />
+          ]} className="border-t border-[#e8e9e7] dark:border-[#2b3442] lg:border-l lg:border-t-0" />
         <InteractiveInfoBlock label="03" title="Start learning" text="Talk, agree on a session and learn together." details={[
             { label: 'WHAT YOU DO', text: 'Talk through what you want to learn and agree on a focused session.' },
             { label: 'WHY IT MATTERS', text: 'A clear exchange turns a promising match into practical peer learning.' },
             { label: 'NEXT', text: 'Begin the interaction and share knowledge in a way that works for both people.' },
-          ]} className="border-t border-[#e8e9e7] lg:border-l lg:border-t-0" />
+          ]} className="border-t border-[#e8e9e7] dark:border-[#2b3442] lg:border-l lg:border-t-0" />
       </div>
     </section>
     <section className="bg-[#17233b] text-white">
@@ -267,17 +267,23 @@ const FeatureGrid: React.FC = () => {
   );
 };
 
-export const LandingPage: React.FC = () => (
-  <main className="min-h-screen bg-[#f7f7f5] text-[#17233b]">
-<section className="relative isolate overflow-hidden border-b border-[#dedfdd] bg-[#f7f7f5]">
+export const LandingPage: React.FC = () => {
+  const [hoveredFaqIndex, setHoveredFaqIndex] = useState<number | null>(null);
+  const [selectedFaqIndex, setSelectedFaqIndex] = useState<number | null>(null);
+  const [dismissedFaqIndex, setDismissedFaqIndex] = useState<number | null>(null);
+  const expandedFaqIndex = (hoveredFaqIndex !== dismissedFaqIndex ? hoveredFaqIndex : null) ?? selectedFaqIndex;
+
+  return (
+  <main className="landing-page min-h-screen bg-[#f7f7f5] text-[#17233b] dark:bg-[#10141c] dark:text-[#edf2f7]">
+<section className="relative isolate overflow-hidden border-b border-[#dedfdd] bg-[#f7f7f5] dark:border-[#2b3442] dark:bg-[#10141c]">
   <div
     aria-hidden="true"
     className="landing-hero-background pointer-events-none absolute inset-0 z-0 bg-no-repeat"
     style={{
-      backgroundImage:
-        'linear-gradient(90deg, #f7f7f5 0%, rgba(247,247,245,.96) 24%, rgba(247,247,245,.5) 52%, rgba(247,247,245,0) 82%), url("/images/landingpageimage.png")',
+      backgroundImage: 'url("/images/landingpageimage.png")',
     }}
   />
+  <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-[#f7f7f5] via-[#f7f7f5]/90 to-transparent dark:from-[#10141c] dark:via-[#10141c]/90 dark:to-transparent" />
 
   <div className="relative z-10 mx-auto max-w-7xl px-5 pb-16 pt-24 sm:px-8 sm:pt-28 lg:px-10 lg:pb-24 lg:pt-32">
     <div className="grid min-w-0 items-center gap-10 lg:grid-cols-[1.08fr_.92fr] lg:gap-16">
@@ -305,14 +311,14 @@ export const LandingPage: React.FC = () => (
 
     <PathwaySection />
 
-    <section id="explore" className="border-b border-[#dedfdd] bg-white py-16 sm:py-20">
+    <section id="explore" className="border-b border-[#dedfdd] bg-white py-16 dark:border-[#2b3442] dark:bg-[#171c26] sm:py-20">
       <div className="mx-auto max-w-7xl min-w-0 px-5 sm:px-8 lg:px-10">
         <div className="max-w-2xl"><p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#d31d24]">What can you do here?</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Start with the skill you need next.</h2><p className="mt-4 text-[13px] leading-6 text-[#707884]">Choose a career-relevant learning goal — development, AI/data, design, communication or interview preparation. Then add one skill you can teach so your profile can find complementary peers.</p></div>
         <ExploreTree />
       </div>
     </section>
 
-    <section className="bg-[#f7f7f5] py-16 sm:py-20">
+    <section className="bg-[#f7f7f5] py-16 dark:bg-[#10141c] sm:py-20">
       <div className="mx-auto max-w-7xl min-w-0 px-5 sm:px-8 lg:px-10">
         <div className="grid min-w-0 gap-12 lg:grid-cols-[.7fr_1.3fr] lg:gap-20">
           <div className="min-w-0"><p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#d31d24]">Designed around peer learning</p><h2 className="mt-4 max-w-md text-3xl font-semibold leading-tight tracking-[-0.04em] sm:text-4xl">Your next skill can start with one person.</h2><p className="mt-5 max-w-md text-[13px] leading-6 text-[#707884]">The product is built around a simple journey: find a peer, start a focused learning exchange, then build trust through real sessions.</p><Link onClick={() => trackEvent('activation_cta_clicked', { source: 'landing_features', action: 'discover' })} to="/discover" className="mt-7 inline-flex items-center gap-2 text-[12px] font-bold text-[#17233b] hover:text-[#d31d24]">Find learning partners <ArrowUpRight className="h-4 w-4" /></Link></div>
@@ -321,11 +327,84 @@ export const LandingPage: React.FC = () => (
       </div>
     </section>
 
-    <section className="border-y border-[#dedfdd] bg-white py-16 sm:py-20">
+    <section id="faq" className="border-y border-white/10 bg-[#17233b] py-16 text-[#f7f7f5] sm:py-20">
       <div className="mx-auto max-w-4xl px-5 sm:px-8">
         <div className="text-center"><p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#d31d24]">Questions before you join?</p><h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">A few things people usually ask.</h2></div>
-        <div className="mt-10 divide-y divide-[#e5e7e5] border-y border-[#e5e7e5]">
-          {faqs.map(([question, answer]) => <details key={question} className="group py-5"><summary className="flex cursor-pointer list-none items-center justify-between gap-6 text-[14px] font-semibold text-[#17233b]"><span>{question}</span><ChevronDown className="h-4 w-4 shrink-0 text-[#8b929d] transition-transform group-open:rotate-180" /></summary><p className="mt-3 max-w-3xl pr-8 text-[12px] leading-6 text-[#737b87]">{answer}</p></details>)}
+        <div
+          className="mt-10 border-y border-white/10"
+          onPointerLeave={(event) => {
+            if (event.pointerType !== 'touch') setHoveredFaqIndex(null);
+          }}
+        >
+          {faqs.map(([question, answer], index) => {
+            const expanded = expandedFaqIndex === index;
+            const answerId = `faq-answer-${index}`;
+
+            return (
+              <div
+                key={question}
+                className={`border-b border-white/10 last:border-b-0 transition-colors duration-300 ease-in-out motion-reduce:transition-none ${
+                  expanded ? 'bg-surface-800/30' : ''
+                }`}
+                onPointerEnter={(event) => {
+                  if (event.pointerType !== 'touch') {
+                    setHoveredFaqIndex(index);
+                    setDismissedFaqIndex(null);
+                  }
+                }}
+                onFocusCapture={() => {
+                  setHoveredFaqIndex(index);
+                  setDismissedFaqIndex(null);
+                }}
+                onBlurCapture={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+                    setHoveredFaqIndex(null);
+                  }
+                }}
+              >
+                <button
+                  type="button"
+                  aria-expanded={expanded}
+                  aria-controls={answerId}
+                  onClick={() => {
+                    if (selectedFaqIndex === index) {
+                      setSelectedFaqIndex(null);
+                      setDismissedFaqIndex(index);
+                    } else {
+                      setSelectedFaqIndex(index);
+                      setDismissedFaqIndex(null);
+                    }
+                  }}
+                  className={`flex w-full items-center justify-between gap-6 py-5 text-left text-[14px] font-semibold transition-colors duration-300 ease-in-out motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f7f7f5] ${
+                    expanded ? 'text-white' : 'text-[#e1e4e8] hover:text-white'
+                  }`}
+                >
+                  <span>{question}</span>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={`h-4 w-4 shrink-0 transition-transform duration-300 ease-in-out motion-reduce:transition-none ${
+                      expanded ? 'rotate-180 text-white' : 'text-[#8b929d]'
+                    }`}
+                  />
+                </button>
+                <div
+                  id={answerId}
+                  aria-hidden={!expanded}
+                  className={`grid transition-[grid-template-rows] duration-300 ease-in-out motion-reduce:transition-none ${
+                    expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                  }`}
+                >
+                  <div className="min-h-0 overflow-hidden">
+                    <p className={`max-w-3xl bg-surface-800/40 px-4 pb-4 pt-1 pr-8 text-[12px] leading-6 text-[#c3c9d3] transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${
+                      expanded ? 'opacity-100' : 'opacity-0'
+                    }`}>
+                      {answer}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -333,8 +412,9 @@ export const LandingPage: React.FC = () => (
     <section className="bg-[#17233b] text-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10 lg:py-16">
         <div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e3a1a4]">START WITH THE BETA</p><h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Your next skill could come from someone you already have something to teach.</h2><p className="mt-3 max-w-xl text-[13px] leading-6 text-[#c3c9d3]">Create your profile, choose what you can teach and what you want to learn, then discover people with complementary skills.</p></div>
-        <Link onClick={() => trackEvent('activation_cta_clicked', { source: 'landing_beta_cta', action: 'signup' })} to="/signup" className="inline-flex shrink-0 items-center gap-2 bg-white px-5 py-3 text-[13px] font-bold text-[#17233b] hover:bg-[#f2f3f1]">Create your profile <ArrowRight className="h-4 w-4" /></Link>
+        <Link onClick={() => trackEvent('activation_cta_clicked', { source: 'landing_beta_cta', action: 'signup' })} to="/signup" className="inline-flex shrink-0 items-center gap-2 bg-[#d31d24] px-5 py-3 text-[13px] font-bold text-white transition-colors hover:bg-[#b8171d]">Create your profile <ArrowRight className="h-4 w-4" /></Link>
       </div>
     </section>
   </main>
-);
+  );
+};

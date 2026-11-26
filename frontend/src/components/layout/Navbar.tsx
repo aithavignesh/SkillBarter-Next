@@ -128,7 +128,7 @@ export const Navbar: React.FC = () => {
 
 if (!currentUser) {
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
+        <nav className="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md dark:border-[#2b3442] dark:bg-[#171c26]/95">
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 
                 {/* Logo */}
@@ -183,7 +183,7 @@ if (!currentUser) {
                     <button
                         type="button"
                         onClick={toggleTheme}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#202936] dark:hover:text-[#f2f5f8]"
                         aria-label="Toggle theme"
                     >
                         {theme === 'dark' ? (
@@ -197,7 +197,7 @@ if (!currentUser) {
                     <button
                         type="button"
                         onClick={() => navigate('/login')}
-                        className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                        className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#202936] dark:hover:text-[#f2f5f8]"
                     >
                         Log in
                     </button>
@@ -209,7 +209,7 @@ if (!currentUser) {
                     <button
                         type="button"
                         onClick={toggleTheme}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#202936] dark:hover:text-[#f2f5f8]"
                         aria-label="Toggle theme"
                     >
                         {theme === 'dark' ? (
@@ -223,7 +223,7 @@ if (!currentUser) {
                         ref={mobileMenuButtonRef}
                         type="button"
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-700 transition-colors hover:bg-slate-100"
+                        className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-700 transition-colors hover:bg-slate-100 dark:hover:bg-[#202936]"
                         aria-label="Toggle navigation menu"
                         aria-expanded={isMobileMenuOpen}
                         aria-controls="public-mobile-navigation"
@@ -238,13 +238,13 @@ if (!currentUser) {
             </div>
 
             {/* Mobile Navigation */}
-                <div id="public-mobile-navigation" ref={publicMobileMenuContainerRef} aria-hidden={!isMobileMenuOpen} className={`public-mobile-navigation absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-slate-200 bg-white px-4 py-4 shadow-md lg:hidden ${isMobileMenuOpen ? 'public-mobile-navigation--open' : ''}`}>
+                <div id="public-mobile-navigation" ref={publicMobileMenuContainerRef} aria-hidden={!isMobileMenuOpen} className={`public-mobile-navigation absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-slate-200 bg-white px-4 py-4 shadow-md dark:border-[#2b3442] dark:bg-[#171c26] lg:hidden ${isMobileMenuOpen ? 'public-mobile-navigation--open' : ''}`}>
                     <div className="flex flex-col gap-1">
 
                         <a
                             href="#how-it-works"
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828]"
+                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828] dark:hover:bg-[#202936]"
                         >
                             How it works
                         </a>
@@ -252,7 +252,7 @@ if (!currentUser) {
                         <a
                             href="#explore"
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828]"
+                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828] dark:hover:bg-[#202936]"
                         >
                             Explore
                         </a>
@@ -260,7 +260,7 @@ if (!currentUser) {
                         <a
                             href="#why-skillbarter"
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828]"
+                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828] dark:hover:bg-[#202936]"
                         >
                             Why SkillBarter
                         </a>
@@ -268,7 +268,7 @@ if (!currentUser) {
                         <a
                             href="#faq"
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828]"
+                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828] dark:hover:bg-[#202936]"
                         >
                             FAQ
                         </a>
@@ -278,7 +278,7 @@ if (!currentUser) {
                         <Link
                             to="/login"
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="block rounded-lg px-3 py-3 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                            className="block rounded-lg px-3 py-3 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:hover:bg-[#202936]"
                         >
                             Log in
                         </Link>
