@@ -150,12 +150,15 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                <label htmlFor="displayName" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                   Display Name
                 </label>
                 <input
+                  id="displayName"
                   type="text"
                   required
+                  minLength={2}
+                  maxLength={50}
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
@@ -164,11 +167,13 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                <label htmlFor="bio" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                   Bio / Background
                 </label>
                 <textarea
+                  id="bio"
                   rows={3}
+                  maxLength={1000}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   className="mt-1.5 block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
@@ -178,10 +183,11 @@ export default function OnboardingPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                  <label htmlFor="location" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                     Location / City
                   </label>
                   <input
+                    id="location"
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
@@ -190,12 +196,13 @@ export default function OnboardingPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                  <label htmlFor="preferredSessionFormat" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                     Preferred Session Format
                   </label>
                   <select
+                    id="preferredSessionFormat"
                     value={preferredSessionFormat}
-                    onChange={(e) => setPreferredSessionFormat(e.target.value as any)}
+                    onChange={(e) => setPreferredSessionFormat(e.target.value as typeof preferredSessionFormat)}
                     className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm transition-colors focus:border-[#d31d24] focus:outline-none focus:ring-2 focus:ring-[#d31d24]/20"
                   >
                     <option value="video">Online Video Call</option>
@@ -207,10 +214,11 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                <label htmlFor="availability" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                   General Availability
                 </label>
                 <input
+                  id="availability"
                   type="text"
                   value={availability}
                   onChange={(e) => setAvailability(e.target.value)}
