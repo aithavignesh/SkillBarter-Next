@@ -34,11 +34,9 @@ export const Navbar: React.FC = () => {
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const profileMenuContainerRef = useRef<HTMLDivElement>(null);
   const mobileMenuContainerRef = useRef<HTMLDivElement>(null);
-  const publicMobileMenuContainerRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedNav, setExpandedNav] = useState<string | null>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -99,24 +97,18 @@ export const Navbar: React.FC = () => {
   }, [showNotifications]);
 
   useEffect(() => {
-    if (!showProfileMenu && !showMobileMenu && !isMobileMenuOpen) return;
+    if (!showProfileMenu && !showMobileMenu) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       setShowProfileMenu(false);
       setShowMobileMenu(false);
-      setIsMobileMenuOpen(false);
       if (showProfileMenu) profileMenuButtonRef.current?.focus();
       else mobileMenuButtonRef.current?.focus();
     };
     const closeOnOutsidePress = (event: PointerEvent) => {
       if (!(event.target instanceof Node)) return;
       if (showProfileMenu && !profileMenuContainerRef.current?.contains(event.target)) setShowProfileMenu(false);
-      const insideMobileNavigation = mobileMenuContainerRef.current?.contains(event.target)
-        || publicMobileMenuContainerRef.current?.contains(event.target);
-      if ((showMobileMenu || isMobileMenuOpen) && !insideMobileNavigation) {
-        setShowMobileMenu(false);
-        setIsMobileMenuOpen(false);
-      }
+      if (showMobileMenu && !mobileMenuContainerRef.current?.contains(event.target)) setShowMobileMenu(false);
     };
     document.addEventListener('keydown', closeOnEscape);
     document.addEventListener('pointerdown', closeOnOutsidePress);
@@ -124,17 +116,15 @@ export const Navbar: React.FC = () => {
       document.removeEventListener('keydown', closeOnEscape);
       document.removeEventListener('pointerdown', closeOnOutsidePress);
     };
-  }, [showProfileMenu, showMobileMenu, isMobileMenuOpen]);
+  }, [showProfileMenu, showMobileMenu]);
 
 if (!currentUser) {
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md dark:border-[#2b3442] dark:bg-[#171c26]/95">
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-
-                {/* Logo */}
                 <Link
                     to="/"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#d31d24]"
                     aria-label="SkillBarter home"
                 >
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#c62828] text-white">
@@ -146,45 +136,12 @@ if (!currentUser) {
                     </span>
                 </Link>
 
-                {/* Desktop Navigation */}
-                <div className="hidden items-center gap-7 lg:flex">
-                    <a
-                        href="#how-it-works"
-                        className="text-sm font-medium text-slate-600 transition-colors hover:text-[#c62828]"
-                    >
-                        How it works
-                    </a>
-
-                    <a
-                        href="#explore"
-                        className="text-sm font-medium text-slate-600 transition-colors hover:text-[#c62828]"
-                    >
-                        Explore
-                    </a>
-
-                    <a
-                        href="#why-skillbarter"
-                        className="text-sm font-medium text-slate-600 transition-colors hover:text-[#c62828]"
-                    >
-                        Why SkillBarter
-                    </a>
-
-                    <a
-                        href="#faq"
-                        className="text-sm font-medium text-slate-600 transition-colors hover:text-[#c62828]"
-                    >
-                        FAQ
-                    </a>
-                </div>
-
-                {/* Desktop Actions */}
-                <div className="hidden items-center gap-3 lg:flex">
-                    {/* Theme Toggle */}
+                <div className="flex items-center gap-2">
                     <button
                         type="button"
                         onClick={toggleTheme}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#202936] dark:hover:text-[#f2f5f8]"
-                        aria-label="Toggle theme"
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d31d24] dark:hover:bg-[#202936] dark:hover:text-[#f2f5f8]"
+                        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
                     >
                         {theme === 'dark' ? (
                             <Sun className="h-4 w-4" />
@@ -193,97 +150,14 @@ if (!currentUser) {
                         )}
                     </button>
 
-                    {/* Login */}
-                    <button
-                        type="button"
-                        onClick={() => navigate('/login')}
-                        className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#202936] dark:hover:text-[#f2f5f8]"
+                    <Link
+                        to="/login"
+                        className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d31d24] dark:hover:bg-[#202936] dark:hover:text-[#f2f5f8]"
                     >
                         Log in
-                    </button>
-                </div>
-
-                {/* Mobile Menu Button */}
-                <div className="flex items-center gap-2 lg:hidden">
-                    {/* Theme Toggle */}
-                    <button
-                        type="button"
-                        onClick={toggleTheme}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#202936] dark:hover:text-[#f2f5f8]"
-                        aria-label="Toggle theme"
-                    >
-                        {theme === 'dark' ? (
-                            <Sun className="h-4 w-4" />
-                        ) : (
-                            <Moon className="h-4 w-4" />
-                        )}
-                    </button>
-
-                    <button
-                        ref={mobileMenuButtonRef}
-                        type="button"
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-700 transition-colors hover:bg-slate-100 dark:hover:bg-[#202936]"
-                        aria-label="Toggle navigation menu"
-                        aria-expanded={isMobileMenuOpen}
-                        aria-controls="public-mobile-navigation"
-                    >
-                        {isMobileMenuOpen ? (
-                            <X className="h-5 w-5" />
-                        ) : (
-                            <Menu className="h-5 w-5" />
-                        )}
-                    </button>
+                    </Link>
                 </div>
             </div>
-
-            {/* Mobile Navigation */}
-                <div id="public-mobile-navigation" ref={publicMobileMenuContainerRef} aria-hidden={!isMobileMenuOpen} className={`public-mobile-navigation absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-slate-200 bg-white px-4 py-4 shadow-md dark:border-[#2b3442] dark:bg-[#171c26] lg:hidden ${isMobileMenuOpen ? 'public-mobile-navigation--open' : ''}`}>
-                    <div className="flex flex-col gap-1">
-
-                        <a
-                            href="#how-it-works"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828] dark:hover:bg-[#202936]"
-                        >
-                            How it works
-                        </a>
-
-                        <a
-                            href="#explore"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828] dark:hover:bg-[#202936]"
-                        >
-                            Explore
-                        </a>
-
-                        <a
-                            href="#why-skillbarter"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828] dark:hover:bg-[#202936]"
-                        >
-                            Why SkillBarter
-                        </a>
-
-                        <a
-                            href="#faq"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#c62828] dark:hover:bg-[#202936]"
-                        >
-                            FAQ
-                        </a>
-
-                        <div className="my-2 border-t border-slate-200" />
-
-                        <Link
-                            to="/login"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block rounded-lg px-3 py-3 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:hover:bg-[#202936]"
-                        >
-                            Log in
-                        </Link>
-                    </div>
-                </div>
         </nav>
     );
 }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { trackEvent } from '../services/analytics';
 import { ArrowRight, ArrowUpRight, Compass, MessageCircle, ShieldCheck, Sparkles, Users, MapPin, BookOpen, BriefcaseBusiness, HeartHandshake, ChevronDown } from 'lucide-react';
+import { SpotlightNavigation } from '../components/layout/SpotlightNavigation';
 
 const steps = [
   ['01', 'Tell us what you know', 'Add the skills you can teach and the skills you want to learn.'],
@@ -117,7 +118,7 @@ const InteractiveInfoBlock: React.FC<{
 };
 
 const PathwaySection: React.FC = () => (
-  <div className="border-b border-[#dedfdd] dark:border-[#2b3442]">
+  <div id="how-it-works" className="border-b border-[#dedfdd] dark:border-[#2b3442]">
     <section className="bg-white dark:bg-[#171c26]">
       <div className="mx-auto grid max-w-7xl grid-cols-1 px-5 sm:px-8 lg:grid-cols-3 lg:px-10">
         <InteractiveInfoBlock label="01" title="Tell us what you know" text="Add the skills you can teach and the skills you want to learn." details={[
@@ -274,6 +275,8 @@ export const LandingPage: React.FC = () => {
   const expandedFaqIndex = (hoveredFaqIndex !== dismissedFaqIndex ? hoveredFaqIndex : null) ?? selectedFaqIndex;
 
   return (
+  <>
+  <SpotlightNavigation />
   <main className="landing-page min-h-screen bg-[#f7f7f5] text-[#17233b] dark:bg-[#10141c] dark:text-[#edf2f7]">
 <section className="relative isolate overflow-hidden border-b border-[#dedfdd] bg-[#f7f7f5] dark:border-[#2b3442] dark:bg-[#10141c]">
   <div
@@ -318,7 +321,7 @@ export const LandingPage: React.FC = () => {
       </div>
     </section>
 
-    <section className="bg-[#f7f7f5] py-16 dark:bg-[#10141c] sm:py-20">
+    <section id="why-skillbarter" className="bg-[#f7f7f5] py-16 dark:bg-[#10141c] sm:py-20">
       <div className="mx-auto max-w-7xl min-w-0 px-5 sm:px-8 lg:px-10">
         <div className="grid min-w-0 gap-12 lg:grid-cols-[.7fr_1.3fr] lg:gap-20">
           <div className="min-w-0"><p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#d31d24]">Designed around peer learning</p><h2 className="mt-4 max-w-md text-3xl font-semibold leading-tight tracking-[-0.04em] sm:text-4xl">Your next skill can start with one person.</h2><p className="mt-5 max-w-md text-[13px] leading-6 text-[#707884]">The product is built around a simple journey: find a peer, start a focused learning exchange, then build trust through real sessions.</p><Link onClick={() => trackEvent('activation_cta_clicked', { source: 'landing_features', action: 'discover' })} to="/discover" className="mt-7 inline-flex items-center gap-2 text-[12px] font-bold text-[#17233b] hover:text-[#d31d24]">Find learning partners <ArrowUpRight className="h-4 w-4" /></Link></div>
@@ -416,5 +419,6 @@ export const LandingPage: React.FC = () => {
       </div>
     </section>
   </main>
+  </>
   );
 };
