@@ -6,6 +6,7 @@ import { trackEvent } from '../services/analytics';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Repeat, Lock, Mail, ArrowRight, Phone, ShieldCheck, RotateCcw, KeyRound, CheckCircle2, ChevronDown } from 'lucide-react';
+import { useToast } from '../context/useToast';
 
 export const LoginPage: React.FC = () => {
   const [phone, setPhone] = useState('');
@@ -33,7 +34,6 @@ export const LoginPage: React.FC = () => {
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState<number>(0);
   const [emailFallback, setEmailFallback] = useState(false);
@@ -43,6 +43,7 @@ export const LoginPage: React.FC = () => {
   const [resetSending, setResetSending] = useState(false);
 
   const { login, requestPhoneOtp, verifyPhoneOtp, requestEmailOtp, verifyEmailOtp, loading } = useAuth();
+  const { showError } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,16 +57,15 @@ export const LoginPage: React.FC = () => {
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!phone.trim()) {
-      setError('Please enter your mobile phone number.');
+      showError('Please enter your mobile phone number.');
       return;
     }
 
     try {
-      setError(null);
       setSuccessMessage(null);
       const digits = phone.replace(/\D/g, '');
       if (digits.length < 6 || digits.length > 15) {
-        setError('Please enter a valid mobile number.');
+        showError('Please enter a valid mobile number.');
         return;
       }
       const normalizedPhone = await requestPhoneOtp(`${countryCode}${digits}`);
@@ -74,7 +74,7 @@ export const LoginPage: React.FC = () => {
       setCooldown(30);
       setSuccessMessage(`Verification SMS sent to ${normalizedPhone}. Check your phone.`);
     } catch (err: any) {
-      setError(err.message || 'Unable to send OTP via SMS. Please try again.');
+      showError(err.message || 'Unable to send OTP via SMS. Please try again.');
       if (err.waitSeconds) {
         setCooldown(err.waitSeconds);
       }
@@ -84,33 +84,30 @@ export const LoginPage: React.FC = () => {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otp.trim() || otp.trim().length !== 6) {
-      setError('Please enter the complete 6-digit OTP received via SMS.');
+      showError('Please enter the complete 6-digit OTP received via SMS.');
       return;
     }
 
     try {
-      setError(null);
       await verifyPhoneOtp(phone.trim(), otp.trim());
       setPhoneVerified(true);
       setOtpSent(false);
       setOtp('');
-      setError(null);
       setSuccessMessage('Mobile OTP verified. Login successful.');
       trackEvent('login_completed', { method: 'mobile_otp' });
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Invalid or expired OTP. Please check the code and try again.');
+      showError(err.message || 'Invalid or expired OTP. Please check the code and try again.');
     }
   };
 
   const handleEmailOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!email.trim()) {
-      setError('Enter your email address.');
+      showError('Enter your email address.');
       return;
     }
     try {
-      setError(null);
       setSuccessMessage(null);
       if (!emailOtpSent) {
         await requestEmailOtp(email.trim());
@@ -120,14 +117,14 @@ export const LoginPage: React.FC = () => {
         return;
       }
       if (!/^\d{6}$/.test(emailOtp.trim())) {
-        setError('Enter the complete 6-digit email OTP.');
+        showError('Enter the complete 6-digit email OTP.');
         return;
       }
       await verifyEmailOtp(email.trim(), emailOtp.trim());
       trackEvent('login_completed', { method: 'email_otp' });
       navigate('/feed');
     } catch (err: any) {
-      setError(err.message || 'Unable to verify email OTP.');
+      showError(err.message || 'Unable to verify email OTP.');
       if (err.waitSeconds) setCooldown(err.waitSeconds);
     }
   };
@@ -135,7 +132,6 @@ export const LoginPage: React.FC = () => {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      setError(null);
       await login(email.trim(), password);
       trackEvent('login_completed', { method: 'email_password' });
       navigate('/feed');
@@ -143,23 +139,22 @@ export const LoginPage: React.FC = () => {
       const message = String(err.message || 'Invalid credentials');
       if (/compromised|breach|found in.*records|change.*password|password.*(leak|leaked|compromised)/i.test(message)) {
         setEmailFallback(true);
-        setError('For your security, this password cannot be used. Enter your email below and use “Forgot password?” to create a new password.');
-      } else setError(message);
+        showError('For your security, this password cannot be used. Enter your email below and use “Forgot password?” to create a new password.');
+      } else showError(message);
     }
   };
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
-      setError('Enter your email address first, then choose Forgot password.');
+      showError('Enter your email address first, then choose Forgot password.');
       return;
     }
     try {
       setResetSending(true);
-      setError(null);
       await api.sendResetPasswordEmail(email);
       setSuccessMessage('Password reset instructions were sent to your email. Check your inbox and follow the link.');
     } catch (err: any) {
-      setError(err.message || 'Unable to send password reset email.');
+      showError(err.message || 'Unable to send password reset email.');
     } finally {
       setResetSending(false);
     }
@@ -168,7 +163,7 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="login-page min-h-[85vh] bg-[#f7f7f5] px-5 pb-12 pt-36 sm:px-8 sm:pb-16 sm:pt-40">
-      <div className="mx-auto grid w-full max-w-5xl gap-10 lg:grid-cols-[.8fr_1.2fr] lg:items-start lg:gap-16">
+      <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[minmax(0,1fr)_31rem] lg:items-start lg:gap-14">
         <div className="login-intro lg:sticky lg:top-10">
           <Link to="/" className="login-brand inline-flex items-center gap-3" aria-label="SkillBarter home">
             <span className="flex h-10 w-10 items-center justify-center bg-[#17233b] text-white"><Repeat className="h-5 w-5" /></span>
@@ -183,7 +178,7 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full max-w-xl lg:justify-self-end">
+        <div className="w-full min-w-0 lg:justify-self-end">
           <Card className={`login-card p-5 sm:p-8 ${emailFallback ? "hidden" : ""}`}>
             <div className="mb-6 flex items-center gap-3 border-b border-[#edf0f2] pb-4">
               <span className="flex h-8 w-8 items-center justify-center border border-[#f1c8ca] bg-[#fff7f7] text-[#d31d24]"><Phone className="h-4 w-4" /></span>
@@ -193,9 +188,7 @@ export const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            {error && <div role="alert" className="login-error mb-5">{error}</div>}
-
-            {successMessage && !error && (
+            {successMessage && (
               <div className="login-success mb-5">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-[#d31d24]" />
                 <span>{successMessage}</span>
@@ -224,7 +217,7 @@ export const LoginPage: React.FC = () => {
                 <div>
                   <div className="mb-1.5 flex items-center justify-between gap-3">
                     <label className="login-label" htmlFor="login-otp">6-Digit OTP</label>
-                    <button type="button" onClick={() => { setOtpSent(false); setOtp(''); setError(null); setSuccessMessage(null); }} className="login-secondary-action">Change mobile number</button>
+                    <button type="button" onClick={() => { setOtpSent(false); setOtp(''); setSuccessMessage(null); }} className="login-secondary-action">Change mobile number</button>
                   </div>
                   <div className="relative">
                     <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9aa1ac]" />
@@ -252,7 +245,7 @@ export const LoginPage: React.FC = () => {
           <div className={`login-divider ${emailFallback ? "hidden" : ""}`}><span>or</span></div>
 
           <Card className={`login-email-card p-5 sm:p-6 ${phoneVerified ? 'ring-2 ring-[#d31d24]/20' : ''}`}>
-            <div className="mb-5 flex items-center justify-between gap-4">
+            <div className="mb-6 flex items-center justify-between gap-4">
               <span>
                 <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-[#17233b]">Email OTP sign in</span>
                 <span className="mt-1 block text-[12px] text-[#707884]">Sign in independently with Email OTP or your password</span>
@@ -261,32 +254,32 @@ export const LoginPage: React.FC = () => {
             </div>
 
             {emailOtpSent ? (
-              <form onSubmit={handleEmailOtp} className="space-y-4">
+              <form onSubmit={handleEmailOtp} className="space-y-5">
                 <div>
                   <label className="login-label" htmlFor="login-email-otp">6-Digit Email OTP</label>
                   <div className="relative mt-1.5">
                     <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9aa1ac]" />
-                    <input id="login-email-otp" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={emailOtp} onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))} placeholder="••••••" className="login-input w-full pl-9 pr-3 text-center font-mono text-lg tracking-[0.5em]" required />
+                    <input id="login-email-otp" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={emailOtp} onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))} placeholder="••••••" className="login-input h-[42px] w-full pl-9 pr-3 text-center font-mono text-lg tracking-[0.5em]" required />
                   </div>
                   <p className="login-help">Code sent to <span className="font-semibold text-[#17233b]">{email.trim()}</span>. It expires after 5 minutes.</p>
                 </div>
                 <Button type="submit" loading={loading} className="login-primary-button w-full">Verify Email OTP &amp; Sign In</Button>
                 <div className="flex items-center justify-center gap-4">
                   <button type="button" disabled={cooldown > 0 || loading} onClick={() => handleEmailOtp()} className="login-secondary-action disabled:opacity-50">{cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend OTP'}</button>
-                  <button type="button" onClick={() => { setEmailOtpSent(false); setEmailOtp(''); setError(null); }} className="login-secondary-action">Change email</button>
+                  <button type="button" onClick={() => { setEmailOtpSent(false); setEmailOtp(''); }} className="login-secondary-action">Change email</button>
                 </div>
               </form>
             ) : (
-              <form onSubmit={handleEmailOtp} className="space-y-4">
+              <form onSubmit={handleEmailOtp} className="space-y-5">
                 <div>
                   <label className="login-label" htmlFor="login-email">Email Address</label>
                   <div className="relative mt-1.5">
                     <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9aa1ac]" />
-                    <input id="login-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="login-input w-full pl-9 pr-3" required />
+                    <input id="login-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="login-input h-[42px] w-full pl-9 pr-3" required />
                   </div>
                 </div>
                 <Button type="submit" loading={loading} disabled={loading || cooldown > 0} className="login-primary-button w-full">Send OTP to Email</Button>
-                <button type="button" onClick={() => { setEmailPasswordMode(true); setError(null); }} className="login-secondary-action w-full">Use email &amp; password instead</button>
+                <button type="button" onClick={() => setEmailPasswordMode(true)} className="login-secondary-action w-full">Use email &amp; password instead</button>
               </form>
             )}
 
@@ -296,12 +289,12 @@ export const LoginPage: React.FC = () => {
                   <label className="login-label" htmlFor="login-password">Password</label>
                   <div className="relative mt-1.5">
                     <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9aa1ac]" />
-                    <input id="login-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="login-input w-full pl-9 pr-3" required />
+                    <input id="login-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="login-input h-[42px] w-full pl-9 pr-3" required />
                   </div>
                 </div>
                 <Button type="submit" loading={loading} className="login-primary-button w-full">Sign In with Password</Button>
                 <button type="button" onClick={handleForgotPassword} disabled={resetSending || loading} className="login-reset-action w-full disabled:opacity-50">{resetSending ? 'Sending reset instructions...' : 'Forgot password?'}</button>
-                <button type="button" onClick={() => { setEmailPasswordMode(false); setError(null); }} className="login-secondary-action w-full">Back to Email OTP</button>
+                <button type="button" onClick={() => setEmailPasswordMode(false)} className="login-secondary-action w-full">Back to Email OTP</button>
               </form>
             )}
           </Card>

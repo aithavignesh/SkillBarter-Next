@@ -120,7 +120,7 @@ export const SignupPage: React.FC = () => {
   ];
 
   return (
-    <div className="signup-page min-h-[85vh] bg-[#f7f7f5] px-5 py-12 sm:px-8 sm:py-16">
+    <div className="signup-page min-h-[85vh] px-5 py-12 sm:px-8 sm:py-16">
       <div className="mx-auto w-full max-w-[560px]">
         <header className="text-center">
           <Link to="/" className="signup-brand inline-flex items-center gap-2" aria-label="SkillBarter home">
@@ -131,7 +131,7 @@ export const SignupPage: React.FC = () => {
           </Link>
           <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.2em] text-[#d31d24]">Create your SkillBarter account</p>
           <h1 className="mt-3 text-3xl font-semibold tracking-[-0.045em] text-[#17233b] sm:text-4xl">Start with the basics.</h1>
-          <p className="mx-auto mt-3 max-w-md text-[13px] leading-6 text-[#707884]">Verify your mobile number, then create your account.</p>
+          <p className="signup-description mx-auto mt-3 max-w-md text-[13px] leading-6">Verify your mobile number, then create your account.</p>
         </header>
 
         <div className="signup-progress mt-8 flex items-center justify-center gap-3 text-[10px] font-bold tracking-[0.14em]">
@@ -143,18 +143,18 @@ export const SignupPage: React.FC = () => {
         <Card className="signup-card mt-8 p-5 sm:p-8">
           <div className="mb-6 flex items-center gap-3 border-b border-[#edf0f2] pb-4">
             <span className="h-2 w-2 bg-[#d31d24]" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#17233b]">Your account</span>
+            <span className="signup-section-title text-[10px] font-bold uppercase tracking-[0.18em]">Your account</span>
           </div>
 
           <form onSubmit={handleSignup} className="space-y-5">
             {error && (
-              <div role="alert" className="border border-[#f1c8ca] bg-[#fff7f7] px-3 py-2.5 text-xs text-[#8f1a20]">
+              <div role="alert" className="signup-error border px-3 py-2.5 text-xs">
                 {error}
               </div>
             )}
 
             <div>
-              <label htmlFor="signup-full-name" className="mb-1.5 block text-xs font-semibold text-[#17233b]">Full Name</label>
+              <label htmlFor="signup-full-name" className="signup-label mb-1.5 block text-xs font-semibold">Full Name</label>
               <div className="relative">
                 <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9aa1ac]" />
                 <input id="signup-full-name" type="text" autoComplete="name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="e.g. Ramesh Kumar" className="signup-input w-full pl-9 pr-3" required />
@@ -162,25 +162,25 @@ export const SignupPage: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="signup-username" className="mb-1.5 block text-xs font-semibold text-[#17233b]">Username</label>
+              <label htmlFor="signup-username" className="signup-label mb-1.5 block text-xs font-semibold">Username</label>
               <div className="relative">
                 <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9aa1ac]" />
                 <input id="signup-username" type="text" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 30))} placeholder="e.g. vignesh_aitha" className="signup-input w-full pl-9 pr-3" minLength={3} maxLength={30} required />
               </div>
-              <p className="mt-1.5 text-[11px] leading-5 text-[#8a92a0]">Your unique public name for search and your profile.</p>
+              <p className="signup-help mt-1.5 text-[11px] leading-5">Your unique public name for search and your profile.</p>
             </div>
 
             <div>
-              <label htmlFor="signup-email" className="mb-1.5 block text-xs font-semibold text-[#17233b]">Email</label>
+              <label htmlFor="signup-email" className="signup-label mb-1.5 block text-xs font-semibold">Email</label>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9aa1ac]" />
                 <input id="signup-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. you@example.com" className="signup-input w-full pl-9 pr-3" required />
               </div>
-              <p className="mt-1.5 text-[11px] leading-5 text-[#8a92a0]">Your email is used for account access and important notifications.</p>
+              <p className="signup-help mt-1.5 text-[11px] leading-5">Your email is used for account access and important notifications.</p>
             </div>
 
             <div>
-              <label htmlFor="signup-phone" className="mb-1.5 block text-xs font-semibold text-[#17233b]">Mobile Number</label>
+              <label htmlFor="signup-phone" className="signup-label mb-1.5 block text-xs font-semibold">Mobile Number</label>
               <div className="flex gap-2">
                 <input id="signup-phone" type="tel" autoComplete="tel" value={phone} onChange={(e) => { setPhone(e.target.value); setPhoneVerified(false); setPhoneVerificationToken(''); }} placeholder="+91 70285 54230" className="signup-input min-w-0 flex-1" required disabled={phoneVerified} />
                 <Button type="button" onClick={handleSendPhoneOtp} disabled={loading || phoneVerified || !phone.trim()}>{otpSent ? 'Resend OTP' : 'Send OTP'}</Button>
@@ -191,21 +191,21 @@ export const SignupPage: React.FC = () => {
                   <Button type="button" onClick={handleVerifyPhoneOtp} disabled={loading || otp.length !== 6}>Verify</Button>
                 </div>
               )}
-              <p className="mt-1.5 text-[11px] leading-5 text-[#8a92a0]">{phoneVerified ? 'Mobile number verified.' : 'Mobile OTP verification is required before account creation.'}</p>
+              <p className="signup-help mt-1.5 text-[11px] leading-5">{phoneVerified ? 'Mobile number verified.' : 'Mobile OTP verification is required before account creation.'}</p>
             </div>
 
             <div>
-              <label htmlFor="signup-password" className="mb-1.5 block text-xs font-semibold text-[#17233b]">Password</label>
+              <label htmlFor="signup-password" className="signup-label mb-1.5 block text-xs font-semibold">Password</label>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9aa1ac]" />
                 <input id="signup-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 8 characters" className="signup-input w-full pl-9 pr-11" required minLength={8} />
                 <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="signup-password-toggle" aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
               </div>
-              <p className="mt-1.5 text-[11px] leading-5 text-[#8a92a0]">Use at least 8 characters.</p>
+              <p className="signup-help mt-1.5 text-[11px] leading-5">Use at least 8 characters.</p>
             </div>
 
             <div>
-              <label htmlFor="signup-confirm-password" className="mb-1.5 block text-xs font-semibold text-[#17233b]">Confirm Password</label>
+              <label htmlFor="signup-confirm-password" className="signup-label mb-1.5 block text-xs font-semibold">Confirm Password</label>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9aa1ac]" />
                 <input id="signup-confirm-password" type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter your password" className="signup-input w-full pl-9 pr-11" required minLength={8} />
@@ -216,20 +216,20 @@ export const SignupPage: React.FC = () => {
             <div className="signup-next-step flex items-start gap-3">
               <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-[#d31d24]" />
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#17233b]">Next</p>
-                <p className="mt-1 text-[13px] font-semibold text-[#17233b]">Build your learning profile <span className="text-[#d31d24]">→</span></p>
-                <p className="mt-1.5 text-[11px] leading-5 text-[#707884]">After creating your account, we’ll ask what you can teach, what you want to learn, your area, and your learning preferences.</p>
+                <p className="signup-next-title text-[10px] font-bold uppercase tracking-[0.16em]">Next</p>
+                <p className="signup-next-heading mt-1 text-[13px] font-semibold">Build your learning profile <span className="text-[#d31d24]">→</span></p>
+                <p className="signup-next-description mt-1.5 text-[11px] leading-5">After creating your account, we’ll ask what you can teach, what you want to learn, your area, and your learning preferences.</p>
               </div>
             </div>
 
-            <p className="text-[11px] leading-5 text-[#8a92a0]">Your learning profile is completed in the next step. You can change your preferences later, and exact GPS coordinates are never shown publicly.</p>
+            <p className="signup-help text-[11px] leading-5">Your learning profile is completed in the next step. You can change your preferences later, and exact GPS coordinates are never shown publicly.</p>
 
             <Button type="submit" loading={loading} disabled={loading} className="signup-submit w-full" icon={<ArrowRight className="h-4 w-4" />}>
               Create Account & Continue
             </Button>
           </form>
 
-          <div className="mt-7 border-t border-[#edf0f2] pt-5 text-center text-xs text-[#8a92a0]">
+          <div className="signup-footer mt-7 border-t pt-5 text-center text-xs">
             Already have an account?{' '}
             <Link to="/login" className="font-semibold text-[#d31d24] hover:text-[#b8171d] hover:underline">Log in</Link>
           </div>
